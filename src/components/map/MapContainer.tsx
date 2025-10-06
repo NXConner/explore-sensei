@@ -24,6 +24,8 @@ export const MapContainer = () => {
   const markersRef = useRef<google.maps.Marker[]>([]);
   const trafficLayerRef = useRef<google.maps.TrafficLayer | null>(null);
   const savedMeasurementsRef = useRef<google.maps.Polyline[]>([]);
+  const streetViewRef = useRef<google.maps.StreetViewPanorama | null>(null);
+  const [showStreetView, setShowStreetView] = useState(false);
   const { data: jobSites } = useJobSites();
   const { measurement, setDrawingMode, clearDrawings } = useMapDrawing(mapInstanceRef.current);
   const [activeMode, setActiveMode] = useState<DrawingMode>(null);
@@ -91,6 +93,40 @@ export const MapContainer = () => {
         description: "Traffic layer is now visible.",
       });
     }
+  };
+
+  const handleToggleStreetView = () => {
+    if (!mapInstanceRef.current) return;
+
+    setShowStreetView(!showStreetView);
+    
+    if (!showStreetView) {
+      const center = mapInstanceRef.current.getCenter();
+      if (center) {
+        streetViewRef.current = mapInstanceRef.current.getStreetView();
+        streetViewRef.current?.setPosition(center);
+        streetViewRef.current?.setVisible(true);
+        toast({
+          title: "Street View Active",
+          description: "Click and drag to navigate in Street View.",
+        });
+      }
+    } else {
+      streetViewRef.current?.setVisible(false);
+      toast({
+        title: "Street View Closed",
+        description: "Returned to map view.",
+      });
+    }
+  };
+
+  const handleAIDetect = () => {
+    toast({
+      title: "AI Surface Detection",
+      description: "Analyzing visible area for asphalt surfaces...",
+    });
+    // This would trigger the AI detection modal/process
+    // For now, just show a toast notification
   };
 
   const handleSave = async () => {
@@ -313,6 +349,8 @@ export const MapContainer = () => {
         onLocateMe={handleLocateMe}
         onToggleTraffic={handleToggleTraffic}
         showTraffic={trafficLayerRef.current?.getMap() != null}
+        onToggleStreetView={handleToggleStreetView}
+        onAIDetect={handleAIDetect}
       />
       <div
         ref={mapRef}

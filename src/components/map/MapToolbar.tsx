@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Ruler, Circle, Square, MapPin, Trash2, Save, Navigation, Car } from "lucide-react";
+import { Ruler, Circle, Square, MapPin, Trash2, Save, Navigation, Car, Eye, Scan } from "lucide-react";
 import { DrawingMode } from "@/hooks/useMapDrawing";
 
 interface MapToolbarProps {
@@ -11,6 +11,8 @@ interface MapToolbarProps {
   onLocateMe?: () => void;
   onToggleTraffic?: () => void;
   showTraffic?: boolean;
+  onToggleStreetView?: () => void;
+  onAIDetect?: () => void;
 }
 
 export const MapToolbar = ({ 
@@ -20,7 +22,9 @@ export const MapToolbar = ({
   activeMode,
   onLocateMe,
   onToggleTraffic,
-  showTraffic = false
+  showTraffic = false,
+  onToggleStreetView,
+  onAIDetect
 }: MapToolbarProps) => {
   const tools = [
     { mode: "measure" as DrawingMode, icon: Ruler, label: "Measure Distance" },
@@ -52,6 +56,30 @@ export const MapToolbar = ({
               title="Toggle Traffic"
             >
               <Car className="w-5 h-5" />
+            </Button>
+          )}
+
+          {onToggleStreetView && (
+            <Button
+              variant="outline"
+              size="icon"
+              className="w-12 h-12 hud-element border-purple-500/30 hover:border-purple-500/50 transition-all animate-fade-in"
+              onClick={onToggleStreetView}
+              title="Street View"
+            >
+              <Eye className="w-5 h-5 text-purple-500" />
+            </Button>
+          )}
+
+          {onAIDetect && (
+            <Button
+              variant="outline"
+              size="icon"
+              className="w-12 h-12 hud-element border-cyan-500/30 hover:border-cyan-500/50 transition-all animate-fade-in pulse"
+              onClick={onAIDetect}
+              title="AI Surface Detection"
+            >
+              <Scan className="w-5 h-5 text-cyan-500" />
             </Button>
           )}
           

@@ -20,10 +20,12 @@ import { FieldReportsModal } from "@/components/reports/FieldReportsModal";
 import { SafetyComplianceModal } from "@/components/safety/SafetyComplianceModal";
 import { CostCatalogModal } from "@/components/catalog/CostCatalogModal";
 import { EstimateCalculatorModal } from "@/components/estimate/EstimateCalculatorModal";
+import { AIAsphaltDetectionModal } from "@/components/ai/AIAsphaltDetectionModal";
 
 const Index = () => {
   const [activeModule, setActiveModule] = useState<string | null>(null);
   const [showAI, setShowAI] = useState(false);
+  const [showAIDetection, setShowAIDetection] = useState(false);
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-background">
@@ -44,6 +46,12 @@ const Index = () => {
 
       {/* AI Assistant */}
       {showAI && <AIAssistant onClose={() => setShowAI(false)} />}
+      
+      {/* AI Asphalt Detection */}
+      <AIAsphaltDetectionModal 
+        isOpen={showAIDetection} 
+        onClose={() => setShowAIDetection(false)} 
+      />
 
       {/* Modals */}
       {activeModule === "dashboard" && (
