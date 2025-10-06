@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { MapContainer } from "@/components/map/MapContainer";
 import { TopBar } from "@/components/layout/TopBar";
 import { LeftSidebar } from "@/components/layout/LeftSidebar";
