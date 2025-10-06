@@ -1,4 +1,4 @@
-import { Activity, Calendar, Users, Truck, DollarSign, User, Briefcase, Clock, Camera, Package, FileText, ClipboardList, Shield } from "lucide-react";
+import { Activity, Calendar, Users, Truck, DollarSign, User, Briefcase, Clock, Camera, HardHat, FileText, ClipboardList, Shield, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface TopBarProps {
@@ -7,55 +7,65 @@ interface TopBarProps {
 
 export const TopBar = ({ onModuleClick }: TopBarProps) => {
   const modules = [
-    { id: "dashboard", icon: Activity, label: "DASHBOARD" },
+    { id: "dashboard", icon: Activity, label: "DASH" },
     { id: "jobs", icon: Briefcase, label: "JOBS" },
     { id: "time", icon: Clock, label: "TIME" },
     { id: "photos", icon: Camera, label: "PHOTOS" },
-    { id: "equipment", icon: Package, label: "EQUIPMENT" },
-    { id: "invoicing", icon: FileText, label: "INVOICING" },
+    { id: "equipment", icon: HardHat, label: "EQUIP" },
+    { id: "invoicing", icon: FileText, label: "INVOICE" },
     { id: "field-reports", icon: ClipboardList, label: "REPORTS" },
     { id: "safety", icon: Shield, label: "SAFETY" },
     { id: "schedule", icon: Calendar, label: "SCHEDULE" },
     { id: "clients", icon: Users, label: "CLIENTS" },
     { id: "fleet", icon: Truck, label: "FLEET" },
     { id: "finance", icon: DollarSign, label: "FINANCE" },
-    { id: "payroll", icon: User, label: "PAYROLL" },
+    { id: "payroll", icon: Wallet, label: "PAYROLL" },
   ];
 
   return (
-    <div className="absolute top-0 left-0 right-0 z-[1000] hud-element">
-      <div className="flex items-center justify-between p-2 border-b border-primary/30">
-        {/* Logo */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary rounded flex items-center justify-center">
-            <span className="text-xl font-bold">AOS</span>
+    <div className="absolute top-0 left-0 right-0 z-[1000] hud-element animate-fade-in">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between p-2 md:p-3 gap-2 border-b border-primary/30">
+        {/* Top row on mobile: Logo and Profile */}
+        <div className="flex items-center justify-between w-full md:w-auto">
+          {/* Logo */}
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="w-8 h-8 md:w-10 md:h-10 bg-primary rounded flex items-center justify-center">
+              <span className="text-lg md:text-xl font-bold">AOS</span>
+            </div>
+            <div className="hidden sm:block">
+              <h1 className="text-xs md:text-sm font-bold text-glow text-primary tracking-wider">
+                ASPHALT OVERWATCH
+              </h1>
+              <p className="text-[10px] md:text-xs text-muted-foreground">Tactical Operations System</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-sm font-bold text-glow text-primary tracking-wider">
-              ASPHALT OVERWATCH
-            </h1>
-            <p className="text-xs text-muted-foreground">Tactical Operations System</p>
-          </div>
+
+          {/* User Profile - visible on mobile */}
+          <a href="/profile" className="flex md:hidden items-center gap-2 hover:opacity-80 transition-opacity">
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+              <User className="w-4 h-4" />
+            </div>
+          </a>
         </div>
 
-        {/* Module Buttons */}
-        <div className="flex gap-2">
+        {/* Module Buttons - scrollable on mobile */}
+        <div className="flex gap-1 md:gap-2 overflow-x-auto w-full md:w-auto scrollbar-hide pb-1 md:pb-0">
           {modules.map((module) => (
             <Button
               key={module.id}
               onClick={() => onModuleClick(module.id)}
               variant="ghost"
               size="sm"
-              className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider hover:bg-primary/20 hover:text-primary border border-transparent hover:border-primary/50 transition-all"
+              className="flex items-center gap-1 md:gap-2 text-[10px] md:text-xs font-bold uppercase tracking-wider hover:bg-primary/20 hover:text-primary border border-transparent hover:border-primary/50 transition-all whitespace-nowrap px-2 md:px-3 hover-scale"
             >
-              <module.icon className="w-4 h-4" />
-              {module.label}
+              <module.icon className="w-3 h-3 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">{module.label}</span>
             </Button>
           ))}
         </div>
 
-        {/* User Profile */}
-        <a href="/profile" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+        {/* User Profile - visible on desktop */}
+        <a href="/profile" className="hidden md:flex items-center gap-2 hover:opacity-80 transition-opacity">
           <div className="text-right">
             <p className="text-xs font-bold">OPERATOR</p>
             <p className="text-xs text-muted-foreground cursor-pointer hover:text-primary transition-colors">ADMIN</p>

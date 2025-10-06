@@ -37,6 +37,59 @@ export const MapContainer = () => {
     setActiveMode(null);
   };
 
+  const handleLocateMe = () => {
+    if (!mapInstanceRef.current) return;
+    
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+          mapInstanceRef.current?.panTo(userLocation);
+          mapInstanceRef.current?.setZoom(18);
+          
+          toast({
+            title: "Location Found",
+            description: "Map centered on your location.",
+          });
+        },
+        (error) => {
+          toast({
+            title: "Location Error",
+            description: "Unable to get your location. Please enable location services.",
+            variant: "destructive",
+          });
+        }
+      );
+    } else {
+      toast({
+        title: "Not Supported",
+        description: "Geolocation is not supported by your browser.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleToggleTraffic = () => {
+    if (!trafficLayerRef.current || !mapInstanceRef.current) return;
+    
+    if (trafficLayerRef.current.getMap()) {
+      trafficLayerRef.current.setMap(null);
+      toast({
+        title: "Traffic Hidden",
+        description: "Traffic layer has been hidden.",
+      });
+    } else {
+      trafficLayerRef.current.setMap(mapInstanceRef.current);
+      toast({
+        title: "Traffic Shown",
+        description: "Traffic layer is now visible.",
+      });
+    }
+  };
+
   const handleSave = async () => {
     if (!measurement.distance && !measurement.area) {
       toast({
@@ -48,10 +101,15 @@ export const MapContainer = () => {
     }
 
     try {
+      const center = mapInstanceRef.current?.getCenter();
       const { error } = await supabase.from("Mapmeasurements").insert({
         type: measurement.distance ? "distance" : "area",
         value: measurement.distance || measurement.area,
         unit: measurement.distance ? "meters" : "square_meters",
+        geojson: center ? {
+          type: "Point",
+          coordinates: [center.lng(), center.lat()]
+        } : null,
       });
 
       if (error) throw error;
@@ -188,6 +246,9 @@ export const MapContainer = () => {
         onClear={handleClear}
         onSave={handleSave}
         activeMode={activeMode}
+        onLocateMe={handleLocateMe}
+        onToggleTraffic={handleToggleTraffic}
+        showTraffic={trafficLayerRef.current?.getMap() != null}
       />
       <div
         ref={mapRef}
