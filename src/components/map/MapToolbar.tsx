@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Ruler, Circle, Square, MapPin, Trash2, Save, Navigation, Car, Eye, Scan } from "lucide-react";
+import { Ruler, Circle, Square, MapPin, Trash2, Save, Navigation, Car, Eye, Scan, Download } from "lucide-react";
 import { DrawingMode } from "@/hooks/useMapDrawing";
+import { MeasurementExportModal } from "@/components/export/MeasurementExportModal";
 
 interface MapToolbarProps {
   onModeChange: (mode: DrawingMode) => void;
@@ -26,6 +27,8 @@ export const MapToolbar = ({
   onToggleStreetView,
   onAIDetect
 }: MapToolbarProps) => {
+  const [showExport, setShowExport] = useState(false);
+  
   const tools = [
     { mode: "measure" as DrawingMode, icon: Ruler, label: "Measure Distance" },
     { mode: "circle" as DrawingMode, icon: Circle, label: "Measure Area (Circle)" },
@@ -123,6 +126,18 @@ export const MapToolbar = ({
       >
         <Trash2 className="w-5 h-5 text-red-500" />
       </Button>
+
+      <Button
+        variant="outline"
+        size="icon"
+        className="w-12 h-12 hud-element border-blue-500/30 hover:border-blue-500/50"
+        onClick={() => setShowExport(true)}
+        title="Export Measurements"
+      >
+        <Download className="w-5 h-5 text-blue-500" />
+      </Button>
+
+      <MeasurementExportModal isOpen={showExport} onClose={() => setShowExport(false)} />
     </div>
   );
 };

@@ -7,6 +7,7 @@ import { useMapDrawing, DrawingMode } from "@/hooks/useMapDrawing";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMapMeasurements } from "@/hooks/useMapMeasurements";
+import { AIAsphaltDetectionModal } from "@/components/ai/AIAsphaltDetectionModal";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyBaUoISC-zfsvfJumBuZnstJv9uf4BgWJM";
 
@@ -26,6 +27,7 @@ export const MapContainer = () => {
   const savedMeasurementsRef = useRef<google.maps.Polyline[]>([]);
   const streetViewRef = useRef<google.maps.StreetViewPanorama | null>(null);
   const [showStreetView, setShowStreetView] = useState(false);
+  const [showAIDetection, setShowAIDetection] = useState(false);
   const { data: jobSites } = useJobSites();
   const { measurement, setDrawingMode, clearDrawings } = useMapDrawing(mapInstanceRef.current);
   const [activeMode, setActiveMode] = useState<DrawingMode>(null);
@@ -121,12 +123,7 @@ export const MapContainer = () => {
   };
 
   const handleAIDetect = () => {
-    toast({
-      title: "AI Surface Detection",
-      description: "Analyzing visible area for asphalt surfaces...",
-    });
-    // This would trigger the AI detection modal/process
-    // For now, just show a toast notification
+    setShowAIDetection(true);
   };
 
   const handleSave = async () => {
@@ -357,6 +354,12 @@ export const MapContainer = () => {
         className="absolute inset-0 w-full h-full"
         style={{ filter: "brightness(0.8)" }}
       />
+      {showAIDetection && (
+        <AIAsphaltDetectionModal 
+          isOpen={showAIDetection} 
+          onClose={() => setShowAIDetection(false)} 
+        />
+      )}
     </MapContext.Provider>
   );
 };

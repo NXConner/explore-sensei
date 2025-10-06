@@ -21,6 +21,7 @@ import { SafetyComplianceModal } from "@/components/safety/SafetyComplianceModal
 import { CostCatalogModal } from "@/components/catalog/CostCatalogModal";
 import { EstimateCalculatorModal } from "@/components/estimate/EstimateCalculatorModal";
 import { AIAsphaltDetectionModal } from "@/components/ai/AIAsphaltDetectionModal";
+import { RouteOptimizationModal } from "@/components/route/RouteOptimizationModal";
 
 const Index = () => {
   const [activeModule, setActiveModule] = useState<string | null>(null);
@@ -98,6 +99,9 @@ const Index = () => {
       )}
       {activeModule === "estimate" && (
         <EstimateCalculatorModal isOpen={true} onClose={() => setActiveModule(null)} />
+      )}
+      {activeModule === "route" && (
+        <RouteOptimizationModal isOpen={true} onClose={() => setActiveModule(null)} />
       )}
     </div>
   );
