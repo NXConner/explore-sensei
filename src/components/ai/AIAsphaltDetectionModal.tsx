@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Scan, Upload, MapPin } from "lucide-react";
+import { Scan, Upload, MapPin, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
+import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface AIAsphaltDetectionModalProps {
   isOpen: boolean;
@@ -12,67 +14,103 @@ interface AIAsphaltDetectionModalProps {
 
 export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionModalProps) => {
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [results, setResults] = useState<any>(null);
+  const [error, setError] = useState<string>("");
+  const [selectedImage, setSelectedImage] = useState<string>("");
 
-  const handleAnalyze = async () => {
-    setIsAnalyzing(true);
-    setProgress(0);
+  const analyzeImage = async (imageDataUrl: string) => {
+    try {
+      setIsAnalyzing(true);
+      setProgress(10);
+      setError("");
+      setResults(null);
 
-    // Simulate AI analysis progress
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsAnalyzing(false);
-          setResults({
-            surfaces: [
-              {
-                id: 1,
-                type: "Parking Lot",
-                area_sqft: 15420,
-                area_sqm: 1432,
-                condition: "Good",
-                confidence: 0.94,
-              },
-              {
-                id: 2,
-                type: "Road Surface",
-                area_sqft: 8650,
-                area_sqm: 803,
-                condition: "Fair",
-                confidence: 0.89,
-              },
-              {
-                id: 3,
-                type: "Driveway",
-                area_sqft: 3280,
-                area_sqm: 305,
-                condition: "Excellent",
-                confidence: 0.96,
-              },
-            ],
-            total_area_sqft: 27350,
-            total_area_sqm: 2540,
-          });
-          toast({
-            title: "Analysis Complete",
-            description: "AI has detected and measured all asphalt surfaces.",
-          });
-          return 100;
-        }
-        return prev + 2;
+      console.log('Calling AI analysis function...');
+
+      const { data, error: functionError } = await supabase.functions.invoke('analyze-asphalt', {
+        body: { imageData: imageDataUrl }
       });
-    }, 100);
+
+      setProgress(90);
+
+      if (functionError) {
+        throw functionError;
+      }
+
+      if (!data?.success) {
+        throw new Error(data?.error || 'Analysis failed');
+      }
+
+      setProgress(100);
+      setResults(data.analysis);
+
+      toast({
+        title: "Analysis Complete",
+        description: `Surface condition: ${data.analysis.condition}. Confidence: ${data.analysis.confidence_score}%`,
+      });
+
+    } catch (err: any) {
+      console.error('Analysis error:', err);
+      const errorMsg = err.message || 'Failed to analyze image';
+      setError(errorMsg);
+      toast({
+        title: "Analysis Failed",
+        description: errorMsg,
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzing(false);
+      setProgress(0);
+    }
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid File",
+        description: "Please upload an image file (JPG, PNG, etc.)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File Too Large",
+        description: "Please upload an image smaller than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Processing Image",
+      description: "Converting image for AI analysis...",
+    });
+
+    // Convert to base64
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const dataUrl = e.target?.result as string;
+      setSelectedImage(dataUrl);
+      await analyzeImage(dataUrl);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleUseCurrentView = () => {
     toast({
-      title: "Capturing Map View",
-      description: "Analyzing current visible area...",
+      title: "Feature Coming Soon",
+      description: "Map view capture will be available in the next update. Please upload an image for now.",
     });
-    handleAnalyze();
   };
 
   return (
@@ -91,86 +129,170 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
               onClick={handleUseCurrentView}
               disabled={isAnalyzing}
               className="h-24 flex flex-col gap-2"
+              variant="outline"
             >
               <MapPin className="w-6 h-6" />
               <span>Analyze Current View</span>
+              <span className="text-xs text-muted-foreground">(Coming Soon)</span>
             </Button>
             <Button
-              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
               disabled={isAnalyzing}
               className="h-24 flex flex-col gap-2"
             >
               <Upload className="w-6 h-6" />
               <span>Upload Aerial Image</span>
+              <span className="text-xs">AI-Powered Analysis</span>
             </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
           </div>
+
+          {selectedImage && (
+            <div className="border rounded-lg p-2">
+              <img 
+                src={selectedImage} 
+                alt="Selected for analysis" 
+                className="w-full h-48 object-cover rounded"
+              />
+            </div>
+          )}
+
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
           {isAnalyzing && (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span>Analyzing surfaces...</span>
+                <span>AI analyzing asphalt surface...</span>
                 <span>{progress}%</span>
               </div>
               <Progress value={progress} className="h-2" />
+              <p className="text-xs text-muted-foreground">
+                Using Gemini 2.5 Flash vision model for surface analysis
+              </p>
             </div>
           )}
 
           {results && (
             <div className="space-y-4 animate-fade-in">
               <div className="border rounded-lg p-4 bg-accent/20">
-                <h3 className="font-semibold mb-3">Detection Results</h3>
-                <div className="grid grid-cols-2 gap-4 mb-4">
+                <h3 className="font-semibold mb-3">AI Analysis Results</h3>
+                
+                <div className="grid grid-cols-3 gap-4 mb-4">
                   <div>
-                    <div className="text-sm text-muted-foreground">Total Area</div>
-                    <div className="text-2xl font-bold text-primary">
-                      {results.total_area_sqft.toLocaleString()} ft²
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      ({results.total_area_sqm.toLocaleString()} m²)
+                    <div className="text-sm text-muted-foreground">Condition</div>
+                    <div className="text-xl font-bold text-primary">
+                      {results.condition}
                     </div>
                   </div>
                   <div>
-                    <div className="text-sm text-muted-foreground">Surfaces Detected</div>
-                    <div className="text-2xl font-bold text-primary">
-                      {results.surfaces.length}
+                    <div className="text-sm text-muted-foreground">Confidence</div>
+                    <div className="text-xl font-bold text-primary">
+                      {results.confidence_score}%
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-muted-foreground">Priority</div>
+                    <div className="text-xl font-bold text-primary">
+                      {results.priority}
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  {results.surfaces.map((surface: any) => (
-                    <div key={surface.id} className="border rounded-lg p-3 bg-background">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <div className="font-semibold">{surface.type}</div>
-                          <div className="text-sm text-muted-foreground">
-                            Condition: {surface.condition}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xs text-muted-foreground">Confidence</div>
-                          <div className="font-semibold">{(surface.confidence * 100).toFixed(1)}%</div>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div>
-                          <span className="text-muted-foreground">Area:</span>{" "}
-                          <span className="font-semibold">{surface.area_sqft.toLocaleString()} ft²</span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Metric:</span>{" "}
-                          <span className="font-semibold">{surface.area_sqm.toLocaleString()} m²</span>
-                        </div>
+                {results.area_sqft > 0 && (
+                  <div className="grid grid-cols-2 gap-4 mb-4 p-3 bg-background rounded-lg">
+                    <div>
+                      <div className="text-sm text-muted-foreground">Area (Imperial)</div>
+                      <div className="text-lg font-bold">
+                        {results.area_sqft.toLocaleString()} ft²
                       </div>
                     </div>
-                  ))}
-                </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground">Area (Metric)</div>
+                      <div className="text-lg font-bold">
+                        {results.area_sqm.toLocaleString()} m²
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {results.detected_issues && results.detected_issues.length > 0 && (
+                  <div className="mb-4">
+                    <div className="text-sm font-semibold mb-2">Detected Issues</div>
+                    <div className="space-y-2">
+                      {results.detected_issues.map((issue: any, idx: number) => (
+                        <div key={idx} className="border rounded p-2 bg-background text-sm">
+                          <span className="font-semibold capitalize">{issue.type.replace(/_/g, ' ')}</span>
+                          {' - '}
+                          <span className="text-muted-foreground">
+                            {issue.severity} ({issue.location})
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {results.recommendations && results.recommendations.length > 0 && (
+                  <div className="mb-4">
+                    <div className="text-sm font-semibold mb-2">Recommendations</div>
+                    <ul className="space-y-1 text-sm">
+                      {results.recommendations.map((rec: string, idx: number) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <span className="text-primary">•</span>
+                          <span>{rec}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {results.estimated_repair_cost && (
+                  <div className="p-3 bg-background rounded-lg mb-4">
+                    <div className="text-sm text-muted-foreground">Estimated Repair Cost</div>
+                    <div className="text-lg font-bold">{results.estimated_repair_cost}</div>
+                  </div>
+                )}
+
+                {results.ai_notes && (
+                  <div className="text-sm p-3 bg-background rounded-lg border-l-4 border-primary">
+                    <div className="font-semibold mb-1">AI Notes:</div>
+                    <div className="text-muted-foreground">{results.ai_notes}</div>
+                  </div>
+                )}
 
                 <div className="flex gap-2 mt-4">
-                  <Button className="flex-1">
+                  <Button 
+                    className="flex-1"
+                    onClick={() => {
+                      toast({
+                        title: "Feature Coming Soon",
+                        description: "Estimate generation will be integrated soon",
+                      });
+                    }}
+                  >
                     Generate Estimate
                   </Button>
-                  <Button variant="outline" className="flex-1">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => {
+                      toast({
+                        title: "Feature Coming Soon",
+                        description: "Report export will be available soon",
+                      });
+                    }}
+                  >
                     Export Report
                   </Button>
                 </div>
@@ -179,11 +301,14 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
           )}
 
           <div className="text-xs text-muted-foreground space-y-1 border-t pt-4">
-            <p><strong>How it works:</strong></p>
-            <p>• AI analyzes aerial/satellite imagery to identify asphalt surfaces</p>
-            <p>• Automatically outlines and measures detected areas</p>
-            <p>• Provides area calculations in both imperial and metric units</p>
-            <p>• Estimates surface condition based on visual analysis</p>
+            <p><strong>AI-Powered Analysis:</strong></p>
+            <p>• Upload aerial or ground-level images of asphalt surfaces</p>
+            <p>• AI analyzes condition, detects issues (cracks, potholes, wear)</p>
+            <p>• Provides detailed recommendations and cost estimates</p>
+            <p>• Powered by Google Gemini 2.5 Flash vision model</p>
+            <p className="text-yellow-600 dark:text-yellow-500 font-semibold pt-2">
+              ⚠️ Free Gemini models until Oct 13, 2025
+            </p>
           </div>
         </div>
       </DialogContent>
