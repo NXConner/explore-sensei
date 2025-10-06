@@ -4983,8 +4983,10 @@ export type Database = {
           date: string
           employee_id: string
           id: string
+          job_id: string | null
           location_in: Json | null
           location_out: Json | null
+          notes: string | null
           total_hours: number | null
         }
         Insert: {
@@ -4995,8 +4997,10 @@ export type Database = {
           date?: string
           employee_id: string
           id?: string
+          job_id?: string | null
           location_in?: Json | null
           location_out?: Json | null
+          notes?: string | null
           total_hours?: number | null
         }
         Update: {
@@ -5007,8 +5011,10 @@ export type Database = {
           date?: string
           employee_id?: string
           id?: string
+          job_id?: string | null
           location_in?: Json | null
           location_out?: Json | null
+          notes?: string | null
           total_hours?: number | null
         }
         Relationships: [
@@ -5017,6 +5023,13 @@ export type Database = {
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
             referencedColumns: ["id"]
           },
         ]
