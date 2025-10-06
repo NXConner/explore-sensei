@@ -1,7 +1,10 @@
-import React, { useEffect, useRef, createContext, useContext } from "react";
+import React, { useEffect, useRef, createContext, useContext, useState } from "react";
 import { useJobSites } from "@/hooks/useJobSites";
 import { MeasurementDisplay } from "./MeasurementDisplay";
-import { useMapDrawing } from "@/hooks/useMapDrawing";
+import { MapToolbar } from "./MapToolbar";
+import { useMapDrawing, DrawingMode } from "@/hooks/useMapDrawing";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyBaUoISC-zfsvfJumBuZnstJv9uf4BgWJM";
 
@@ -19,7 +22,52 @@ export const MapContainer = () => {
   const markersRef = useRef<google.maps.Marker[]>([]);
   const trafficLayerRef = useRef<google.maps.TrafficLayer | null>(null);
   const { data: jobSites } = useJobSites();
-  const { measurement } = useMapDrawing(mapInstanceRef.current);
+  const { measurement, setDrawingMode, clearDrawings } = useMapDrawing(mapInstanceRef.current);
+  const [activeMode, setActiveMode] = useState<DrawingMode>(null);
+  const { toast } = useToast();
+
+  const handleModeChange = (mode: DrawingMode) => {
+    setActiveMode(mode);
+    setDrawingMode(mode);
+  };
+
+  const handleClear = () => {
+    clearDrawings();
+    setActiveMode(null);
+  };
+
+  const handleSave = async () => {
+    if (!measurement.distance && !measurement.area) {
+      toast({
+        title: "No Measurement",
+        description: "Please create a measurement first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase.from("Mapmeasurements").insert({
+        type: measurement.distance ? "distance" : "area",
+        value: measurement.distance || measurement.area,
+        unit: measurement.distance ? "meters" : "square_meters",
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Measurement Saved",
+        description: "Your measurement has been saved successfully.",
+      });
+    } catch (error) {
+      console.error("Error saving measurement:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save measurement.",
+        variant: "destructive",
+      });
+    }
+  };
 
   useEffect(() => {
     const loadGoogleMaps = () => {
@@ -134,6 +182,12 @@ export const MapContainer = () => {
   return (
     <MapContext.Provider value={{ map: mapInstanceRef.current }}>
       <MeasurementDisplay distance={measurement.distance} area={measurement.area} />
+      <MapToolbar
+        onModeChange={handleModeChange}
+        onClear={handleClear}
+        onSave={handleSave}
+        activeMode={activeMode}
+      />
       <div
         ref={mapRef}
         className="absolute inset-0 w-full h-full"
