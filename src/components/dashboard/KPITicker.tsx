@@ -1,11 +1,39 @@
+import React from "react";
 import { TrendingUp, TrendingDown, DollarSign, Truck, Users, Calendar } from "lucide-react";
+import { useKPIData } from "@/hooks/useKPIData";
 
 export const KPITicker = () => {
+  const { data: kpiData } = useKPIData();
+
   const kpis = [
-    { label: "Revenue", value: "$2.4M", change: "+12%", trend: "up", icon: DollarSign },
-    { label: "Active Jobs", value: "23", change: "+3", trend: "up", icon: Calendar },
-    { label: "Fleet Utilization", value: "87%", change: "-2%", trend: "down", icon: Truck },
-    { label: "Crew Members", value: "156", change: "+8", trend: "up", icon: Users },
+    {
+      label: "Revenue",
+      value: `$${((kpiData?.totalRevenue || 0) / 1000000).toFixed(1)}M`,
+      change: "+12%",
+      trend: "up",
+      icon: DollarSign,
+    },
+    {
+      label: "Active Jobs",
+      value: String(kpiData?.activeJobs || 0),
+      change: "+3",
+      trend: "up",
+      icon: Calendar,
+    },
+    {
+      label: "Fleet Utilization",
+      value: `${kpiData?.fleetUtilization || 0}%`,
+      change: "-2%",
+      trend: "down",
+      icon: Truck,
+    },
+    {
+      label: "Crew Members",
+      value: String(kpiData?.crewMembers || 0),
+      change: "+8",
+      trend: "up",
+      icon: Users,
+    },
   ];
 
   return (

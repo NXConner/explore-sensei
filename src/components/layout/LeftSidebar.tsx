@@ -1,23 +1,46 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { MapPin, Layers, Ruler, Circle, Square, Edit3, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useMap } from "@/components/map/MapContainer";
+import { useMapDrawing, DrawingMode } from "@/hooks/useMapDrawing";
+import { useJobSites } from "@/hooks/useJobSites";
 
 export const LeftSidebar = () => {
-  const [activeJobs] = useState([
-    { id: 1, name: "Route 22 Repaving", status: "In Progress", progress: 65 },
-    { id: 2, name: "Parking Lot - Mall", status: "Scheduled", progress: 0 },
-    { id: 3, name: "Street Repairs - Main St", status: "In Progress", progress: 45 },
-  ]);
+  const { map } = useMap();
+  const { data: jobSites } = useJobSites();
+  const { setDrawingMode, clearDrawings } = useMapDrawing(map);
+  const [activeMode, setActiveMode] = useState<DrawingMode>(null);
+  const [showLayers, setShowLayers] = useState({
+    traffic: false,
+    weather: false,
+    darkZones: false,
+    equipment: false,
+  });
 
   const drawingTools = [
-    { icon: MapPin, label: "Marker", action: "marker" },
-    { icon: Edit3, label: "Line", action: "polyline" },
-    { icon: Circle, label: "Circle", action: "circle" },
-    { icon: Square, label: "Rectangle", action: "rectangle" },
-    { icon: Ruler, label: "Measure", action: "measure" },
-    { icon: Trash2, label: "Clear", action: "clear" },
+    { icon: MapPin, label: "Marker", action: "marker" as DrawingMode },
+    { icon: Edit3, label: "Line", action: "polyline" as DrawingMode },
+    { icon: Circle, label: "Circle", action: "circle" as DrawingMode },
+    { icon: Square, label: "Rectangle", action: "rectangle" as DrawingMode },
+    { icon: Ruler, label: "Measure", action: "measure" as DrawingMode },
+    { icon: Trash2, label: "Clear", action: "clear" as const },
   ];
+
+  const handleToolClick = (action: DrawingMode | "clear") => {
+    if (action === "clear") {
+      clearDrawings();
+      setActiveMode(null);
+    } else {
+      setDrawingMode(action);
+      setActiveMode(action);
+    }
+  };
+
+  const handleLayerToggle = (layer: keyof typeof showLayers) => {
+    setShowLayers((prev) => ({ ...prev, [layer]: !prev[layer] }));
+    // TODO: Implement layer toggling on map
+  };
 
   return (
     <div className="absolute left-0 top-16 bottom-0 w-64 z-[900] hud-element border-r border-primary/30">
@@ -31,9 +54,12 @@ export const LeftSidebar = () => {
             {drawingTools.map((tool) => (
               <Button
                 key={tool.action}
+                onClick={() => handleToolClick(tool.action)}
                 variant="outline"
                 size="sm"
-                className="h-12 flex flex-col items-center justify-center gap-1 hover:bg-primary/20 hover:border-primary"
+                className={`h-12 flex flex-col items-center justify-center gap-1 hover:bg-primary/20 hover:border-primary transition-all ${
+                  activeMode === tool.action ? "bg-primary/20 border-primary" : ""
+                }`}
               >
                 <tool.icon className="w-4 h-4" />
                 <span className="text-xs">{tool.label}</span>
@@ -54,7 +80,7 @@ export const LeftSidebar = () => {
           </div>
           <ScrollArea className="h-[calc(100%-2rem)]">
             <div className="space-y-2">
-              {activeJobs.map((job) => (
+              {(jobSites || []).slice(0, 10).map((job) => (
                 <div
                   key={job.id}
                   className="tactical-panel p-2 cursor-pointer hover:border-primary transition-all"
@@ -83,13 +109,23 @@ export const LeftSidebar = () => {
             Map Layers
           </h3>
           <div className="space-y-1">
-            {["Traffic", "Weather", "Dark Zones", "Equipment"].map((layer) => (
+            {[
+              { key: "traffic", label: "Traffic" },
+              { key: "weather", label: "Weather" },
+              { key: "darkZones", label: "Dark Zones" },
+              { key: "equipment", label: "Equipment" },
+            ].map((layer) => (
               <label
-                key={layer}
+                key={layer.key}
                 className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors"
               >
-                <input type="checkbox" className="w-3 h-3" />
-                {layer}
+                <input
+                  type="checkbox"
+                  className="w-3 h-3"
+                  checked={showLayers[layer.key as keyof typeof showLayers]}
+                  onChange={() => handleLayerToggle(layer.key as keyof typeof showLayers)}
+                />
+                {layer.label}
               </label>
             ))}
           </div>
