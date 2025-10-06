@@ -1,3 +1,4 @@
+/// <reference types="@types/google.maps" />
 import React, { useEffect, useRef, createContext, useContext, useState } from "react";
 import { useJobSites } from "@/hooks/useJobSites";
 import { MeasurementDisplay } from "./MeasurementDisplay";

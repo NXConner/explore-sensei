@@ -1013,6 +1013,81 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_field_reports: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          crew_members: string[] | null
+          employee_id: string | null
+          equipment_used: string[] | null
+          hours_worked: number | null
+          id: string
+          issues_encountered: string | null
+          job_id: string | null
+          materials_used: Json | null
+          progress_percentage: number | null
+          report_date: string
+          safety_notes: string | null
+          temperature: number | null
+          updated_at: string
+          weather_conditions: string | null
+          work_performed: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          crew_members?: string[] | null
+          employee_id?: string | null
+          equipment_used?: string[] | null
+          hours_worked?: number | null
+          id?: string
+          issues_encountered?: string | null
+          job_id?: string | null
+          materials_used?: Json | null
+          progress_percentage?: number | null
+          report_date?: string
+          safety_notes?: string | null
+          temperature?: number | null
+          updated_at?: string
+          weather_conditions?: string | null
+          work_performed: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          crew_members?: string[] | null
+          employee_id?: string | null
+          equipment_used?: string[] | null
+          hours_worked?: number | null
+          id?: string
+          issues_encountered?: string | null
+          job_id?: string | null
+          materials_used?: Json | null
+          progress_percentage?: number | null
+          report_date?: string
+          safety_notes?: string | null
+          temperature?: number | null
+          updated_at?: string
+          weather_conditions?: string | null
+          work_performed?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_field_reports_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_field_reports_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       debriefs: {
         Row: {
           content: string | null
@@ -4519,6 +4594,141 @@ export type Database = {
             columns: ["assigned_vehicle_id"]
             isOneToOne: false
             referencedRelation: "fleet_vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      safety_incidents: {
+        Row: {
+          corrective_action: string | null
+          created_at: string
+          description: string
+          employee_id: string | null
+          follow_up_date: string | null
+          follow_up_required: boolean | null
+          id: string
+          immediate_action: string | null
+          incident_date: string
+          incident_type: string
+          job_id: string | null
+          location: string | null
+          reported_by: string | null
+          severity: string
+          status: string
+          updated_at: string
+          witnesses: string[] | null
+        }
+        Insert: {
+          corrective_action?: string | null
+          created_at?: string
+          description: string
+          employee_id?: string | null
+          follow_up_date?: string | null
+          follow_up_required?: boolean | null
+          id?: string
+          immediate_action?: string | null
+          incident_date?: string
+          incident_type: string
+          job_id?: string | null
+          location?: string | null
+          reported_by?: string | null
+          severity?: string
+          status?: string
+          updated_at?: string
+          witnesses?: string[] | null
+        }
+        Update: {
+          corrective_action?: string | null
+          created_at?: string
+          description?: string
+          employee_id?: string | null
+          follow_up_date?: string | null
+          follow_up_required?: boolean | null
+          id?: string
+          immediate_action?: string | null
+          incident_date?: string
+          incident_type?: string
+          job_id?: string | null
+          location?: string | null
+          reported_by?: string | null
+          severity?: string
+          status?: string
+          updated_at?: string
+          witnesses?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "safety_incidents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_incidents_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      safety_inspections: {
+        Row: {
+          checklist_items: Json
+          corrective_actions: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          inspection_date: string
+          inspection_type: string
+          inspector_id: string | null
+          job_id: string | null
+          notes: string | null
+          overall_score: number | null
+          passed: boolean | null
+        }
+        Insert: {
+          checklist_items: Json
+          corrective_actions?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          inspection_date?: string
+          inspection_type: string
+          inspector_id?: string | null
+          job_id?: string | null
+          notes?: string | null
+          overall_score?: number | null
+          passed?: boolean | null
+        }
+        Update: {
+          checklist_items?: Json
+          corrective_actions?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          inspection_date?: string
+          inspection_type?: string
+          inspector_id?: string | null
+          job_id?: string | null
+          notes?: string | null
+          overall_score?: number | null
+          passed?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "safety_inspections_inspector_id_fkey"
+            columns: ["inspector_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_inspections_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
             referencedColumns: ["id"]
           },
         ]

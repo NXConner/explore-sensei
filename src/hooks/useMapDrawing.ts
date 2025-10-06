@@ -1,3 +1,4 @@
+/// <reference types="@types/google.maps" />
 import { useRef, useCallback, useState } from "react";
 
 export type DrawingMode =

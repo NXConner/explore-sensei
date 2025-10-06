@@ -16,6 +16,8 @@ import { TimeTrackingModal } from "@/components/time/TimeTrackingModal";
 import { PhotoDocumentationModal } from "@/components/photos/PhotoDocumentationModal";
 import { EquipmentModal } from "@/components/equipment/EquipmentModal";
 import { InvoicingModal } from "@/components/invoicing/InvoicingModal";
+import { FieldReportsModal } from "@/components/reports/FieldReportsModal";
+import { SafetyComplianceModal } from "@/components/safety/SafetyComplianceModal";
 
 const Index = () => {
   const [activeModule, setActiveModule] = useState<string | null>(null);
@@ -74,6 +76,12 @@ const Index = () => {
       )}
       {activeModule === "invoicing" && (
         <InvoicingModal onClose={() => setActiveModule(null)} />
+      )}
+      {activeModule === "field-reports" && (
+        <FieldReportsModal onClose={() => setActiveModule(null)} />
+      )}
+      {activeModule === "safety" && (
+        <SafetyComplianceModal onClose={() => setActiveModule(null)} />
       )}
     </div>
   );

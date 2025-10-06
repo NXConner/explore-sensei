@@ -1,3 +1,4 @@
+/// <reference types="@types/google.maps" />
 import { useState, useCallback } from "react";
 
 export const useAddressSearch = (map: google.maps.Map | null) => {
