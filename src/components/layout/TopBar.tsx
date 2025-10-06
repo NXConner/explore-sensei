@@ -1,4 +1,4 @@
-import { Activity, Calendar, Users, Truck, DollarSign, User, Briefcase, Clock, Camera, Package } from "lucide-react";
+import { Activity, Calendar, Users, Truck, DollarSign, User, Briefcase, Clock, Camera, Package, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface TopBarProps {
@@ -12,6 +12,7 @@ export const TopBar = ({ onModuleClick }: TopBarProps) => {
     { id: "time", icon: Clock, label: "TIME" },
     { id: "photos", icon: Camera, label: "PHOTOS" },
     { id: "equipment", icon: Package, label: "EQUIPMENT" },
+    { id: "invoicing", icon: FileText, label: "INVOICING" },
     { id: "schedule", icon: Calendar, label: "SCHEDULE" },
     { id: "clients", icon: Users, label: "CLIENTS" },
     { id: "fleet", icon: Truck, label: "FLEET" },
