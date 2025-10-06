@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, createContext, useContext } from "react";
 import { useJobSites } from "@/hooks/useJobSites";
+import { MeasurementDisplay } from "./MeasurementDisplay";
+import { useMapDrawing } from "@/hooks/useMapDrawing";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyBaUoISC-zfsvfJumBuZnstJv9uf4BgWJM";
 
@@ -15,7 +17,9 @@ export const MapContainer = () => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
+  const trafficLayerRef = useRef<google.maps.TrafficLayer | null>(null);
   const { data: jobSites } = useJobSites();
+  const { measurement } = useMapDrawing(mapInstanceRef.current);
 
   useEffect(() => {
     const loadGoogleMaps = () => {
@@ -104,6 +108,7 @@ export const MapContainer = () => {
 
   return (
     <MapContext.Provider value={{ map: mapInstanceRef.current }}>
+      <MeasurementDisplay distance={measurement.distance} area={measurement.area} />
       <div
         ref={mapRef}
         className="absolute inset-0 w-full h-full"

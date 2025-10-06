@@ -1,4 +1,4 @@
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useState } from "react";
 
 export type DrawingMode =
   | "marker"
@@ -12,6 +12,7 @@ export const useMapDrawing = (map: google.maps.Map | null) => {
   const drawingManagerRef = useRef<google.maps.drawing.DrawingManager | null>(null);
   const currentShapeRef = useRef<google.maps.MVCObject | null>(null);
   const measurementOverlaysRef = useRef<google.maps.Polyline[]>([]);
+  const [measurement, setMeasurement] = useState<{ distance?: number; area?: number }>({});
 
   const initializeDrawingManager = useCallback(() => {
     if (!map || drawingManagerRef.current) return;
@@ -62,6 +63,19 @@ export const useMapDrawing = (map: google.maps.Map | null) => {
       "overlaycomplete",
       (event: google.maps.drawing.OverlayCompleteEvent) => {
         currentShapeRef.current = event.overlay;
+
+        // Calculate measurements
+        if (event.type === google.maps.drawing.OverlayType.POLYLINE) {
+          const path = (event.overlay as google.maps.Polyline).getPath();
+          const distance = calculateDistance(path.getArray());
+          setMeasurement({ distance });
+        } else if (event.type === google.maps.drawing.OverlayType.CIRCLE) {
+          const area = calculateArea(event.overlay as google.maps.Circle);
+          setMeasurement({ area });
+        } else if (event.type === google.maps.drawing.OverlayType.RECTANGLE) {
+          const area = calculateArea(event.overlay as google.maps.Rectangle);
+          setMeasurement({ area });
+        }
       }
     );
   }, [map]);
@@ -102,6 +116,7 @@ export const useMapDrawing = (map: google.maps.Map | null) => {
 
     measurementOverlaysRef.current.forEach((overlay) => overlay.setMap(null));
     measurementOverlaysRef.current = [];
+    setMeasurement({});
   }, []);
 
   const calculateDistance = useCallback((path: google.maps.LatLng[]) => {
@@ -137,5 +152,6 @@ export const useMapDrawing = (map: google.maps.Map | null) => {
     clearDrawings,
     calculateDistance,
     calculateArea,
+    measurement,
   };
 };
