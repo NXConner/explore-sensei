@@ -2097,6 +2097,63 @@ export type Database = {
         }
         Relationships: []
       }
+      estimate_line_items: {
+        Row: {
+          cost_item_id: string | null
+          created_at: string
+          description: string | null
+          estimate_id: string
+          id: string
+          item_code: string | null
+          item_name: string
+          line_total: number
+          quantity: number
+          unit: string
+          unit_cost: number
+        }
+        Insert: {
+          cost_item_id?: string | null
+          created_at?: string
+          description?: string | null
+          estimate_id: string
+          id?: string
+          item_code?: string | null
+          item_name: string
+          line_total: number
+          quantity: number
+          unit: string
+          unit_cost: number
+        }
+        Update: {
+          cost_item_id?: string | null
+          created_at?: string
+          description?: string | null
+          estimate_id?: string
+          id?: string
+          item_code?: string | null
+          item_name?: string
+          line_total?: number
+          quantity?: number
+          unit?: string
+          unit_cost?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "estimate_line_items_cost_item_id_fkey"
+            columns: ["cost_item_id"]
+            isOneToOne: false
+            referencedRelation: "cost_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "estimate_line_items_estimate_id_fkey"
+            columns: ["estimate_id"]
+            isOneToOne: false
+            referencedRelation: "estimates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       estimates: {
         Row: {
           amount: number | null
@@ -4539,6 +4596,48 @@ export type Database = {
           description?: string | null
           id?: never
           name?: string
+        }
+        Relationships: []
+      }
+      route_optimizations: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+          optimization_method: string | null
+          optimized_route: Json | null
+          start_location: Json
+          stops: Json
+          total_distance: number | null
+          total_duration: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          name: string
+          optimization_method?: string | null
+          optimized_route?: Json | null
+          start_location: Json
+          stops?: Json
+          total_distance?: number | null
+          total_duration?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+          optimization_method?: string | null
+          optimized_route?: Json | null
+          start_location?: Json
+          stops?: Json
+          total_distance?: number | null
+          total_duration?: number | null
+          updated_at?: string
         }
         Relationships: []
       }

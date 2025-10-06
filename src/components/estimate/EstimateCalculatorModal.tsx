@@ -6,8 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Calculator, Download } from "lucide-react";
+import { Calculator, Download, Save } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useEstimates } from "@/hooks/useEstimates";
+import { useToast } from "@/hooks/use-toast";
 
 interface EstimateCalculatorModalProps {
   isOpen: boolean;
@@ -25,9 +27,14 @@ interface EstimateLineItem {
 }
 
 export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorModalProps) => {
+  const { toast } = useToast();
+  const { createEstimate } = useEstimates();
   const [selectedCatalog, setSelectedCatalog] = useState<string>("");
   const [lineItems, setLineItems] = useState<EstimateLineItem[]>([]);
   const [quantity, setQuantity] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [jobSiteAddress, setJobSiteAddress] = useState("");
 
   const { data: catalogs } = useQuery({
     queryKey: ["cost-catalogs"],
@@ -75,8 +82,47 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
   };
 
   const subtotal = lineItems.reduce((sum, item) => sum + item.total, 0);
-  const tax = subtotal * 0.08; // 8% tax
+  const taxRate = 8.0;
+  const tax = subtotal * (taxRate / 100);
   const grandTotal = subtotal + tax;
+
+  const handleSaveEstimate = () => {
+    if (!customerName || lineItems.length === 0) {
+      toast({
+        title: "Missing Information",
+        description: "Please add customer name and at least one line item.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createEstimate({
+      customer_name: customerName,
+      customer_email: customerEmail || undefined,
+      job_site_address: jobSiteAddress || undefined,
+      catalog_id: selectedCatalog || undefined,
+      subtotal: subtotal,
+      tax_rate: taxRate,
+      tax_amount: tax,
+      total: grandTotal,
+      status: 'draft',
+      line_items: lineItems.map(item => ({
+        cost_item_id: item.item_id,
+        item_name: item.name,
+        item_code: item.code,
+        quantity: item.quantity,
+        unit: item.unit,
+        unit_cost: item.unit_cost,
+        line_total: item.total,
+      })),
+    });
+
+    // Reset form
+    setLineItems([]);
+    setCustomerName("");
+    setCustomerEmail("");
+    setJobSiteAddress("");
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -90,9 +136,37 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
 
         <div className="flex-1 grid grid-cols-2 gap-4 overflow-hidden">
           <div className="border rounded-lg p-4 flex flex-col">
-            <h3 className="font-semibold mb-3">Add Items</h3>
+            <h3 className="font-semibold mb-3">Customer & Items</h3>
             
             <div className="space-y-3 mb-4">
+              <div>
+                <Label>Customer Name *</Label>
+                <Input
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  placeholder="John Doe"
+                />
+              </div>
+
+              <div>
+                <Label>Customer Email</Label>
+                <Input
+                  type="email"
+                  value={customerEmail}
+                  onChange={(e) => setCustomerEmail(e.target.value)}
+                  placeholder="john@example.com"
+                />
+              </div>
+
+              <div>
+                <Label>Job Site Address</Label>
+                <Input
+                  value={jobSiteAddress}
+                  onChange={(e) => setJobSiteAddress(e.target.value)}
+                  placeholder="123 Main St"
+                />
+              </div>
+
               <div>
                 <Label>Catalog</Label>
                 <Select value={selectedCatalog} onValueChange={setSelectedCatalog}>
@@ -146,10 +220,20 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
           <div className="border rounded-lg p-4 flex flex-col">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold">Estimate Summary</h3>
-              <Button size="sm" variant="outline">
-                <Download className="w-4 h-4 mr-1" />
-                Export PDF
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  size="sm" 
+                  onClick={handleSaveEstimate}
+                  disabled={!customerName || lineItems.length === 0}
+                >
+                  <Save className="w-4 h-4 mr-1" />
+                  Save
+                </Button>
+                <Button size="sm" variant="outline">
+                  <Download className="w-4 h-4 mr-1" />
+                  Export PDF
+                </Button>
+              </div>
             </div>
 
             <ScrollArea className="flex-1 mb-4">

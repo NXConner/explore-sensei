@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { MapPin, Clock, Route, Download, Play } from "lucide-react";
+import { MapPin, Clock, Route, Download, Play, Save } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
+import { useRouteOptimizations } from "@/hooks/useRouteOptimizations";
 
 interface RouteOptimizationModalProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ interface RouteOptimizationModalProps {
 
 export const RouteOptimizationModal = ({ isOpen, onClose }: RouteOptimizationModalProps) => {
   const { toast } = useToast();
+  const { createRoute } = useRouteOptimizations();
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [optimizedRoute, setOptimizedRoute] = useState<any>(null);
@@ -88,6 +90,31 @@ export const RouteOptimizationModal = ({ isOpen, onClose }: RouteOptimizationMod
     }, 100);
   };
 
+  const handleSaveRoute = () => {
+    if (!optimizedRoute || !jobs || jobs.length === 0) return;
+
+    const firstJob = jobs[0] as any;
+    const jobAddress = firstJob.job_site_address || firstJob.address || firstJob.location || "Start Location";
+
+    createRoute({
+      name: `Route ${new Date().toLocaleDateString()}`,
+      start_location: {
+        address: jobAddress,
+        lat: 0,
+        lng: 0,
+      },
+      stops: optimizedRoute.route.map((job: any) => ({
+        address: job.job_site_address || job.address || job.location || "Unknown",
+        lat: 0,
+        lng: 0,
+      })),
+      optimized_route: optimizedRoute.route,
+      total_distance: parseFloat(optimizedRoute.totalDistance),
+      total_duration: optimizedRoute.totalTime,
+      optimization_method: 'tsp',
+    });
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
@@ -109,10 +136,20 @@ export const RouteOptimizationModal = ({ isOpen, onClose }: RouteOptimizationMod
               Optimize Route
             </Button>
             {optimizedRoute && (
-              <Button variant="outline" className="flex items-center gap-2">
-                <Download className="w-4 h-4" />
-                Export Route
-              </Button>
+              <>
+                <Button 
+                  onClick={handleSaveRoute}
+                  variant="default" 
+                  className="flex items-center gap-2"
+                >
+                  <Save className="w-4 h-4" />
+                  Save Route
+                </Button>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Download className="w-4 h-4" />
+                  Export Route
+                </Button>
+              </>
             )}
           </div>
 
