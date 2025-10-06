@@ -1,15 +1,19 @@
-import { Activity, Calendar, Users, Truck, DollarSign, User, Briefcase, Clock, Camera, HardHat, FileText, ClipboardList, Shield, Wallet, BookOpen, Calculator, Route, LogOut } from "lucide-react";
+import { Activity, Calendar, Users, Truck, DollarSign, User, Briefcase, Clock, Camera, HardHat, FileText, ClipboardList, Shield, Wallet, BookOpen, Calculator, Route, LogOut, TrendingUp, MessageSquare, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
+import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 interface TopBarProps {
   onModuleClick: (module: string) => void;
+  onShowAnalytics?: () => void;
+  onShowChat?: () => void;
+  onShowAutomation?: () => void;
 }
 
-export const TopBar = ({ onModuleClick }: TopBarProps) => {
-  const { user, signOut } = useAuth();
+export const TopBar = ({ onModuleClick, onShowAnalytics, onShowChat, onShowAutomation }: TopBarProps) => {
+  const { user, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -85,6 +89,39 @@ export const TopBar = ({ onModuleClick }: TopBarProps) => {
 
         {/* User Profile - visible on desktop */}
         <div className="hidden md:flex items-center gap-2">
+          {/* Premium Features */}
+          <NotificationCenter />
+          {onShowChat && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onShowChat}
+              className="hover:bg-primary/20"
+            >
+              <MessageSquare className="w-4 h-4" />
+            </Button>
+          )}
+          {isAdmin && onShowAnalytics && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onShowAnalytics}
+              className="hover:bg-primary/20"
+            >
+              <TrendingUp className="w-4 h-4" />
+            </Button>
+          )}
+          {isAdmin && onShowAutomation && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onShowAutomation}
+              className="hover:bg-primary/20"
+            >
+              <Zap className="w-4 h-4" />
+            </Button>
+          )}
+          
           {user ? (
             <>
               <a href="/profile" className="flex items-center gap-2 hover:opacity-80 transition-opacity">

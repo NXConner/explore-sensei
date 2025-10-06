@@ -10,6 +10,9 @@ import { ScheduleModal } from "@/components/modals/ScheduleModal";
 import { ClientsModal } from "@/components/modals/ClientsModal";
 import { FleetModal } from "@/components/modals/FleetModal";
 import { FinanceModal } from "@/components/modals/FinanceModal";
+import { AnalyticsModal } from "@/components/modals/AnalyticsModal";
+import { ChatModal } from "@/components/modals/ChatModal";
+import { AutomationModal } from "@/components/modals/AutomationModal";
 import { PayrollModal } from "@/components/modals/PayrollModal";
 import { JobsModal } from "@/components/jobs/JobsModal";
 import { TimeTrackingModal } from "@/components/time/TimeTrackingModal";
@@ -27,6 +30,9 @@ const Index = () => {
   const [activeModule, setActiveModule] = useState<string | null>(null);
   const [showAI, setShowAI] = useState(false);
   const [showAIDetection, setShowAIDetection] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [showAutomation, setShowAutomation] = useState(false);
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-background">
@@ -34,7 +40,12 @@ const Index = () => {
       <MapContainer />
 
       {/* Top Bar */}
-      <TopBar onModuleClick={setActiveModule} />
+      <TopBar 
+        onModuleClick={setActiveModule}
+        onShowAnalytics={() => setShowAnalytics(true)}
+        onShowChat={() => setShowChat(true)}
+        onShowAutomation={() => setShowAutomation(true)}
+      />
 
       {/* Left Sidebar */}
       <LeftSidebar />
@@ -103,6 +114,10 @@ const Index = () => {
       {activeModule === "route" && (
         <RouteOptimizationModal isOpen={true} onClose={() => setActiveModule(null)} />
       )}
+      
+      {showAnalytics && <AnalyticsModal onClose={() => setShowAnalytics(false)} />}
+      {showChat && <ChatModal onClose={() => setShowChat(false)} />}
+      {showAutomation && <AutomationModal onClose={() => setShowAutomation(false)} />}
     </div>
   );
 };
