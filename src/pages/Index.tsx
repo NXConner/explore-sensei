@@ -18,6 +18,8 @@ import { EquipmentModal } from "@/components/equipment/EquipmentModal";
 import { InvoicingModal } from "@/components/invoicing/InvoicingModal";
 import { FieldReportsModal } from "@/components/reports/FieldReportsModal";
 import { SafetyComplianceModal } from "@/components/safety/SafetyComplianceModal";
+import { CostCatalogModal } from "@/components/catalog/CostCatalogModal";
+import { EstimateCalculatorModal } from "@/components/estimate/EstimateCalculatorModal";
 
 const Index = () => {
   const [activeModule, setActiveModule] = useState<string | null>(null);
@@ -82,6 +84,12 @@ const Index = () => {
       )}
       {activeModule === "safety" && (
         <SafetyComplianceModal onClose={() => setActiveModule(null)} />
+      )}
+      {activeModule === "catalog" && (
+        <CostCatalogModal isOpen={true} onClose={() => setActiveModule(null)} />
+      )}
+      {activeModule === "estimate" && (
+        <EstimateCalculatorModal isOpen={true} onClose={() => setActiveModule(null)} />
       )}
     </div>
   );

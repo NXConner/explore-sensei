@@ -6,6 +6,7 @@ import { MapToolbar } from "./MapToolbar";
 import { useMapDrawing, DrawingMode } from "@/hooks/useMapDrawing";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useMapMeasurements } from "@/hooks/useMapMeasurements";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyBaUoISC-zfsvfJumBuZnstJv9uf4BgWJM";
 
@@ -22,10 +23,12 @@ export const MapContainer = () => {
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
   const trafficLayerRef = useRef<google.maps.TrafficLayer | null>(null);
+  const savedMeasurementsRef = useRef<google.maps.Polyline[]>([]);
   const { data: jobSites } = useJobSites();
   const { measurement, setDrawingMode, clearDrawings } = useMapDrawing(mapInstanceRef.current);
   const [activeMode, setActiveMode] = useState<DrawingMode>(null);
   const { toast } = useToast();
+  const { measurements } = useMapMeasurements();
 
   const handleModeChange = (mode: DrawingMode) => {
     setActiveMode(mode);
@@ -237,6 +240,67 @@ export const MapContainer = () => {
       markersRef.current.push(marker);
     });
   }, [jobSites]);
+
+  // Display saved measurements on map
+  useEffect(() => {
+    if (!mapInstanceRef.current || !measurements) return;
+
+    // Clear existing measurement overlays
+    savedMeasurementsRef.current.forEach((overlay) => overlay.setMap(null));
+    savedMeasurementsRef.current = [];
+
+    // Render each saved measurement
+    measurements.forEach((m) => {
+      if (!m.geojson || !m.geojson.coordinates) return;
+
+      const coords = m.geojson.coordinates;
+
+      if (m.type === "distance" && Array.isArray(coords)) {
+        const path = coords.map((c: number[]) => ({ lat: c[1], lng: c[0] }));
+        const polyline = new google.maps.Polyline({
+          path,
+          strokeColor: "#00ff00",
+          strokeOpacity: 0.7,
+          strokeWeight: 3,
+          map: mapInstanceRef.current,
+        });
+
+        const infoWindow = new google.maps.InfoWindow({
+          content: `<div style="color: #0a0a0a;"><strong>Distance:</strong> ${m.value.toFixed(2)}m</div>`,
+        });
+
+        polyline.addListener("click", (e: google.maps.MapMouseEvent) => {
+          if (e.latLng) {
+            infoWindow.setPosition(e.latLng);
+            infoWindow.open(mapInstanceRef.current);
+          }
+        });
+
+        savedMeasurementsRef.current.push(polyline);
+      } else if (m.type === "area") {
+        // Render area measurements as polygons or circles
+        const circle = new google.maps.Circle({
+          center: { lat: coords[1], lng: coords[0] },
+          radius: Math.sqrt(m.value / Math.PI),
+          strokeColor: "#0088ff",
+          strokeOpacity: 0.7,
+          strokeWeight: 2,
+          fillColor: "#0088ff",
+          fillOpacity: 0.2,
+          map: mapInstanceRef.current,
+        });
+
+        const infoWindow = new google.maps.InfoWindow({
+          content: `<div style="color: #0a0a0a;"><strong>Area:</strong> ${m.value.toFixed(2)}m²</div>`,
+          position: { lat: coords[1], lng: coords[0] },
+        });
+
+        circle.addListener("click", () => {
+          infoWindow.open(mapInstanceRef.current);
+        });
+      }
+    });
+  }, [measurements]);
 
   return (
     <MapContext.Provider value={{ map: mapInstanceRef.current }}>
