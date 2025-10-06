@@ -1,4 +1,4 @@
-import { Activity, Calendar, Users, Truck, DollarSign, User } from "lucide-react";
+import { Activity, Calendar, Users, Truck, DollarSign, User, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface TopBarProps {
@@ -8,6 +8,7 @@ interface TopBarProps {
 export const TopBar = ({ onModuleClick }: TopBarProps) => {
   const modules = [
     { id: "dashboard", icon: Activity, label: "DASHBOARD" },
+    { id: "jobs", icon: Briefcase, label: "JOBS" },
     { id: "schedule", icon: Calendar, label: "SCHEDULE" },
     { id: "clients", icon: Users, label: "CLIENTS" },
     { id: "fleet", icon: Truck, label: "FLEET" },
