@@ -2694,27 +2694,61 @@ export type Database = {
           caption: string | null
           created_at: string | null
           created_by: string | null
+          description: string | null
+          employee_id: string | null
+          file_name: string | null
+          file_path: string | null
           id: string
           job_id: string | null
+          latitude: number | null
+          longitude: number | null
+          metadata: Json | null
+          photo_type: string | null
+          taken_at: string | null
           url: string
         }
         Insert: {
           caption?: string | null
           created_at?: string | null
           created_by?: string | null
+          description?: string | null
+          employee_id?: string | null
+          file_name?: string | null
+          file_path?: string | null
           id?: string
           job_id?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          metadata?: Json | null
+          photo_type?: string | null
+          taken_at?: string | null
           url: string
         }
         Update: {
           caption?: string | null
           created_at?: string | null
           created_by?: string | null
+          description?: string | null
+          employee_id?: string | null
+          file_name?: string | null
+          file_path?: string | null
           id?: string
           job_id?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          metadata?: Json | null
+          photo_type?: string | null
+          taken_at?: string | null
           url?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "job_photos_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "job_photos_job_id_fkey"
             columns: ["job_id"]
