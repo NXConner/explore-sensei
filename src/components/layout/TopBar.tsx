@@ -1,11 +1,27 @@
-import { Activity, Calendar, Users, Truck, DollarSign, User, Briefcase, Clock, Camera, HardHat, FileText, ClipboardList, Shield, Wallet, BookOpen, Calculator, Route } from "lucide-react";
+import { Activity, Calendar, Users, Truck, DollarSign, User, Briefcase, Clock, Camera, HardHat, FileText, ClipboardList, Shield, Wallet, BookOpen, Calculator, Route, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 interface TopBarProps {
   onModuleClick: (module: string) => void;
 }
 
 export const TopBar = ({ onModuleClick }: TopBarProps) => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast({
+      title: "Signed out",
+      description: "You have been signed out successfully",
+    });
+    navigate("/auth");
+  };
+
   const modules = [
     { id: "dashboard", icon: Activity, label: "DASH" },
     { id: "jobs", icon: Briefcase, label: "JOBS" },
@@ -68,15 +84,35 @@ export const TopBar = ({ onModuleClick }: TopBarProps) => {
         </div>
 
         {/* User Profile - visible on desktop */}
-        <a href="/profile" className="hidden md:flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <div className="text-right">
-            <p className="text-xs font-bold">OPERATOR</p>
-            <p className="text-xs text-muted-foreground cursor-pointer hover:text-primary transition-colors">ADMIN</p>
-          </div>
-          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-            <User className="w-4 h-4" />
-          </div>
-        </a>
+        <div className="hidden md:flex items-center gap-2">
+          {user ? (
+            <>
+              <a href="/profile" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                <div className="text-right">
+                  <p className="text-xs font-bold">OPERATOR</p>
+                  <p className="text-xs text-muted-foreground cursor-pointer hover:text-primary transition-colors">
+                    {user.email}
+                  </p>
+                </div>
+                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                  <User className="w-4 h-4" />
+                </div>
+              </a>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleSignOut}
+                className="hover:bg-primary/20"
+              >
+                <LogOut className="w-4 h-4" />
+              </Button>
+            </>
+          ) : (
+            <Button variant="ghost" onClick={() => navigate("/auth")}>
+              Login
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

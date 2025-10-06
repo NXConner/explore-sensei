@@ -175,6 +175,7 @@ export const useEstimates = () => {
     estimates,
     isLoading,
     createEstimate: createEstimate.mutate,
+    createEstimateAsync: createEstimate.mutateAsync,
     updateEstimate: updateEstimate.mutate,
     deleteEstimate: deleteEstimate.mutate,
   };

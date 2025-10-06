@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { exportAIReportToPDF } from "@/lib/pdfExport";
 
 interface AIAsphaltDetectionModalProps {
   isOpen: boolean;
@@ -287,10 +288,13 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
                     variant="outline" 
                     className="flex-1"
                     onClick={() => {
-                      toast({
-                        title: "Feature Coming Soon",
-                        description: "Report export will be available soon",
-                      });
+                      if (results) {
+                        exportAIReportToPDF(results, selectedImage);
+                        toast({
+                          title: "PDF Exported",
+                          description: "AI analysis report has been exported to PDF",
+                        });
+                      }
                     }}
                   >
                     Export Report

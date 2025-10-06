@@ -10,6 +10,7 @@ import { Calculator, Download, Save } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEstimates } from "@/hooks/useEstimates";
 import { useToast } from "@/hooks/use-toast";
+import { exportEstimateToPDF } from "@/lib/pdfExport";
 
 interface EstimateCalculatorModalProps {
   isOpen: boolean;
@@ -28,13 +29,14 @@ interface EstimateLineItem {
 
 export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorModalProps) => {
   const { toast } = useToast();
-  const { createEstimate } = useEstimates();
+  const { createEstimateAsync } = useEstimates();
   const [selectedCatalog, setSelectedCatalog] = useState<string>("");
   const [lineItems, setLineItems] = useState<EstimateLineItem[]>([]);
   const [quantity, setQuantity] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [jobSiteAddress, setJobSiteAddress] = useState("");
+  const [savedEstimateId, setSavedEstimateId] = useState<string>("");
 
   const { data: catalogs } = useQuery({
     queryKey: ["cost-catalogs"],
@@ -86,7 +88,7 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
   const tax = subtotal * (taxRate / 100);
   const grandTotal = subtotal + tax;
 
-  const handleSaveEstimate = () => {
+  const handleSaveEstimate = async () => {
     if (!customerName || lineItems.length === 0) {
       toast({
         title: "Missing Information",
@@ -96,32 +98,34 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
       return;
     }
 
-    createEstimate({
-      customer_name: customerName,
-      customer_email: customerEmail || undefined,
-      job_site_address: jobSiteAddress || undefined,
-      catalog_id: selectedCatalog || undefined,
-      subtotal: subtotal,
-      tax_rate: taxRate,
-      tax_amount: tax,
-      total: grandTotal,
-      status: 'draft',
-      line_items: lineItems.map(item => ({
-        cost_item_id: item.item_id,
-        item_name: item.name,
-        item_code: item.code,
-        quantity: item.quantity,
-        unit: item.unit,
-        unit_cost: item.unit_cost,
-        line_total: item.total,
-      })),
-    });
+    try {
+      const result = await createEstimateAsync({
+        customer_name: customerName,
+        customer_email: customerEmail || undefined,
+        job_site_address: jobSiteAddress || undefined,
+        catalog_id: selectedCatalog || undefined,
+        subtotal: subtotal,
+        tax_rate: taxRate,
+        tax_amount: tax,
+        total: grandTotal,
+        status: 'draft',
+        line_items: lineItems.map(item => ({
+          cost_item_id: item.item_id,
+          item_name: item.name,
+          item_code: item.code,
+          quantity: item.quantity,
+          unit: item.unit,
+          unit_cost: item.unit_cost,
+          line_total: item.total,
+        })),
+      });
 
-    // Reset form
-    setLineItems([]);
-    setCustomerName("");
-    setCustomerEmail("");
-    setJobSiteAddress("");
+      if (result?.id) {
+        setSavedEstimateId(result.id);
+      }
+    } catch (error) {
+      console.error("Error saving estimate:", error);
+    }
   };
 
   return (
@@ -229,7 +233,37 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
                   <Save className="w-4 h-4 mr-1" />
                   Save
                 </Button>
-                <Button size="sm" variant="outline">
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => {
+                    if (savedEstimateId && customerName && lineItems.length > 0) {
+                      exportEstimateToPDF({
+                        id: savedEstimateId,
+                        customer_name: customerName,
+                        total_cost: grandTotal,
+                        items: lineItems.map(item => ({
+                          name: item.name,
+                          quantity: item.quantity,
+                          unit: item.unit,
+                          unit_cost: item.unit_cost,
+                          total_cost: item.total,
+                        })),
+                        created_at: new Date().toISOString(),
+                      });
+                      toast({
+                        title: "PDF Exported",
+                        description: "Estimate has been exported to PDF",
+                      });
+                    } else {
+                      toast({
+                        title: "Save First",
+                        description: "Please save the estimate before exporting",
+                        variant: "destructive",
+                      });
+                    }
+                  }}
+                >
                   <Download className="w-4 h-4 mr-1" />
                   Export PDF
                 </Button>
