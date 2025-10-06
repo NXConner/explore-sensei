@@ -38,8 +38,11 @@ export const MapContainer = () => {
 
     const initMap = () => {
       if (mapRef.current && !mapInstanceRef.current) {
+        // Patrick County, Virginia coordinates as default
+        const defaultCenter = { lat: 36.6904, lng: -80.2715 };
+        
         mapInstanceRef.current = new google.maps.Map(mapRef.current, {
-          center: { lat: 40.7128, lng: -74.006 },
+          center: defaultCenter,
           zoom: 12,
           mapTypeId: "hybrid",
           styles: [
@@ -54,7 +57,29 @@ export const MapContainer = () => {
           zoomControlOptions: {
             position: google.maps.ControlPosition.RIGHT_CENTER,
           },
+          scrollwheel: true, // Enable mouse wheel zoom
+          gestureHandling: "greedy", // Allow scroll wheel zoom without Ctrl
         });
+
+        // Try to get user's location
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const userLocation = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+              };
+              mapInstanceRef.current?.setCenter(userLocation);
+              mapInstanceRef.current?.setZoom(15);
+            },
+            (error) => {
+              console.log("Geolocation error, using default location:", error);
+            }
+          );
+        }
+
+        // Initialize traffic layer
+        trafficLayerRef.current = new google.maps.TrafficLayer();
       }
     };
 

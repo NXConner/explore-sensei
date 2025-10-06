@@ -48,15 +48,15 @@ export const TopBar = ({ onModuleClick }: TopBarProps) => {
         </div>
 
         {/* User Profile */}
-        <div className="flex items-center gap-2">
+        <a href="/profile" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <div className="text-right">
             <p className="text-xs font-bold">OPERATOR</p>
-            <p className="text-xs text-muted-foreground">ADMIN</p>
+            <p className="text-xs text-muted-foreground cursor-pointer hover:text-primary transition-colors">ADMIN</p>
           </div>
           <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
             <User className="w-4 h-4" />
           </div>
-        </div>
+        </a>
       </div>
     </div>
   );
