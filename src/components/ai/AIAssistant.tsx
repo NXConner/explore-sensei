@@ -1,38 +1,29 @@
-import { useState } from "react";
-import { X, Send, Bot } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { X, Send, Bot, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAIChat } from "@/hooks/useAIChat";
 
 interface AIAssistantProps {
   onClose: () => void;
 }
 
 export const AIAssistant = ({ onClose }: AIAssistantProps) => {
-  const [messages, setMessages] = useState([
-    {
-      role: "assistant",
-      content: "ASPHALT OVERWATCH AI ONLINE. How can I assist with tactical operations?",
-    },
-  ]);
+  const { messages, sendMessage, isLoading } = useAIChat();
   const [input, setInput] = useState("");
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   const handleSend = () => {
-    if (!input.trim()) return;
-    
-    setMessages([...messages, { role: "user", content: input }]);
+    if (!input.trim() || isLoading) return;
+    sendMessage(input);
     setInput("");
-    
-    // TODO: Integrate with Lovable AI
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: "AI integration pending. This will connect to Lovable AI for intelligent assistance.",
-        },
-      ]);
-    }, 1000);
   };
 
   return (
@@ -57,7 +48,7 @@ export const AIAssistant = ({ onClose }: AIAssistantProps) => {
         </div>
 
         {/* Messages */}
-        <ScrollArea className="flex-1 p-4">
+        <ScrollArea className="flex-1 p-4" ref={scrollRef}>
           <div className="space-y-4">
             {messages.map((msg, idx) => (
               <div
@@ -78,10 +69,20 @@ export const AIAssistant = ({ onClose }: AIAssistantProps) => {
                       : "bg-card border border-primary/30"
                   }`}
                 >
-                  <p className="text-sm">{msg.content}</p>
+                  <p className="text-sm whitespace-pre-line">{msg.content}</p>
                 </div>
               </div>
             ))}
+            {isLoading && (
+              <div className="flex gap-3 justify-start">
+                <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center flex-shrink-0">
+                  <Loader2 className="w-4 h-4 text-primary animate-spin" />
+                </div>
+                <div className="bg-card border border-primary/30 p-3 rounded">
+                  <p className="text-sm text-muted-foreground">Analyzing...</p>
+                </div>
+              </div>
+            )}
           </div>
         </ScrollArea>
 
@@ -95,8 +96,16 @@ export const AIAssistant = ({ onClose }: AIAssistantProps) => {
               placeholder="Ask about operations, schedules, equipment..."
               className="flex-1 bg-input border-primary/30 focus:border-primary"
             />
-            <Button onClick={handleSend} className="btn-tactical">
-              <Send className="w-4 h-4" />
+            <Button 
+              onClick={handleSend} 
+              className="btn-tactical"
+              disabled={isLoading || !input.trim()}
+            >
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
             </Button>
           </div>
         </div>

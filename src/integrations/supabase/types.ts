@@ -2796,13 +2796,18 @@ export type Database = {
           crew_size_required: number | null
           customer_id: string | null
           description: string | null
+          end_date: string | null
           equipment_needed: string[] | null
           estimated_duration: unknown | null
           final_value: number | null
           id: string
+          latitude: number | null
           location_address: string | null
+          longitude: number | null
           priority: string | null
+          progress: number | null
           quote_value: number | null
+          start_date: string | null
           status: string | null
           title: string | null
           updated_at: string | null
@@ -2816,13 +2821,18 @@ export type Database = {
           crew_size_required?: number | null
           customer_id?: string | null
           description?: string | null
+          end_date?: string | null
           equipment_needed?: string[] | null
           estimated_duration?: unknown | null
           final_value?: number | null
           id?: string
+          latitude?: number | null
           location_address?: string | null
+          longitude?: number | null
           priority?: string | null
+          progress?: number | null
           quote_value?: number | null
+          start_date?: string | null
           status?: string | null
           title?: string | null
           updated_at?: string | null
@@ -2836,13 +2846,18 @@ export type Database = {
           crew_size_required?: number | null
           customer_id?: string | null
           description?: string | null
+          end_date?: string | null
           equipment_needed?: string[] | null
           estimated_duration?: unknown | null
           final_value?: number | null
           id?: string
+          latitude?: number | null
           location_address?: string | null
+          longitude?: number | null
           priority?: string | null
+          progress?: number | null
           quote_value?: number | null
+          start_date?: string | null
           status?: string | null
           title?: string | null
           updated_at?: string | null

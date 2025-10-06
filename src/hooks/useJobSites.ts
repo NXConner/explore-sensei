@@ -21,14 +21,15 @@ export const useJobSites = () => {
         .from("jobs")
         .select(`
           id,
-          job_name,
+          title,
           status,
           latitude,
           longitude,
           progress,
           start_date,
           end_date,
-          clients (
+          customer_id,
+          clients!client_id (
             name
           )
         `)
@@ -39,7 +40,7 @@ export const useJobSites = () => {
 
       return (data || []).map((job: any) => ({
         id: job.id,
-        name: job.job_name || "Unnamed Job",
+        name: job.title || "Unnamed Job",
         status: job.status || "unknown",
         latitude: job.latitude,
         longitude: job.longitude,
