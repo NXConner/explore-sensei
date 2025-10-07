@@ -4,10 +4,11 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import Index from "./pages/Index";
-import { Profile } from "./pages/Profile";
-import NotFound from "./pages/NotFound";
-import Auth from "./pages/Auth";
+import React, { lazy, Suspense } from "react";
+const Index = lazy(() => import("./pages/Index"));
+const Profile = lazy(() => import("./pages/Profile").then(m => ({ default: m.Profile })));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Auth = lazy(() => import("./pages/Auth"));
 import { useEffect } from "react";
 import { initAnalytics, trackPageView } from "@/lib/analytics";
 
@@ -31,13 +32,15 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AnalyticsListener />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/auth" element={<Auth />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <Suspense fallback={null}>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/auth" element={<Auth />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
