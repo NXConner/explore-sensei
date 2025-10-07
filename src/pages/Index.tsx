@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import React, { Suspense, lazy, useState } from "react";
 import { MapContainer } from "@/components/map/MapContainer";
 import { TopBar } from "@/components/layout/TopBar";
 import { LeftSidebar } from "@/components/layout/LeftSidebar";
 import { RightSidebar } from "@/components/layout/RightSidebar";
 import { KPITicker } from "@/components/dashboard/KPITicker";
-import React, { Suspense, lazy, useState } from "react";
 import { AIAssistant } from "@/components/ai/AIAssistant";
 const DashboardModal = lazy(() => import("@/components/modals/DashboardModal").then(m => ({ default: m.DashboardModal })));
 const ScheduleModal = lazy(() => import("@/components/modals/ScheduleModal").then(m => ({ default: m.ScheduleModal })));

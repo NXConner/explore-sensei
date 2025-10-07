@@ -1,4 +1,4 @@
-import { onCLS, onFID, onLCP, onINP, onTTFB, Metric } from "web-vitals";
+import { onCLS, onINP, onLCP, onTTFB, Metric } from "web-vitals";
 import { track } from "@/lib/analytics";
 
 function report(metric: Metric) {
@@ -12,7 +12,6 @@ function report(metric: Metric) {
 
 export function initWebVitals() {
   onCLS(report);
-  onFID(report);
   onINP(report);
   onLCP(report);
   onTTFB(report);
