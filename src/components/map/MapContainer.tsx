@@ -16,8 +16,9 @@ import { Button } from "@/components/ui/button";
 import { Palette } from "lucide-react";
 import { WeatherRadarLayer } from "@/components/weather/WeatherRadarLayer";
 import { MapContext } from "./MapContext";
+import { getGoogleMapsApiKey } from "@/config/env";
 
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+const GOOGLE_MAPS_API_KEY = getGoogleMapsApiKey();
 
 type MapTheme = 'division' | 'animus';
 

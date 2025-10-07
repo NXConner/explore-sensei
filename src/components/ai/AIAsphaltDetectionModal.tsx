@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { exportAIReportToPDF } from "@/lib/pdfExport";
+import { getGoogleMapsApiKey } from "@/config/env";
 import { useMap } from "@/components/map/MapContext";
 
 interface AIAsphaltDetectionModalProps {
@@ -135,7 +136,7 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
       const lat = center.lat();
       const lng = center.lng();
 
-      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+      const apiKey = getGoogleMapsApiKey();
       if (!apiKey || apiKey === "undefined") {
         toast({
           title: "API Key Missing",
