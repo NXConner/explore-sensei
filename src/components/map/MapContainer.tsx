@@ -13,7 +13,7 @@ import { EmployeeTrackingLayer } from "./EmployeeTrackingLayer";
 import { MapEffects } from "./MapEffects";
 import { WeatherRadarLayer } from "@/components/weather/WeatherRadarLayer";
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyBaUoISC-zfsvfJumBuZnstJv9uf4BgWJM";
+const GOOGLE_MAPS_API_KEY = (import.meta as any).env?.VITE_GOOGLE_MAPS_API_KEY as string;
 
 interface MapContextType {
   map: google.maps.Map | null;

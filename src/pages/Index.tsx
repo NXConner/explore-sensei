@@ -57,7 +57,7 @@ const Index = () => {
   const [showVeteran, setShowVeteran] = useState(false);
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-background">
+    <div className="relative h-screen w-full overflow-hidden bg-background" data-testid="root-shell">
       {/* Main Map */}
       <MapContainer />
 

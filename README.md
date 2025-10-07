@@ -59,6 +59,19 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+- Supabase (PostgreSQL + Edge Functions)
+
+### Environment Variables
+
+Create a `.env` or `.env.local` with:
+
+```
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+```
+
+For Supabase Edge Functions, configure `LOVABLE_API_KEY` in the project settings.
 
 ## How can I deploy this project?
 
