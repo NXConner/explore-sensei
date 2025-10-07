@@ -246,7 +246,7 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
                   <SelectContent>
                     {catalogs?.map((cat) => (
                       <SelectItem key={cat.id} value={cat.id}>
-                        {cat.region || cat.name}
+                        {cat.region}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -275,7 +275,7 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
                     <div>
                       <div className="font-semibold">{item.name}</div>
                       <div className="text-sm text-muted-foreground">
-                        {(item.code ?? item.item_code) as any} • ${item.unit_cost}/{item.unit}
+                        {item.code} • ${item.unit_cost}/{item.unit}
                       </div>
                     </div>
                     <Button size="sm" variant="ghost">
