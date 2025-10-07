@@ -71,10 +71,7 @@ export const useEmployeeTracking = (date?: Date) => {
     try {
       let query = (supabase as any)
         .from("employee_locations")
-        .select(`
-          *,
-          employees:employee_id (first_name, last_name, role)
-        `)
+        .select("*")
         .order("timestamp", { ascending: false });
 
       if (date) {
@@ -102,10 +99,7 @@ export const useEmployeeTracking = (date?: Date) => {
     try {
       let query = (supabase as any)
         .from("daily_activity_summary")
-        .select(`
-          *,
-          employees:employee_id (first_name, last_name)
-        `)
+        .select("*")
         .order("date", { ascending: false });
 
       if (date) {

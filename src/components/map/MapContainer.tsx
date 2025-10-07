@@ -42,6 +42,7 @@ export const MapContainer = () => {
   const [radarOpacity, setRadarOpacity] = useState(70);
   const [alertRadius, setAlertRadius] = useState(15);
   const [mapTheme, setMapTheme] = useState<MapTheme>('division');
+  const [mapsUnavailable, setMapsUnavailable] = useState(false);
   const { data: jobSites } = useJobSites();
   const { measurement, setDrawingMode, clearDrawings } = useMapDrawing(mapInstanceRef.current);
   const [activeMode, setActiveMode] = useState<DrawingMode>(null);
@@ -179,6 +180,15 @@ export const MapContainer = () => {
   };
 
   useEffect(() => {
+    // Graceful fallback if no API key is configured
+    if (!GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY === "undefined") {
+      console.warn("Google Maps API key missing; rendering fallback map.");
+      setMapsUnavailable(true);
+      return;
+    } else {
+      setMapsUnavailable(false);
+    }
+
     const loadGoogleMaps = () => {
       if (window.google && window.google.maps) {
         initMap();
@@ -405,6 +415,14 @@ export const MapContainer = () => {
         className="absolute inset-0 w-full h-full"
         style={{ filter: mapTheme === 'division' ? "brightness(0.8)" : "brightness(1.05) contrast(1.05)" }}
       />
+      {mapsUnavailable && (
+        <div className="absolute inset-0 flex items-center justify-center z-[500]">
+          <div className="tactical-panel max-w-md text-center">
+            <h3 className="text-lg font-bold mb-2">Map preview disabled</h3>
+            <p className="text-sm text-muted-foreground">No Google Maps API key configured. Add your key to enable live map, or continue using other features.</p>
+          </div>
+        </div>
+      )}
       {showAIDetection && (
         <AIAsphaltDetectionModal 
           isOpen={showAIDetection} 
