@@ -4,38 +4,39 @@ import { TopBar } from "@/components/layout/TopBar";
 import { LeftSidebar } from "@/components/layout/LeftSidebar";
 import { RightSidebar } from "@/components/layout/RightSidebar";
 import { KPITicker } from "@/components/dashboard/KPITicker";
+import React, { Suspense, lazy, useState } from "react";
 import { AIAssistant } from "@/components/ai/AIAssistant";
-import { DashboardModal } from "@/components/modals/DashboardModal";
-import { ScheduleModal } from "@/components/modals/ScheduleModal";
-import { ClientsModal } from "@/components/modals/ClientsModal";
-import { FleetModal } from "@/components/modals/FleetModal";
-import { FinanceModal } from "@/components/modals/FinanceModal";
-import { AnalyticsModal } from "@/components/modals/AnalyticsModal";
-import { ChatModal } from "@/components/modals/ChatModal";
-import { AutomationModal } from "@/components/modals/AutomationModal";
-import { PayrollModal } from "@/components/modals/PayrollModal";
-import { JobsModal } from "@/components/jobs/JobsModal";
-import { TimeTrackingModal } from "@/components/time/TimeTrackingModal";
-import { PhotoDocumentationModal } from "@/components/photos/PhotoDocumentationModal";
-import { EquipmentModal } from "@/components/equipment/EquipmentModal";
-import { InvoicingModal } from "@/components/invoicing/InvoicingModal";
-import { FieldReportsModal } from "@/components/reports/FieldReportsModal";
-import { SafetyComplianceModal } from "@/components/safety/SafetyComplianceModal";
-import { CostCatalogModal } from "@/components/catalog/CostCatalogModal";
-import { EstimateCalculatorModal } from "@/components/estimate/EstimateCalculatorModal";
-import { AIAsphaltDetectionModal } from "@/components/ai/AIAsphaltDetectionModal";
-import { RouteOptimizationModal } from "@/components/route/RouteOptimizationModal";
-import { ScreensaverMode } from "@/components/screensaver/ScreensaverMode";
-import { DocumentsModal } from "@/components/modals/DocumentsModal";
-import { ContractsModal } from "@/components/modals/ContractsModal";
-import { ReceiptsModal } from "@/components/modals/ReceiptsModal";
-import { SettingsModal } from "@/components/modals/SettingsModal";
-import { EODPlaybackModal } from "@/components/modals/EODPlaybackModal";
-import { EmployeeComplianceModal } from "@/components/compliance/EmployeeComplianceModal";
-import { BusinessManagementHub } from "@/components/business/BusinessManagementHub";
-import { HRManagementModal } from "@/components/business/HRManagementModal";
-import { WeatherRadarModal } from "@/components/weather/WeatherRadarModal";
-import { VeteranModal } from "@/components/modals/VeteranModal";
+const DashboardModal = lazy(() => import("@/components/modals/DashboardModal").then(m => ({ default: m.DashboardModal })));
+const ScheduleModal = lazy(() => import("@/components/modals/ScheduleModal").then(m => ({ default: m.ScheduleModal })));
+const ClientsModal = lazy(() => import("@/components/modals/ClientsModal").then(m => ({ default: m.ClientsModal })));
+const FleetModal = lazy(() => import("@/components/modals/FleetModal").then(m => ({ default: m.FleetModal })));
+const FinanceModal = lazy(() => import("@/components/modals/FinanceModal").then(m => ({ default: m.FinanceModal })));
+const AnalyticsModal = lazy(() => import("@/components/modals/AnalyticsModal").then(m => ({ default: m.AnalyticsModal })));
+const ChatModal = lazy(() => import("@/components/modals/ChatModal").then(m => ({ default: m.ChatModal })));
+const AutomationModal = lazy(() => import("@/components/modals/AutomationModal").then(m => ({ default: m.AutomationModal })));
+const PayrollModal = lazy(() => import("@/components/modals/PayrollModal").then(m => ({ default: m.PayrollModal })));
+const JobsModal = lazy(() => import("@/components/jobs/JobsModal").then(m => ({ default: m.JobsModal })));
+const TimeTrackingModal = lazy(() => import("@/components/time/TimeTrackingModal").then(m => ({ default: m.TimeTrackingModal })));
+const PhotoDocumentationModal = lazy(() => import("@/components/photos/PhotoDocumentationModal").then(m => ({ default: m.PhotoDocumentationModal })));
+const EquipmentModal = lazy(() => import("@/components/equipment/EquipmentModal").then(m => ({ default: m.EquipmentModal })));
+const InvoicingModal = lazy(() => import("@/components/invoicing/InvoicingModal").then(m => ({ default: m.InvoicingModal })));
+const FieldReportsModal = lazy(() => import("@/components/reports/FieldReportsModal").then(m => ({ default: m.FieldReportsModal })));
+const SafetyComplianceModal = lazy(() => import("@/components/safety/SafetyComplianceModal").then(m => ({ default: m.SafetyComplianceModal })));
+const CostCatalogModal = lazy(() => import("@/components/catalog/CostCatalogModal").then(m => ({ default: m.CostCatalogModal })));
+const EstimateCalculatorModal = lazy(() => import("@/components/estimate/EstimateCalculatorModal").then(m => ({ default: m.EstimateCalculatorModal })));
+const AIAsphaltDetectionModal = lazy(() => import("@/components/ai/AIAsphaltDetectionModal").then(m => ({ default: m.AIAsphaltDetectionModal })));
+const RouteOptimizationModal = lazy(() => import("@/components/route/RouteOptimizationModal").then(m => ({ default: m.RouteOptimizationModal })));
+const ScreensaverMode = lazy(() => import("@/components/screensaver/ScreensaverMode").then(m => ({ default: m.ScreensaverMode })));
+const DocumentsModal = lazy(() => import("@/components/modals/DocumentsModal").then(m => ({ default: m.DocumentsModal })));
+const ContractsModal = lazy(() => import("@/components/modals/ContractsModal").then(m => ({ default: m.ContractsModal })));
+const ReceiptsModal = lazy(() => import("@/components/modals/ReceiptsModal").then(m => ({ default: m.ReceiptsModal })));
+const SettingsModal = lazy(() => import("@/components/modals/SettingsModal").then(m => ({ default: m.SettingsModal })));
+const EODPlaybackModal = lazy(() => import("@/components/modals/EODPlaybackModal").then(m => ({ default: m.EODPlaybackModal })));
+const EmployeeComplianceModal = lazy(() => import("@/components/compliance/EmployeeComplianceModal").then(m => ({ default: m.EmployeeComplianceModal })));
+const BusinessManagementHub = lazy(() => import("@/components/business/BusinessManagementHub").then(m => ({ default: m.BusinessManagementHub })));
+const HRManagementModal = lazy(() => import("@/components/business/HRManagementModal").then(m => ({ default: m.HRManagementModal })));
+const WeatherRadarModal = lazy(() => import("@/components/weather/WeatherRadarModal").then(m => ({ default: m.WeatherRadarModal })));
+const VeteranModal = lazy(() => import("@/components/modals/VeteranModal").then(m => ({ default: m.VeteranModal })));
 
 const Index = () => {
   const [activeModule, setActiveModule] = useState<string | null>(null);
@@ -93,63 +94,63 @@ const Index = () => {
 
       {/* Modals */}
       {activeModule === "dashboard" && (
-        <DashboardModal onClose={() => setActiveModule(null)} />
+        <Suspense fallback={null}><DashboardModal onClose={() => setActiveModule(null)} /></Suspense>
       )}
       {activeModule === "schedule" && (
-        <ScheduleModal onClose={() => setActiveModule(null)} />
+        <Suspense fallback={null}><ScheduleModal onClose={() => setActiveModule(null)} /></Suspense>
       )}
       {activeModule === "clients" && (
-        <ClientsModal onClose={() => setActiveModule(null)} />
+        <Suspense fallback={null}><ClientsModal onClose={() => setActiveModule(null)} /></Suspense>
       )}
       {activeModule === "fleet" && (
-        <FleetModal onClose={() => setActiveModule(null)} />
+        <Suspense fallback={null}><FleetModal onClose={() => setActiveModule(null)} /></Suspense>
       )}
       {activeModule === "finance" && (
-        <FinanceModal onClose={() => setActiveModule(null)} />
+        <Suspense fallback={null}><FinanceModal onClose={() => setActiveModule(null)} /></Suspense>
       )}
       {activeModule === "payroll" && (
-        <PayrollModal onClose={() => setActiveModule(null)} />
+        <Suspense fallback={null}><PayrollModal onClose={() => setActiveModule(null)} /></Suspense>
       )}
       {activeModule === "jobs" && (
-        <JobsModal onClose={() => setActiveModule(null)} />
+        <Suspense fallback={null}><JobsModal onClose={() => setActiveModule(null)} /></Suspense>
       )}
       {activeModule === "time" && (
-        <TimeTrackingModal onClose={() => setActiveModule(null)} />
+        <Suspense fallback={null}><TimeTrackingModal onClose={() => setActiveModule(null)} /></Suspense>
       )}
       {activeModule === "photos" && (
-        <PhotoDocumentationModal onClose={() => setActiveModule(null)} />
+        <Suspense fallback={null}><PhotoDocumentationModal onClose={() => setActiveModule(null)} /></Suspense>
       )}
       {activeModule === "equipment" && (
-        <EquipmentModal onClose={() => setActiveModule(null)} />
+        <Suspense fallback={null}><EquipmentModal onClose={() => setActiveModule(null)} /></Suspense>
       )}
       {activeModule === "invoicing" && (
-        <InvoicingModal onClose={() => setActiveModule(null)} />
+        <Suspense fallback={null}><InvoicingModal onClose={() => setActiveModule(null)} /></Suspense>
       )}
       {activeModule === "field-reports" && (
-        <FieldReportsModal onClose={() => setActiveModule(null)} />
+        <Suspense fallback={null}><FieldReportsModal onClose={() => setActiveModule(null)} /></Suspense>
       )}
       {activeModule === "safety" && (
-        <SafetyComplianceModal onClose={() => setActiveModule(null)} />
+        <Suspense fallback={null}><SafetyComplianceModal onClose={() => setActiveModule(null)} /></Suspense>
       )}
       {activeModule === "catalog" && (
-        <CostCatalogModal isOpen={true} onClose={() => setActiveModule(null)} />
+        <Suspense fallback={null}><CostCatalogModal isOpen={true} onClose={() => setActiveModule(null)} /></Suspense>
       )}
       {activeModule === "estimate" && (
-        <EstimateCalculatorModal isOpen={true} onClose={() => setActiveModule(null)} />
+        <Suspense fallback={null}><EstimateCalculatorModal isOpen={true} onClose={() => setActiveModule(null)} /></Suspense>
       )}
       {activeModule === "route" && (
-        <RouteOptimizationModal isOpen={true} onClose={() => setActiveModule(null)} />
+        <Suspense fallback={null}><RouteOptimizationModal isOpen={true} onClose={() => setActiveModule(null)} /></Suspense>
       )}
       
-      {showAnalytics && <AnalyticsModal onClose={() => setShowAnalytics(false)} />}
-      {showChat && <ChatModal onClose={() => setShowChat(false)} />}
-      {showAutomation && <AutomationModal onClose={() => setShowAutomation(false)} />}
-      {showScreensaver && <ScreensaverMode onClose={() => setShowScreensaver(false)} />}
-      {showDocuments && <DocumentsModal onClose={() => setShowDocuments(false)} />}
-      {showContracts && <ContractsModal onClose={() => setShowContracts(false)} />}
-      {showReceipts && <ReceiptsModal onClose={() => setShowReceipts(false)} />}
-      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
-      {showEODPlayback && <EODPlaybackModal onClose={() => setShowEODPlayback(false)} />}
+      {showAnalytics && <Suspense fallback={null}><AnalyticsModal onClose={() => setShowAnalytics(false)} /></Suspense>}
+      {showChat && <Suspense fallback={null}><ChatModal onClose={() => setShowChat(false)} /></Suspense>}
+      {showAutomation && <Suspense fallback={null}><AutomationModal onClose={() => setShowAutomation(false)} /></Suspense>}
+      {showScreensaver && <Suspense fallback={null}><ScreensaverMode onClose={() => setShowScreensaver(false)} /></Suspense>}
+      {showDocuments && <Suspense fallback={null}><DocumentsModal onClose={() => setShowDocuments(false)} /></Suspense>}
+      {showContracts && <Suspense fallback={null}><ContractsModal onClose={() => setShowContracts(false)} /></Suspense>}
+      {showReceipts && <Suspense fallback={null}><ReceiptsModal onClose={() => setShowReceipts(false)} /></Suspense>}
+      {showSettings && <Suspense fallback={null}><SettingsModal onClose={() => setShowSettings(false)} /></Suspense>}
+      {showEODPlayback && <Suspense fallback={null}><EODPlaybackModal onClose={() => setShowEODPlayback(false)} /></Suspense>}
       {showBusinessHub && (
         <BusinessManagementHub 
           onClose={() => setShowBusinessHub(false)} 
@@ -175,8 +176,8 @@ const Index = () => {
       {activeModule === "eod-playback" && <EODPlaybackModal onClose={() => setActiveModule(null)} />}
       
       {/* Standalone Modals */}
-      {showWeatherRadar && <WeatherRadarModal onClose={() => setShowWeatherRadar(false)} />}
-      {showVeteran && <VeteranModal onClose={() => setShowVeteran(false)} />}
+      {showWeatherRadar && <Suspense fallback={null}><WeatherRadarModal onClose={() => setShowWeatherRadar(false)} /></Suspense>}
+      {showVeteran && <Suspense fallback={null}><VeteranModal onClose={() => setShowVeteran(false)} /></Suspense>}
     </div>
   );
 };

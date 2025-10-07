@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { track } from "@/lib/analytics";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -15,6 +16,13 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const loginEmailRef = useRef<HTMLInputElement | null>(null);
+  const signupNameRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    // Focus the login email by default
+    loginEmailRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     // Check if user is already logged in
@@ -41,6 +49,7 @@ export default function Auth() {
     setLoading(true);
 
     try {
+      track("auth_login_start");
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -48,11 +57,13 @@ export default function Auth() {
 
       if (error) throw error;
 
+      track("auth_login_success");
       toast({
         title: "Success",
         description: "Logged in successfully",
       });
     } catch (error: any) {
+      track("auth_login_error", { message: error?.message });
       toast({
         title: "Error",
         description: error.message,
@@ -68,6 +79,7 @@ export default function Auth() {
     setLoading(true);
 
     try {
+      track("auth_signup_start");
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -81,11 +93,13 @@ export default function Auth() {
 
       if (error) throw error;
 
+      track("auth_signup_success");
       toast({
         title: "Success",
         description: "Account created! Check your email to confirm.",
       });
     } catch (error: any) {
+      track("auth_signup_error", { message: error?.message });
       toast({
         title: "Error",
         description: error.message,
@@ -121,6 +135,7 @@ export default function Auth() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    ref={loginEmailRef}
                   />
                 </div>
                 <div className="space-y-2">
@@ -131,6 +146,7 @@ export default function Auth() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    minLength={6}
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
@@ -150,6 +166,7 @@ export default function Auth() {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     required
+                    ref={signupNameRef}
                   />
                 </div>
                 <div className="space-y-2">

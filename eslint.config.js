@@ -22,7 +22,12 @@ export default tseslint.config(
     rules: {
       ...reactHooks.configs.recommended.rules,
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
-      "@typescript-eslint/no-unused-vars": "off",
+      // Enforce unused imports removal and consistent import order via TS plugin options
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }
+      ],
+      "no-console": ["warn", { allow: ["warn", "error"] }],
       // Minimal a11y ruleset
       "jsx-a11y/alt-text": "warn",
       "jsx-a11y/aria-role": "warn",
