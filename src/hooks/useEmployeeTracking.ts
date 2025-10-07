@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -36,36 +36,44 @@ export interface DailyActivitySummary {
   };
 }
 
-export const useEmployeeTracking = (date?: Date) => {
+export const useEmployeeTracking = (date?: Date, options?: { subscribeRealtime?: boolean }) => {
   const [locations, setLocations] = useState<EmployeeLocation[]>([]);
   const [summaries, setSummaries] = useState<DailyActivitySummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const subscribeRealtime = options?.subscribeRealtime === true;
 
   useEffect(() => {
-    fetchEmployeeLocations();
-    fetchDailySummaries();
+    let isActive = true;
+    const init = async () => {
+      await fetchEmployeeLocations();
+      await fetchDailySummaries();
+    };
+    init();
 
-    // Subscribe to real-time location updates
-    const channel = supabase
-      .channel('employee-locations')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'employee_locations'
-        },
-        (payload) => {
-          fetchEmployeeLocations(); // Refresh locations
-        }
-      )
-      .subscribe();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    if (subscribeRealtime) {
+      channel = supabase
+        .channel('employee-locations')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'employee_locations'
+          },
+          () => {
+            if (isActive) fetchEmployeeLocations();
+          }
+        )
+        .subscribe();
+    }
 
     return () => {
-      supabase.removeChannel(channel);
+      isActive = false;
+      if (channel) supabase.removeChannel(channel);
     };
-  }, [date]);
+  }, [date, subscribeRealtime]);
 
   const fetchEmployeeLocations = async () => {
     try {
@@ -83,7 +91,7 @@ export const useEmployeeTracking = (date?: Date) => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setLocations(data || []);
+      setLocations(Array.isArray(data) ? data : []);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -110,7 +118,7 @@ export const useEmployeeTracking = (date?: Date) => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setSummaries(data || []);
+      setSummaries(Array.isArray(data) ? data : []);
     } catch (error: any) {
       console.error("Failed to fetch summaries:", error);
     }
@@ -168,19 +176,20 @@ export const useEmployeeTracking = (date?: Date) => {
     }
   };
 
-  // Get latest location for each employee
-  const getLatestLocations = () => {
+  // Latest location per employee, memoized to stabilize consumers
+  const latestLocations = React.useMemo(() => {
     const latestByEmployee = new Map<string, EmployeeLocation>();
-    
-    locations.forEach(loc => {
+    for (const loc of locations) {
       const existing = latestByEmployee.get(loc.employee_id);
       if (!existing || new Date(loc.timestamp) > new Date(existing.timestamp)) {
         latestByEmployee.set(loc.employee_id, loc);
       }
-    });
-    
+    }
     return Array.from(latestByEmployee.values());
-  };
+  }, [locations]);
+
+  // Backward-compatible accessor with stable identity
+  const getLatestLocations = React.useCallback(() => latestLocations, [latestLocations]);
 
   return {
     locations,
@@ -189,6 +198,7 @@ export const useEmployeeTracking = (date?: Date) => {
     trackLocation,
     generateDailySummary,
     getLatestLocations,
+    latestLocations,
     refresh: fetchEmployeeLocations,
   };
 };
