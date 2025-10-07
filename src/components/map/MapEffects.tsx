@@ -6,6 +6,7 @@ interface MapEffectsProps {
   showScanline?: boolean;
   radarSpeed?: number;
   glitchIntensity?: number;
+  accentColor?: string; // css color for radar sweep
 }
 
 export const MapEffects = ({
@@ -14,6 +15,7 @@ export const MapEffects = ({
   showScanline = true,
   radarSpeed = 3,
   glitchIntensity = 0.3,
+  accentColor = "rgba(255, 140, 0, 0.1)",
 }: MapEffectsProps) => {
   const radarRef = useRef<HTMLDivElement>(null);
   const glitchRef = useRef<HTMLDivElement>(null);
@@ -63,7 +65,7 @@ export const MapEffects = ({
             ref={radarRef}
             className="absolute top-1/2 left-1/2 w-[200%] h-[200%]"
             style={{
-              background: `conic-gradient(from 0deg, transparent 0%, rgba(255, 140, 0, 0.1) 5%, transparent 10%)`,
+              background: `conic-gradient(from 0deg, transparent 0%, ${accentColor} 5%, transparent 10%)`,
               transformOrigin: "center",
               transform: "translate(-50%, -50%)",
             }}
