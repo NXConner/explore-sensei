@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { X, Settings, Moon, Sun, Bell, Map, Zap, Volume2, Eye, Gauge } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { X, Settings, Moon, Sun, Bell, ImageUp, Zap, Volume2, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -32,11 +32,102 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     uiSounds: false,
     alertSounds: true,
     soundVolume: 70,
+    // Themes & Wallpapers
+    theme: "tactical-dark" as "tactical-dark" | "light" | "high-contrast" | "church-blue" | "safety-green",
+    wallpaperUrl: "",
+    wallpaperOpacity: 60,
   });
+
+  // Persist settings in localStorage
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("aos_settings");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setSettings((prev) => ({ ...prev, ...parsed }));
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("aos_settings", JSON.stringify(settings));
+    } catch {}
+  }, [settings]);
 
   const handleToggle = (key: keyof typeof settings) => {
     setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
   };
+
+  // Apply theme by setting CSS variables on :root
+  useEffect(() => {
+    const root = document.documentElement as HTMLElement;
+    const applyTheme = (theme: typeof settings.theme) => {
+      // default base from index.css. Override selectively.
+      const themes: Record<string, Record<string, string>> = {
+        "tactical-dark": {
+          "--primary": "30 100% 50%",
+          "--accent": "197 100% 50%",
+          "--background": "0 0% 4%",
+          "--foreground": "0 0% 88%",
+        },
+        light: {
+          "--background": "0 0% 98%",
+          "--foreground": "0 0% 10%",
+          "--card": "0 0% 100%",
+          "--card-foreground": "0 0% 10%",
+          "--primary": "220 90% 56%",
+          "--primary-foreground": "0 0% 100%",
+          "--accent": "260 90% 56%",
+          "--muted": "0 0% 92%",
+          "--muted-foreground": "0 0% 35%",
+        },
+        "high-contrast": {
+          "--background": "0 0% 0%",
+          "--foreground": "0 0% 100%",
+          "--card": "0 0% 0%",
+          "--card-foreground": "0 0% 100%",
+          "--primary": "40 100% 50%",
+          "--primary-foreground": "0 0% 0%",
+          "--accent": "200 100% 50%",
+          "--muted": "0 0% 12%",
+          "--muted-foreground": "0 0% 92%",
+        },
+        "church-blue": {
+          "--primary": "211 100% 45%",
+          "--primary-foreground": "0 0% 100%",
+          "--accent": "39 100% 50%",
+          "--background": "220 19% 10%",
+          "--foreground": "0 0% 96%",
+        },
+        "safety-green": {
+          "--primary": "130 100% 45%",
+          "--primary-foreground": "0 0% 10%",
+          "--accent": "30 100% 50%",
+          "--background": "140 10% 6%",
+          "--foreground": "0 0% 92%",
+        },
+      };
+      const selected = themes[theme] || themes["tactical-dark"];
+      Object.entries(selected).forEach(([k, v]) => root.style.setProperty(k, v));
+    };
+
+    applyTheme(settings.theme);
+
+    // Apply wallpaper overlay via body background-image
+    const body = document.body as HTMLBodyElement;
+    if (settings.wallpaperUrl) {
+      body.style.backgroundImage = `url('${settings.wallpaperUrl}')`;
+      body.style.backgroundSize = 'cover';
+      body.style.backgroundRepeat = 'no-repeat';
+      body.style.backgroundAttachment = 'fixed';
+      body.style.backgroundPosition = 'center';
+      body.style.opacity = String(Math.max(0.3, Math.min(1, settings.wallpaperOpacity / 100)));
+    } else {
+      body.style.backgroundImage = '';
+      body.style.opacity = '1';
+    }
+  }, [settings.theme, settings.wallpaperUrl, settings.wallpaperOpacity]);
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/80 backdrop-blur-sm">
@@ -56,6 +147,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
         <Tabs defaultValue="appearance" className="flex-1 flex flex-col">
           <TabsList className="mx-4 mt-4">
             <TabsTrigger value="appearance">Appearance</TabsTrigger>
+            <TabsTrigger value="themes">Themes</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="animations">Animations</TabsTrigger>
             <TabsTrigger value="sounds">Sounds</TabsTrigger>
@@ -113,6 +205,60 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     checked={settings.kpiTicker}
                     onCheckedChange={() => handleToggle("kpiTicker")}
                   />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="themes" className="mt-0 space-y-6">
+              <div className="tactical-panel p-4 space-y-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <Palette className="w-5 h-5 text-primary" />
+                  <Label>Theme Presets</Label>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {[
+                    { id: "tactical-dark", label: "Tactical Dark" },
+                    { id: "light", label: "Light" },
+                    { id: "high-contrast", label: "High Contrast" },
+                    { id: "church-blue", label: "Church Blue" },
+                    { id: "safety-green", label: "Safety Green" },
+                  ].map((t) => (
+                    <Button
+                      key={t.id}
+                      variant={settings.theme === (t.id as any) ? "default" : "outline"}
+                      onClick={() => setSettings((p) => ({ ...p, theme: t.id as any }))}
+                      className="justify-start"
+                    >
+                      {t.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="tactical-panel p-4 space-y-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <ImageUp className="w-5 h-5 text-primary" />
+                  <Label>Custom Wallpaper</Label>
+                </div>
+                <div className="space-y-2">
+                  <input
+                    type="url"
+                    placeholder="Paste image URL (https://...)"
+                    value={settings.wallpaperUrl}
+                    onChange={(e) => setSettings((p) => ({ ...p, wallpaperUrl: e.target.value }))}
+                    className="w-full hud-element border-primary/30 rounded px-3 py-2 text-sm bg-transparent"
+                  />
+                  <div className="pl-1">
+                    <Label className="text-xs">Wallpaper Opacity: {settings.wallpaperOpacity}%</Label>
+                    <Slider
+                      value={[settings.wallpaperOpacity]}
+                      onValueChange={([val]) => setSettings((prev) => ({ ...prev, wallpaperOpacity: val }))}
+                      min={10}
+                      max={100}
+                      step={5}
+                      className="mt-2"
+                    />
+                  </div>
                 </div>
               </div>
             </TabsContent>
