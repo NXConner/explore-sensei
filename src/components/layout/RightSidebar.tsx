@@ -4,9 +4,10 @@ import { Badge } from "@/components/ui/badge";
 
 interface RightSidebarProps {
   onAIClick: () => void;
+  onSettingsClick: () => void;
 }
 
-export const RightSidebar = ({ onAIClick }: RightSidebarProps) => {
+export const RightSidebar = ({ onAIClick, onSettingsClick }: RightSidebarProps) => {
   return (
     <div className="absolute right-0 top-16 bottom-0 w-16 z-[900] hud-element border-l border-primary/30 flex flex-col">
       <div className="flex flex-col items-center gap-4 p-2">
@@ -33,6 +34,7 @@ export const RightSidebar = ({ onAIClick }: RightSidebarProps) => {
           <MessageSquare className="w-6 h-6" />
         </Button>
         <Button
+          onClick={onSettingsClick}
           variant="ghost"
           size="sm"
           className="w-12 h-12 p-0 hover:bg-primary/20 hover:text-primary border border-transparent hover:border-primary/50 transition-all"

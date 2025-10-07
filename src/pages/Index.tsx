@@ -25,6 +25,12 @@ import { CostCatalogModal } from "@/components/catalog/CostCatalogModal";
 import { EstimateCalculatorModal } from "@/components/estimate/EstimateCalculatorModal";
 import { AIAsphaltDetectionModal } from "@/components/ai/AIAsphaltDetectionModal";
 import { RouteOptimizationModal } from "@/components/route/RouteOptimizationModal";
+import { ScreensaverMode } from "@/components/screensaver/ScreensaverMode";
+import { DocumentsModal } from "@/components/modals/DocumentsModal";
+import { ContractsModal } from "@/components/modals/ContractsModal";
+import { ReceiptsModal } from "@/components/modals/ReceiptsModal";
+import { SettingsModal } from "@/components/modals/SettingsModal";
+import { EODPlaybackModal } from "@/components/modals/EODPlaybackModal";
 
 const Index = () => {
   const [activeModule, setActiveModule] = useState<string | null>(null);
@@ -33,6 +39,12 @@ const Index = () => {
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [showAutomation, setShowAutomation] = useState(false);
+  const [showScreensaver, setShowScreensaver] = useState(false);
+  const [showDocuments, setShowDocuments] = useState(false);
+  const [showContracts, setShowContracts] = useState(false);
+  const [showReceipts, setShowReceipts] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showEODPlayback, setShowEODPlayback] = useState(false);
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-background">
@@ -51,7 +63,10 @@ const Index = () => {
       <LeftSidebar />
 
       {/* Right Sidebar */}
-      <RightSidebar onAIClick={() => setShowAI(true)} />
+      <RightSidebar 
+        onAIClick={() => setShowAI(true)}
+        onSettingsClick={() => setShowSettings(true)}
+      />
 
       {/* KPI Ticker */}
       <KPITicker />
@@ -118,6 +133,16 @@ const Index = () => {
       {showAnalytics && <AnalyticsModal onClose={() => setShowAnalytics(false)} />}
       {showChat && <ChatModal onClose={() => setShowChat(false)} />}
       {showAutomation && <AutomationModal onClose={() => setShowAutomation(false)} />}
+      {showScreensaver && <ScreensaverMode onClose={() => setShowScreensaver(false)} />}
+      {showDocuments && <DocumentsModal onClose={() => setShowDocuments(false)} />}
+      {showContracts && <ContractsModal onClose={() => setShowContracts(false)} />}
+      {showReceipts && <ReceiptsModal onClose={() => setShowReceipts(false)} />}
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
+      {showEODPlayback && <EODPlaybackModal onClose={() => setShowEODPlayback(false)} />}
+      {activeModule === "documents" && <DocumentsModal onClose={() => setActiveModule(null)} />}
+      {activeModule === "contracts" && <ContractsModal onClose={() => setActiveModule(null)} />}
+      {activeModule === "receipts" && <ReceiptsModal onClose={() => setActiveModule(null)} />}
+      {activeModule === "eod-playback" && <EODPlaybackModal onClose={() => setActiveModule(null)} />}
     </div>
   );
 };

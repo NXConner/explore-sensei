@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMapMeasurements } from "@/hooks/useMapMeasurements";
 import { AIAsphaltDetectionModal } from "@/components/ai/AIAsphaltDetectionModal";
+import { MapVisibilityControls } from "./MapVisibilityControls";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyBaUoISC-zfsvfJumBuZnstJv9uf4BgWJM";
 
@@ -349,6 +350,7 @@ export const MapContainer = () => {
         onToggleStreetView={handleToggleStreetView}
         onAIDetect={handleAIDetect}
       />
+      <MapVisibilityControls />
       <div
         ref={mapRef}
         className="absolute inset-0 w-full h-full"

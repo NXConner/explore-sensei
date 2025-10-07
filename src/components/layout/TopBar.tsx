@@ -1,4 +1,4 @@
-import { Activity, Calendar, Users, Truck, DollarSign, User, Briefcase, Clock, Camera, HardHat, FileText, ClipboardList, Shield, Wallet, BookOpen, Calculator, Route, LogOut, TrendingUp, MessageSquare, Zap } from "lucide-react";
+import { Activity, Calendar, Users, Truck, DollarSign, User, Briefcase, Clock, Camera, HardHat, FileText, ClipboardList, Shield, Wallet, BookOpen, Calculator, Route, LogOut, TrendingUp, MessageSquare, Zap, FolderOpen, Receipt, Cloud, MapPin, Play, Tv } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { useNavigate } from "react-router-dom";
@@ -43,6 +43,10 @@ export const TopBar = ({ onModuleClick, onShowAnalytics, onShowChat, onShowAutom
     { id: "fleet", icon: Truck, label: "FLEET" },
     { id: "finance", icon: DollarSign, label: "FINANCE" },
     { id: "payroll", icon: Wallet, label: "PAYROLL" },
+    { id: "documents", icon: FolderOpen, label: "DOCS" },
+    { id: "contracts", icon: FileText, label: "CONTRACTS" },
+    { id: "receipts", icon: Receipt, label: "RECEIPTS" },
+    { id: "eod-playback", icon: Play, label: "EOD" },
   ];
 
   return (
