@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { exportAIReportToPDF } from "@/lib/pdfExport";
+import { useMap } from "@/components/map/MapContext";
 
 interface AIAsphaltDetectionModalProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
   const [results, setResults] = useState<any>(null);
   const [error, setError] = useState<string>("");
   const [selectedImage, setSelectedImage] = useState<string>("");
+  const { map } = useMap();
 
   const analyzeImage = async (imageDataUrl: string) => {
     try {
@@ -107,11 +109,67 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
     reader.readAsDataURL(file);
   };
 
-  const handleUseCurrentView = () => {
-    toast({
-      title: "Feature Coming Soon",
-      description: "Map view capture will be available in the next update. Please upload an image for now.",
-    });
+  const handleUseCurrentView = async () => {
+    try {
+      setError("");
+      if (!map) {
+        toast({
+          title: "Map Unavailable",
+          description: "Map not initialized yet. Please try again in a moment.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const center = map.getCenter();
+      const zoom = map.getZoom() || 18;
+      if (!center) {
+        toast({
+          title: "Center Not Found",
+          description: "Unable to read current map center.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const lat = center.lat();
+      const lng = center.lng();
+
+      const apiKey = (import.meta as any).env?.VITE_GOOGLE_MAPS_API_KEY as string;
+      if (!apiKey || apiKey === "undefined") {
+        toast({
+          title: "API Key Missing",
+          description: "Google Maps API key not configured.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setIsAnalyzing(true);
+      setProgress(10);
+      toast({ title: "Capturing Map View", description: "Fetching static map image..." });
+
+      const staticUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoom}&size=800x600&maptype=satellite&scale=2&key=${apiKey}`;
+
+      const resp = await fetch(staticUrl);
+      if (!resp.ok) throw new Error("Failed to fetch static map image");
+      const blob = await resp.blob();
+      const reader = new FileReader();
+      const dataUrl: string = await new Promise((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+
+      setSelectedImage(dataUrl);
+      await analyzeImage(dataUrl);
+    } catch (e: any) {
+      setError(e?.message || "Failed to analyze current map view");
+      toast({ title: "Capture Failed", description: e?.message || "Could not capture map view.", variant: "destructive" });
+    } finally {
+      setIsAnalyzing(false);
+      setProgress(0);
+    }
   };
 
   return (
@@ -134,7 +192,6 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
             >
               <MapPin className="w-6 h-6" />
               <span>Analyze Current View</span>
-              <span className="text-xs text-muted-foreground">(Coming Soon)</span>
             </Button>
             <Button
               onClick={() => fileInputRef.current?.click()}
@@ -276,9 +333,10 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
                   <Button 
                     className="flex-1"
                     onClick={() => {
+                      // TODO: Wire to estimate module with prefilled line items from results
                       toast({
-                        title: "Feature Coming Soon",
-                        description: "Estimate generation will be integrated soon",
+                        title: "Estimate Generation",
+                        description: "Prefill coming from AI results is in progress.",
                       });
                     }}
                   >
