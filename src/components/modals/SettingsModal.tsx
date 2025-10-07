@@ -28,14 +28,18 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     radarSpeed: 3,
     glitchIntensity: 30,
     animationSpeed: 100,
+    glitchClickPreset: 'subtle' as 'barely' | 'subtle' | 'normal',
+    vignetteEffect: false,
     // Sounds
     uiSounds: false,
     alertSounds: true,
     soundVolume: 70,
     // Themes & Wallpapers
-    theme: "tactical-dark" as "tactical-dark" | "light" | "high-contrast" | "church-blue" | "safety-green",
+    theme: "tactical-dark" as "tactical-dark" | "light" | "high-contrast" | "church-blue" | "safety-green" | "construction" | "landscaping" | "security" | "aviation",
     wallpaperUrl: "",
     wallpaperOpacity: 60,
+    // Premium gating
+    premiumEnabled: false,
   });
 
   // Persist settings in localStorage
@@ -106,6 +110,35 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
           "--accent": "30 100% 50%",
           "--background": "140 10% 6%",
           "--foreground": "0 0% 92%",
+        },
+        // Industry premium themes
+        construction: {
+          "--primary": "28 95% 52%", // orange
+          "--primary-foreground": "0 0% 10%",
+          "--accent": "210 80% 52%",
+          "--background": "215 22% 9%",
+          "--foreground": "0 0% 96%",
+        },
+        landscaping: {
+          "--primary": "133 70% 41%", // green
+          "--primary-foreground": "0 0% 98%",
+          "--accent": "43 93% 55%",
+          "--background": "100 15% 8%",
+          "--foreground": "0 0% 95%",
+        },
+        security: {
+          "--primary": "220 90% 56%", // blue
+          "--primary-foreground": "0 0% 100%",
+          "--accent": "0 0% 100%",
+          "--background": "220 15% 6%",
+          "--foreground": "0 0% 92%",
+        },
+        aviation: {
+          "--primary": "197 100% 50%", // cyan
+          "--primary-foreground": "0 0% 10%",
+          "--accent": "258 90% 64%",
+          "--background": "240 13% 10%",
+          "--foreground": "0 0% 94%",
         },
       };
       const selected = themes[theme] || themes["tactical-dark"];
@@ -217,17 +250,25 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                   {[
-                    { id: "tactical-dark", label: "Tactical Dark" },
-                    { id: "light", label: "Light" },
-                    { id: "high-contrast", label: "High Contrast" },
-                    { id: "church-blue", label: "Church Blue" },
-                    { id: "safety-green", label: "Safety Green" },
+                    { id: "tactical-dark", label: "Tactical Dark", premium: false },
+                    { id: "light", label: "Light", premium: false },
+                    { id: "high-contrast", label: "High Contrast", premium: false },
+                    { id: "church-blue", label: "Church Blue", premium: false },
+                    { id: "safety-green", label: "Safety Green", premium: false },
+                    // Premium industry themes
+                    { id: "construction", label: "Construction (Premium)", premium: true },
+                    { id: "landscaping", label: "Landscaping (Premium)", premium: true },
+                    { id: "security", label: "Security (Premium)", premium: true },
+                    { id: "aviation", label: "Aviation (Premium)", premium: true },
                   ].map((t) => (
                     <Button
                       key={t.id}
                       variant={settings.theme === (t.id as any) ? "default" : "outline"}
-                      onClick={() => setSettings((p) => ({ ...p, theme: t.id as any }))}
-                      className="justify-start"
+                      onClick={() => {
+                        if (t.premium && !settings.premiumEnabled) return;
+                        setSettings((p) => ({ ...p, theme: t.id as any }));
+                      }}
+                      className={`justify-start ${t.premium && !settings.premiumEnabled ? 'opacity-60 cursor-not-allowed' : ''}`}
                     >
                       {t.label}
                     </Button>
@@ -258,6 +299,65 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                       step={5}
                       className="mt-2"
                     />
+                  </div>
+                </div>
+              </div>
+
+              {/* Theme Customizer with Live Preview */}
+              <div className="tactical-panel p-4 space-y-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <Label>Theme Customizer</Label>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label className="text-xs">Primary Hue</Label>
+                    <input type="range" min={0} max={360} step={1}
+                      value={Number((getComputedStyle(document.documentElement).getPropertyValue('--primary').split(' ')[0]) || 30)}
+                      onChange={(e) => {
+                        const root = document.documentElement as HTMLElement;
+                        const current = getComputedStyle(root).getPropertyValue('--primary').trim().split(' ');
+                        const sat = current[1] || '100%';
+                        const lum = current[2] || '50%';
+                        root.style.setProperty('--primary', `${e.target.value} ${sat} ${lum}`);
+                      }}
+                      className="w-full"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Accent Hue</Label>
+                    <input type="range" min={0} max={360} step={1}
+                      value={Number((getComputedStyle(document.documentElement).getPropertyValue('--accent').split(' ')[0]) || 197)}
+                      onChange={(e) => {
+                        const root = document.documentElement as HTMLElement;
+                        const current = getComputedStyle(root).getPropertyValue('--accent').trim().split(' ');
+                        const sat = current[1] || '100%';
+                        const lum = current[2] || '50%';
+                        root.style.setProperty('--accent', `${e.target.value} ${sat} ${lum}`);
+                      }}
+                      className="w-full"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Background Luminance</Label>
+                    <input type="range" min={0} max={100} step={1}
+                      value={Number((getComputedStyle(document.documentElement).getPropertyValue('--background').split(' ')[2] || '4%').replace('%',''))}
+                      onChange={(e) => {
+                        const root = document.documentElement as HTMLElement;
+                        const current = getComputedStyle(root).getPropertyValue('--background').trim().split(' ');
+                        const h = current[0] || '0';
+                        const s = current[1] || '0%';
+                        root.style.setProperty('--background', `${h} ${s} ${e.target.value}%`);
+                      }}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+                <div className="mt-2 p-3 border border-primary/30 rounded">
+                  <div className="text-xs mb-2">Live Preview</div>
+                  <div className="flex gap-2">
+                    <button className="px-3 py-2 rounded bg-primary text-primary-foreground">Primary</button>
+                    <button className="px-3 py-2 rounded bg-accent text-accent-foreground">Accent</button>
+                    <div className="px-3 py-2 rounded border" style={{ background: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}>Body</div>
                   </div>
                 </div>
               </div>
@@ -351,7 +451,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     />
                   </div>
                   {settings.glitchEffect && (
-                    <div className="pl-4">
+                    <div className="pl-4 space-y-3">
                       <Label className="text-xs">Intensity: {settings.glitchIntensity}%</Label>
                       <Slider
                         value={[settings.glitchIntensity]}
@@ -363,6 +463,18 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                         step={10}
                         className="mt-2"
                       />
+                      <div className="flex items-center gap-2">
+                        <Label className="text-xs">Click Glitch Preset</Label>
+                        <select
+                          className="hud-element border-primary/30 rounded px-2 py-1 text-xs bg-transparent"
+                          value={settings.glitchClickPreset}
+                          onChange={(e) => setSettings((p) => ({ ...p, glitchClickPreset: e.target.value as any }))}
+                        >
+                          <option value="barely">Barely</option>
+                          <option value="subtle">Subtle</option>
+                          <option value="normal">Normal</option>
+                        </select>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -392,6 +504,20 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   <Switch
                     checked={settings.gridOverlay}
                     onCheckedChange={() => handleToggle("gridOverlay")}
+                  />
+                </div>
+
+                {/* Vignette */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Vignette Corners</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Subtle darkening near the edges
+                    </p>
+                  </div>
+                  <Switch
+                    checked={settings.vignetteEffect}
+                    onCheckedChange={() => handleToggle("vignetteEffect")}
                   />
                 </div>
 

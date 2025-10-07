@@ -47,6 +47,60 @@ export const MapContainer = () => {
   const { toast } = useToast();
   const { measurements } = useMapMeasurements();
 
+  // UI settings loaded from SettingsModal persistence
+  const [uiSettings, setUiSettings] = useState({
+    radarEffect: true,
+    glitchEffect: true,
+    scanlineEffect: true,
+    gridOverlay: true,
+    radarSpeed: 3,
+    glitchIntensity: 30, // percent
+    glitchClickPreset: 'subtle' as 'barely' | 'subtle' | 'normal',
+    vignetteEffect: false,
+  });
+
+  useEffect(() => {
+    // Load persisted settings
+    try {
+      const raw = localStorage.getItem('aos_settings');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setUiSettings((prev) => ({
+          ...prev,
+          radarEffect: parsed.radarEffect ?? prev.radarEffect,
+          glitchEffect: parsed.glitchEffect ?? prev.glitchEffect,
+          scanlineEffect: parsed.scanlineEffect ?? prev.scanlineEffect,
+          gridOverlay: parsed.gridOverlay ?? prev.gridOverlay,
+          radarSpeed: parsed.radarSpeed ?? prev.radarSpeed,
+          glitchIntensity: parsed.glitchIntensity ?? prev.glitchIntensity,
+          glitchClickPreset: parsed.glitchClickPreset ?? prev.glitchClickPreset,
+          vignetteEffect: parsed.vignetteEffect ?? prev.vignetteEffect,
+        }));
+      }
+    } catch {}
+
+    // Sync across tabs/windows and when settings modal updates
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== 'aos_settings' || !e.newValue) return;
+      try {
+        const parsed = JSON.parse(e.newValue);
+        setUiSettings((prev) => ({
+          ...prev,
+          radarEffect: parsed.radarEffect ?? prev.radarEffect,
+          glitchEffect: parsed.glitchEffect ?? prev.glitchEffect,
+          scanlineEffect: parsed.scanlineEffect ?? prev.scanlineEffect,
+          gridOverlay: parsed.gridOverlay ?? prev.gridOverlay,
+          radarSpeed: parsed.radarSpeed ?? prev.radarSpeed,
+          glitchIntensity: parsed.glitchIntensity ?? prev.glitchIntensity,
+          glitchClickPreset: parsed.glitchClickPreset ?? prev.glitchClickPreset,
+          vignetteEffect: parsed.vignetteEffect ?? prev.vignetteEffect,
+        }));
+      } catch {}
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
   const handleModeChange = (mode: DrawingMode) => {
     setActiveMode(mode);
     setDrawingMode(mode);
@@ -180,50 +234,49 @@ export const MapContainer = () => {
   useEffect(() => {
     // If no Google Maps key, use Mapbox fallback
     const noGoogleKey = !GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY === "undefined";
-    if (noGoogleKey) {
+    const initializeMapboxFallback = async () => {
       setUsingMapbox(true);
       setMapsUnavailable(false);
-
-      const initMapbox = async () => {
-        if (!mapRef.current || mapboxInstanceRef.current) return;
-        try {
-          let token = LOCAL_MAPBOX_TOKEN;
-          if (!token) {
-            const { data, error } = await supabase.functions.invoke('get-mapbox-token');
-            if (error || !data?.token) throw new Error(error?.message || 'No Mapbox token');
-            token = data.token as string;
-          }
-
-          mapboxgl.accessToken = token;
-          const defaultCenter: [number, number] = [-80.2715, 36.6904];
-          const map = new mapboxgl.Map({
-            container: mapRef.current,
-            style: 'mapbox://styles/mapbox/satellite-streets-v12',
-            center: defaultCenter,
-            zoom: 12,
-            projection: 'globe'
-          });
-          mapboxInstanceRef.current = map;
-
-          map.on('load', () => {
-            map.setFog({});
-          });
-
-          if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-              (position) => {
-                map.easeTo({ center: [position.coords.longitude, position.coords.latitude], zoom: 15 });
-              },
-              () => {}
-            );
-          }
-        } catch (e) {
-          console.warn('Failed to initialize Mapbox:', e);
-          setMapsUnavailable(true);
+      if (!mapRef.current || mapboxInstanceRef.current) return;
+      try {
+        let token = LOCAL_MAPBOX_TOKEN;
+        if (!token) {
+          const { data, error } = await supabase.functions.invoke('get-mapbox-token');
+          if (error || !data?.token) throw new Error(error?.message || 'No Mapbox token');
+          token = data.token as string;
         }
-      };
 
-      initMapbox();
+        mapboxgl.accessToken = token;
+        const defaultCenter: [number, number] = [-80.2715, 36.6904];
+        const map = new mapboxgl.Map({
+          container: mapRef.current,
+          style: 'mapbox://styles/mapbox/satellite-streets-v12',
+          center: defaultCenter,
+          zoom: 12,
+          projection: 'globe'
+        });
+        mapboxInstanceRef.current = map;
+
+        map.on('load', () => {
+          map.setFog({});
+        });
+
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              map.easeTo({ center: [position.coords.longitude, position.coords.latitude], zoom: 15 });
+            },
+            () => {}
+          );
+        }
+      } catch (e) {
+        console.warn('Failed to initialize Mapbox:', e);
+        setMapsUnavailable(true);
+      }
+    };
+
+    if (noGoogleKey) {
+      initializeMapboxFallback();
 
       return () => {
         if (mapboxInstanceRef.current) {
@@ -242,11 +295,20 @@ export const MapContainer = () => {
         return;
       }
 
+      // Avoid duplicate insertion
+      const existing = document.getElementById('gmaps-script');
+      if (existing) existing.remove();
+
       const script = document.createElement("script");
+      script.id = 'gmaps-script';
       script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,drawing,geometry`;
       script.async = true;
       script.defer = true;
       script.onload = () => initMap();
+      script.onerror = () => {
+        console.warn('Google Maps failed to load. Falling back to Mapbox.');
+        initializeMapboxFallback();
+      };
       document.head.appendChild(script);
     };
 
@@ -416,12 +478,15 @@ export const MapContainer = () => {
     <MapContext.Provider value={{ map: mapInstanceRef.current }}>
       {/* Map Effects */}
       <MapEffects 
-        showRadar={true}
-        showGlitch={true}
-        showScanline={true}
-        radarSpeed={3}
-        glitchIntensity={mapTheme === 'division' ? 0.3 : 0.15}
+        showRadar={uiSettings.radarEffect}
+        showGlitch={uiSettings.glitchEffect}
+        showScanline={uiSettings.scanlineEffect}
+        radarSpeed={uiSettings.radarSpeed}
+        glitchIntensity={Math.max(0.03, Math.min(0.9, (uiSettings.glitchIntensity || 0) / 100))}
         accentColor={mapTheme === 'division' ? 'rgba(255, 140, 0, 0.12)' : 'rgba(0, 200, 200, 0.12)'}
+        showGridOverlay={uiSettings.gridOverlay}
+        glitchClickPreset={uiSettings.glitchClickPreset}
+        vignetteEffect={uiSettings.vignetteEffect}
       />
 
       <MeasurementDisplay distance={measurement.distance} area={measurement.area} />
