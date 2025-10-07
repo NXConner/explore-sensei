@@ -17,9 +17,10 @@ import { Button } from "@/components/ui/button";
 import { Palette } from "lucide-react";
 import { WeatherRadarLayer } from "@/components/weather/WeatherRadarLayer";
 import { MapContext } from "./MapContext";
-import { getGoogleMapsApiKey } from "@/config/env";
+import { getGoogleMapsApiKey, getMapboxAccessToken } from "@/config/env";
 
 const GOOGLE_MAPS_API_KEY = getGoogleMapsApiKey();
+const LOCAL_MAPBOX_TOKEN = getMapboxAccessToken();
 
 type MapTheme = 'division' | 'animus';
 
@@ -186,10 +187,14 @@ export const MapContainer = () => {
       const initMapbox = async () => {
         if (!mapRef.current || mapboxInstanceRef.current) return;
         try {
-          const { data, error } = await supabase.functions.invoke('get-mapbox-token');
-          if (error || !data?.token) throw new Error(error?.message || 'No Mapbox token');
+          let token = LOCAL_MAPBOX_TOKEN;
+          if (!token) {
+            const { data, error } = await supabase.functions.invoke('get-mapbox-token');
+            if (error || !data?.token) throw new Error(error?.message || 'No Mapbox token');
+            token = data.token as string;
+          }
 
-          mapboxgl.accessToken = data.token;
+          mapboxgl.accessToken = token;
           const defaultCenter: [number, number] = [-80.2715, 36.6904];
           const map = new mapboxgl.Map({
             container: mapRef.current,

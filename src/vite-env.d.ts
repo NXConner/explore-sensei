@@ -8,6 +8,7 @@ interface ImportMetaEnv {
   readonly VITE_GOOGLE_API_KEY?: string;
   readonly VITE_GOOGLE_KEY?: string;
   readonly VITE_OPENWEATHER_API_KEY?: string;
+  readonly VITE_MAPBOX_ACCESS_TOKEN?: string;
   readonly GEMINI_API_KEY?: string;
 }
 
