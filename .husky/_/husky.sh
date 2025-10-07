@@ -1,16 +1,9 @@
-#!/bin/sh
-# Husky shell helper
+echo "husky - DEPRECATED
 
-if [ -z "$husky_skip_init" ]; then
-  debug () {
-    [ "$HUSKY_DEBUG" = "1" ] && echo "$1"
-  }
+Please remove the following two lines from $0:
 
-  readonly hookname="$1"
-  debug "husky:debug current working directory is: $(pwd)"
-  export readonly husky_skip_init=1
-  sh -e "$0" "${hookname}"
-  exitCode="$?"
-  debug "husky:debug exit code: $exitCode"
-  exit $exitCode
-fi
+#!/usr/bin/env sh
+. \"\$(dirname -- \"\$0\")/_/husky.sh\"
+
+They WILL FAIL in v10.0.0
+"

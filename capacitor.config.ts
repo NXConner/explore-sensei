@@ -1,7 +1,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.85d40e1366944afc9e47167e8bd1ac0b',
+  appId: 'com.asphaltos.app',
   appName: 'Asphalt OS',
   webDir: 'dist',
   server: {
