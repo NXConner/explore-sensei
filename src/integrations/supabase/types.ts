@@ -1013,6 +1013,56 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_activity_summary: {
+        Row: {
+          created_at: string
+          date: string
+          employee_id: string
+          first_location_time: string | null
+          id: string
+          jobs_visited: number | null
+          last_location_time: string | null
+          locations_count: number | null
+          path_geojson: Json | null
+          total_distance_km: number | null
+          total_time_minutes: number | null
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          employee_id: string
+          first_location_time?: string | null
+          id?: string
+          jobs_visited?: number | null
+          last_location_time?: string | null
+          locations_count?: number | null
+          path_geojson?: Json | null
+          total_distance_km?: number | null
+          total_time_minutes?: number | null
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          employee_id?: string
+          first_location_time?: string | null
+          id?: string
+          jobs_visited?: number | null
+          last_location_time?: string | null
+          locations_count?: number | null
+          path_geojson?: Json | null
+          total_distance_km?: number | null
+          total_time_minutes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_activity_summary_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_field_reports: {
         Row: {
           created_at: string
@@ -6511,6 +6561,10 @@ export type Database = {
         Args: { entry_id: string }
         Returns: number
       }
+      calculate_distance: {
+        Args: { lat1: number; lat2: number; lon1: number; lon2: number }
+        Returns: number
+      }
       check_rate_limit: {
         Args: {
           p_action: string
@@ -6560,6 +6614,10 @@ export type Database = {
       equals: {
         Args: { geom1: unknown; geom2: unknown }
         Returns: boolean
+      }
+      generate_daily_summary: {
+        Args: { p_date: string; p_employee_id: string }
+        Returns: undefined
       }
       generate_weekly_compliance_scores: {
         Args: Record<PropertyKey, never>

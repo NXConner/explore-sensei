@@ -36,6 +36,14 @@ export const BusinessManagementHub = ({ onClose, onNavigate }: BusinessManagemen
       bgColor: "bg-purple-500/10",
     },
     {
+      id: "hr",
+      title: "Human Resources",
+      description: "Employee management, training records, and HR alerts",
+      icon: Users,
+      color: "text-blue-500",
+      bgColor: "bg-blue-500/10",
+    },
+    {
       id: "hr_compliance",
       title: "HR & Compliance",
       description: "Employee violations, disciplinary actions, and compliance tracking",

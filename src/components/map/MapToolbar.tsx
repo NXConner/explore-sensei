@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Ruler, Circle, Square, MapPin, Trash2, Save, Navigation, Car, Eye, Scan, Download } from "lucide-react";
+import { Ruler, Circle, Square, MapPin, Trash2, Save, Navigation, Car, Eye, Scan, Download, Users } from "lucide-react";
 import { DrawingMode } from "@/hooks/useMapDrawing";
 import { MeasurementExportModal } from "@/components/export/MeasurementExportModal";
 
@@ -14,6 +14,8 @@ interface MapToolbarProps {
   showTraffic?: boolean;
   onToggleStreetView?: () => void;
   onAIDetect?: () => void;
+  onToggleEmployeeTracking?: () => void;
+  showEmployeeTracking?: boolean;
 }
 
 export const MapToolbar = ({ 
@@ -25,7 +27,9 @@ export const MapToolbar = ({
   onToggleTraffic,
   showTraffic = false,
   onToggleStreetView,
-  onAIDetect
+  onAIDetect,
+  onToggleEmployeeTracking,
+  showEmployeeTracking = false,
 }: MapToolbarProps) => {
   const [showExport, setShowExport] = useState(false);
   
@@ -83,6 +87,18 @@ export const MapToolbar = ({
               title="AI Surface Detection"
             >
               <Scan className="w-5 h-5 text-cyan-500" />
+            </Button>
+          )}
+
+          {onToggleEmployeeTracking && (
+            <Button
+              variant={showEmployeeTracking ? "default" : "outline"}
+              size="icon"
+              className="w-12 h-12 hud-element border-green-500/30 hover:border-green-500/50 transition-all animate-fade-in"
+              onClick={onToggleEmployeeTracking}
+              title="Employee Tracking"
+            >
+              <Users className="w-5 h-5" />
             </Button>
           )}
           

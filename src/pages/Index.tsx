@@ -49,6 +49,7 @@ const Index = () => {
   const [showEODPlayback, setShowEODPlayback] = useState(false);
   const [showBusinessHub, setShowBusinessHub] = useState(false);
   const [showHRCompliance, setShowHRCompliance] = useState(false);
+  const [showHRManagement, setShowHRManagement] = useState(false);
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-background">
@@ -151,12 +152,16 @@ const Index = () => {
             setActiveModule(module);
             if (module === "hr_compliance") {
               setShowHRCompliance(true);
+            } else if (module === "hr") {
+              setShowHRManagement(true);
             }
           }}
         />
       )}
       {showHRCompliance && <EmployeeComplianceModal onClose={() => setShowHRCompliance(false)} />}
+      {showHRManagement && <HRManagementModal onClose={() => setShowHRManagement(false)} />}
       {activeModule === "hr_compliance" && <EmployeeComplianceModal onClose={() => setActiveModule(null)} />}
+      {activeModule === "hr" && <HRManagementModal onClose={() => setActiveModule(null)} />}
       {activeModule === "documents" && <DocumentsModal onClose={() => setActiveModule(null)} />}
       {activeModule === "contracts" && <ContractsModal onClose={() => setActiveModule(null)} />}
       {activeModule === "receipts" && <ReceiptsModal onClose={() => setActiveModule(null)} />}

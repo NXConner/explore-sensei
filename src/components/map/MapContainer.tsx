@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMapMeasurements } from "@/hooks/useMapMeasurements";
 import { AIAsphaltDetectionModal } from "@/components/ai/AIAsphaltDetectionModal";
 import { MapVisibilityControls } from "./MapVisibilityControls";
+import { EmployeeTrackingLayer } from "./EmployeeTrackingLayer";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyBaUoISC-zfsvfJumBuZnstJv9uf4BgWJM";
 
@@ -29,6 +30,7 @@ export const MapContainer = () => {
   const streetViewRef = useRef<google.maps.StreetViewPanorama | null>(null);
   const [showStreetView, setShowStreetView] = useState(false);
   const [showAIDetection, setShowAIDetection] = useState(false);
+  const [showEmployeeTracking, setShowEmployeeTracking] = useState(true);
   const { data: jobSites } = useJobSites();
   const { measurement, setDrawingMode, clearDrawings } = useMapDrawing(mapInstanceRef.current);
   const [activeMode, setActiveMode] = useState<DrawingMode>(null);
@@ -349,8 +351,11 @@ export const MapContainer = () => {
         showTraffic={trafficLayerRef.current?.getMap() != null}
         onToggleStreetView={handleToggleStreetView}
         onAIDetect={handleAIDetect}
+        onToggleEmployeeTracking={() => setShowEmployeeTracking(!showEmployeeTracking)}
+        showEmployeeTracking={showEmployeeTracking}
       />
       <MapVisibilityControls />
+      {showEmployeeTracking && <EmployeeTrackingLayer map={mapInstanceRef.current} />}
       <div
         ref={mapRef}
         className="absolute inset-0 w-full h-full"
