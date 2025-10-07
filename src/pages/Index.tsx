@@ -31,6 +31,8 @@ import { ContractsModal } from "@/components/modals/ContractsModal";
 import { ReceiptsModal } from "@/components/modals/ReceiptsModal";
 import { SettingsModal } from "@/components/modals/SettingsModal";
 import { EODPlaybackModal } from "@/components/modals/EODPlaybackModal";
+import { EmployeeComplianceModal } from "@/components/compliance/EmployeeComplianceModal";
+import { BusinessManagementHub } from "@/components/business/BusinessManagementHub";
 
 const Index = () => {
   const [activeModule, setActiveModule] = useState<string | null>(null);
@@ -45,6 +47,8 @@ const Index = () => {
   const [showReceipts, setShowReceipts] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showEODPlayback, setShowEODPlayback] = useState(false);
+  const [showBusinessHub, setShowBusinessHub] = useState(false);
+  const [showHRCompliance, setShowHRCompliance] = useState(false);
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-background">
@@ -57,6 +61,7 @@ const Index = () => {
         onShowAnalytics={() => setShowAnalytics(true)}
         onShowChat={() => setShowChat(true)}
         onShowAutomation={() => setShowAutomation(true)}
+        onShowBusinessHub={() => setShowBusinessHub(true)}
       />
 
       {/* Left Sidebar */}
@@ -139,6 +144,19 @@ const Index = () => {
       {showReceipts && <ReceiptsModal onClose={() => setShowReceipts(false)} />}
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
       {showEODPlayback && <EODPlaybackModal onClose={() => setShowEODPlayback(false)} />}
+      {showBusinessHub && (
+        <BusinessManagementHub 
+          onClose={() => setShowBusinessHub(false)} 
+          onNavigate={(module) => {
+            setActiveModule(module);
+            if (module === "hr_compliance") {
+              setShowHRCompliance(true);
+            }
+          }}
+        />
+      )}
+      {showHRCompliance && <EmployeeComplianceModal onClose={() => setShowHRCompliance(false)} />}
+      {activeModule === "hr_compliance" && <EmployeeComplianceModal onClose={() => setActiveModule(null)} />}
       {activeModule === "documents" && <DocumentsModal onClose={() => setActiveModule(null)} />}
       {activeModule === "contracts" && <ContractsModal onClose={() => setActiveModule(null)} />}
       {activeModule === "receipts" && <ReceiptsModal onClose={() => setActiveModule(null)} />}

@@ -10,9 +10,10 @@ interface TopBarProps {
   onShowAnalytics?: () => void;
   onShowChat?: () => void;
   onShowAutomation?: () => void;
+  onShowBusinessHub?: () => void;
 }
 
-export const TopBar = ({ onModuleClick, onShowAnalytics, onShowChat, onShowAutomation }: TopBarProps) => {
+export const TopBar = ({ onModuleClick, onShowAnalytics, onShowChat, onShowAutomation, onShowBusinessHub }: TopBarProps) => {
   const { user, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -123,6 +124,17 @@ export const TopBar = ({ onModuleClick, onShowAnalytics, onShowChat, onShowAutom
               className="hover:bg-primary/20"
             >
               <Zap className="w-4 h-4" />
+            </Button>
+          )}
+          {onShowBusinessHub && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onShowBusinessHub}
+              className="hover:bg-primary/20 px-3 gap-2"
+            >
+              <Briefcase className="w-4 h-4" />
+              <span className="text-xs font-bold">BUSINESS</span>
             </Button>
           )}
           
