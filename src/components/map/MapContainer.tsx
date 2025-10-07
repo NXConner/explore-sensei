@@ -1,5 +1,5 @@
 /// <reference types="@types/google.maps" />
-import React, { useEffect, useRef, createContext, useContext, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useJobSites } from "@/hooks/useJobSites";
 import { MeasurementDisplay } from "./MeasurementDisplay";
 import { MapToolbar } from "./MapToolbar";
@@ -15,16 +15,9 @@ import { divisionMapStyle, animusMapStyle } from "./themes";
 import { Button } from "@/components/ui/button";
 import { Palette } from "lucide-react";
 import { WeatherRadarLayer } from "@/components/weather/WeatherRadarLayer";
+import { MapContext } from "./MapContext";
 
 const GOOGLE_MAPS_API_KEY = (import.meta as any).env?.VITE_GOOGLE_MAPS_API_KEY as string;
-
-interface MapContextType {
-  map: google.maps.Map | null;
-}
-
-const MapContext = createContext<MapContextType>({ map: null });
-
-export const useMap = () => useContext(MapContext);
 
 type MapTheme = 'division' | 'animus';
 

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useMap } from "@/components/map/MapContainer";
+import { useMap } from "@/components/map/MapContext";
 import { useMapDrawing, DrawingMode } from "@/hooks/useMapDrawing";
 import { useJobSites } from "@/hooks/useJobSites";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
