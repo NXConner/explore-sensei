@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEstimates } from "@/hooks/useEstimates";
 import { useToast } from "@/hooks/use-toast";
 import { exportEstimateToPDF } from "@/lib/pdfExport";
+import { autoPopulateEstimate } from "@/lib/estimateLogic";
+import { useMapMeasurements } from "@/hooks/useMapMeasurements";
 
 interface EstimateCalculatorModalProps {
   isOpen: boolean;
@@ -18,13 +20,14 @@ interface EstimateCalculatorModalProps {
 }
 
 interface EstimateLineItem {
-  item_id: string;
+  item_id?: string;
   name: string;
-  code: string;
+  code?: string;
   unit: string;
   unit_cost: number;
   quantity: number;
   total: number;
+  description?: string;
 }
 
 export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorModalProps) => {
@@ -37,6 +40,24 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
   const [customerEmail, setCustomerEmail] = useState("");
   const [jobSiteAddress, setJobSiteAddress] = useState("");
   const [savedEstimateId, setSavedEstimateId] = useState<string>("");
+  const [taxRate, setTaxRate] = useState<number>(8.0);
+  const [overheadPct, setOverheadPct] = useState<number>(12);
+  const [profitPct, setProfitPct] = useState<number>(20);
+
+  // Auto-populate controls
+  const [svcSeal, setSvcSeal] = useState(true);
+  const [svcCrack, setSvcCrack] = useState(false);
+  const [svcPatch, setSvcPatch] = useState(false);
+  const [svcStripe, setSvcStripe] = useState(false);
+  const [areaSqFt, setAreaSqFt] = useState<string>("");
+  const [linearFeet, setLinearFeet] = useState<string>("");
+  const [numStalls, setNumStalls] = useState<string>("");
+  const [distanceMiles, setDistanceMiles] = useState<string>("");
+  const [procureMiles, setProcureMiles] = useState<string>("");
+  const [crewSize, setCrewSize] = useState<string>("2");
+  const [hourlyRate, setHourlyRate] = useState<string>("20");
+
+  const { measurements } = useMapMeasurements();
 
   const { data: catalogs } = useQuery({
     queryKey: ["cost-catalogs"],
@@ -68,7 +89,7 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
     const newLine: EstimateLineItem = {
       item_id: item.id,
       name: item.name,
-      code: item.code,
+      code: item.code ?? item.item_code,
       unit: item.unit,
       unit_cost: item.unit_cost,
       quantity: qty,
@@ -83,10 +104,54 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
     setLineItems(lineItems.filter((_, i) => i !== index));
   };
 
-  const subtotal = lineItems.reduce((sum, item) => sum + item.total, 0);
-  const taxRate = 8.0;
-  const tax = subtotal * (taxRate / 100);
-  const grandTotal = subtotal + tax;
+  const subtotal = useMemo(() => lineItems.reduce((sum, item) => sum + item.total, 0), [lineItems]);
+  const tax = useMemo(() => subtotal * (taxRate / 100), [subtotal, taxRate]);
+  const grandTotal = useMemo(() => subtotal + tax, [subtotal, tax]);
+
+  const updateLineItem = (index: number, updates: Partial<EstimateLineItem>) => {
+    setLineItems((prev) => {
+      const copy = [...prev];
+      const current = { ...copy[index], ...updates } as EstimateLineItem;
+      current.total = Number(current.quantity) * Number(current.unit_cost);
+      copy[index] = current;
+      return copy;
+    });
+  };
+
+  const handleAutoPopulate = () => {
+    const result = autoPopulateEstimate({
+      services: { sealcoat: svcSeal, crackfill: svcCrack, patching: svcPatch, striping: svcStripe },
+      areaSqFt: parseFloat(areaSqFt) || undefined,
+      linearFeetCracks: parseFloat(linearFeet) || undefined,
+      numStalls: parseInt(numStalls) || undefined,
+      distanceMiles: parseFloat(distanceMiles) || undefined,
+      procurementMiles: parseFloat(procureMiles) || undefined,
+      crewSize: parseInt(crewSize) || undefined,
+      hourlyRate: parseFloat(hourlyRate) || undefined,
+      overheadPercent: overheadPct,
+      profitPercent: profitPct,
+      taxRatePercent: taxRate,
+    });
+
+    const newLines: EstimateLineItem[] = result.lineItems.map((li) => ({
+      name: li.item_name,
+      code: li.item_code,
+      unit: li.unit,
+      unit_cost: li.unit_cost,
+      quantity: li.quantity,
+      total: li.line_total,
+      description: li.description,
+    }));
+    setLineItems(newLines);
+  };
+
+  const useLatestMeasurement = (type: 'area' | 'distance') => {
+    if (!measurements || measurements.length === 0) return;
+    const m = measurements.find((mm) => mm.type === type);
+    if (!m) return;
+    if (type === 'area') setAreaSqFt(String(Math.round(m.value)));
+    if (type === 'distance') setLinearFeet(String(Math.round(m.value * 3.28084))); // meters to feet
+  };
 
   const handleSaveEstimate = async () => {
     if (!customerName || lineItems.length === 0) {
@@ -113,6 +178,7 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
           cost_item_id: item.item_id,
           item_name: item.name,
           item_code: item.code,
+          description: item.description || undefined,
           quantity: item.quantity,
           unit: item.unit,
           unit_cost: item.unit_cost,
@@ -180,7 +246,7 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
                   <SelectContent>
                     {catalogs?.map((cat) => (
                       <SelectItem key={cat.id} value={cat.id}>
-                        {cat.region}
+                        {cat.region || cat.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -209,7 +275,7 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
                     <div>
                       <div className="font-semibold">{item.name}</div>
                       <div className="text-sm text-muted-foreground">
-                        {item.code} • ${item.unit_cost}/{item.unit}
+                        {(item.code ?? item.item_code) as any} • ${item.unit_cost}/{item.unit}
                       </div>
                     </div>
                     <Button size="sm" variant="ghost">
@@ -272,36 +338,55 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
 
             <ScrollArea className="flex-1 mb-4">
               {lineItems.length === 0 ? (
-                <div className="text-center text-muted-foreground py-8">
-                  No items added yet
-                </div>
+                <div className="text-center text-muted-foreground py-8">No items added yet</div>
               ) : (
                 <div className="space-y-2">
                   {lineItems.map((line, index) => (
-                    <div key={index} className="border rounded-lg p-3">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex-1">
-                          <div className="font-semibold">{line.name}</div>
-                          <div className="text-sm text-muted-foreground">{line.code}</div>
+                    <div key={index} className="border rounded-lg p-3 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="grid grid-cols-6 gap-2 flex-1 items-center text-sm">
+                          <Input
+                            value={line.name}
+                            onChange={(e) => updateLineItem(index, { name: e.target.value })}
+                            placeholder="Item name"
+                            className="col-span-2"
+                          />
+                          <Input
+                            value={line.code || ""}
+                            onChange={(e) => updateLineItem(index, { code: e.target.value })}
+                            placeholder="Code"
+                          />
+                          <Input
+                            value={line.unit}
+                            onChange={(e) => updateLineItem(index, { unit: e.target.value })}
+                            placeholder="Unit"
+                          />
+                          <Input
+                            type="number"
+                            value={String(line.quantity)}
+                            onChange={(e) => updateLineItem(index, { quantity: parseFloat(e.target.value) || 0 })}
+                            placeholder="Qty"
+                          />
+                          <Input
+                            type="number"
+                            value={String(line.unit_cost)}
+                            onChange={(e) => updateLineItem(index, { unit_cost: parseFloat(e.target.value) || 0 })}
+                            placeholder="Rate"
+                          />
                         </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => removeLineItem(index)}
-                        >
+                        <Button size="sm" variant="ghost" onClick={() => removeLineItem(index)}>
                           ×
                         </Button>
                       </div>
-                      <div className="grid grid-cols-3 gap-2 text-sm">
-                        <div>
-                          <span className="text-muted-foreground">Qty:</span> {line.quantity} {line.unit}
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Rate:</span> ${line.unit_cost.toFixed(2)}
-                        </div>
-                        <div className="text-right font-semibold">
-                          ${line.total.toFixed(2)}
-                        </div>
+                      <div>
+                        <Input
+                          value={line.description || ""}
+                          onChange={(e) => updateLineItem(index, { description: e.target.value })}
+                          placeholder="Description (optional)"
+                        />
+                      </div>
+                      <div className="flex justify-end text-sm">
+                        <div className="text-right font-semibold">${line.total.toFixed(2)}</div>
                       </div>
                     </div>
                   ))}
@@ -314,8 +399,16 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
                 <span>Subtotal:</span>
                 <span className="font-semibold">${subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span>Tax (8%):</span>
+              <div className="flex items-center justify-between text-sm gap-2">
+                <div className="flex items-center gap-2">
+                  <span>Tax (%):</span>
+                  <Input
+                    className="w-20 h-8"
+                    type="number"
+                    value={String(taxRate)}
+                    onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
+                  />
+                </div>
                 <span className="font-semibold">${tax.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-lg font-bold border-t pt-2">
@@ -323,6 +416,56 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
                 <span className="text-primary">${grandTotal.toFixed(2)}</span>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Auto-Populate Panel */}
+        <div className="mt-4 border rounded-lg p-4">
+          <h4 className="font-semibold mb-3">Auto-Populate</h4>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div className="space-y-2">
+              <Label>Services</Label>
+              <div className="flex flex-col gap-2 text-sm">
+                <label className="flex items-center gap-2"><input type="checkbox" checked={svcSeal} onChange={(e) => setSvcSeal(e.target.checked)} /> Sealcoat</label>
+                <label className="flex items-center gap-2"><input type="checkbox" checked={svcCrack} onChange={(e) => setSvcCrack(e.target.checked)} /> Crackfill</label>
+                <label className="flex items-center gap-2"><input type="checkbox" checked={svcPatch} onChange={(e) => setSvcPatch(e.target.checked)} /> Patching</label>
+                <label className="flex items-center gap-2"><input type="checkbox" checked={svcStripe} onChange={(e) => setSvcStripe(e.target.checked)} /> Striping</label>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Area (sqft)</Label>
+              <div className="flex gap-2">
+                <Input value={areaSqFt} onChange={(e) => setAreaSqFt(e.target.value)} placeholder="e.g., 12000" />
+                <Button type="button" variant="outline" onClick={() => useLatestMeasurement('area')}>Use Map</Button>
+              </div>
+              <Label>Cracks (LF)</Label>
+              <div className="flex gap-2">
+                <Input value={linearFeet} onChange={(e) => setLinearFeet(e.target.value)} placeholder="e.g., 500" />
+                <Button type="button" variant="outline" onClick={() => useLatestMeasurement('distance')}>Use Map</Button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Stalls</Label>
+              <Input value={numStalls} onChange={(e) => setNumStalls(e.target.value)} placeholder="e.g., 40" />
+              <Label>Distance (mi)</Label>
+              <Input value={distanceMiles} onChange={(e) => setDistanceMiles(e.target.value)} placeholder="job travel" />
+              <Label>Supplier Miles (mi)</Label>
+              <Input value={procureMiles} onChange={(e) => setProcureMiles(e.target.value)} placeholder="materials" />
+            </div>
+            <div className="space-y-2">
+              <Label>Crew Size</Label>
+              <Input value={crewSize} onChange={(e) => setCrewSize(e.target.value)} placeholder="2" />
+              <Label>Hourly Rate (per person)</Label>
+              <Input value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} placeholder="20" />
+              <Label>Overhead % / Profit %</Label>
+              <div className="flex gap-2">
+                <Input className="w-20" type="number" value={String(overheadPct)} onChange={(e) => setOverheadPct(parseFloat(e.target.value) || 0)} />
+                <Input className="w-20" type="number" value={String(profitPct)} onChange={(e) => setProfitPct(parseFloat(e.target.value) || 0)} />
+              </div>
+            </div>
+          </div>
+          <div className="mt-3">
+            <Button type="button" onClick={handleAutoPopulate}>Generate Items</Button>
           </div>
         </div>
       </DialogContent>

@@ -62,6 +62,39 @@ All colors MUST be HSL.
     --sidebar-border: 0 0% 15%;
     --sidebar-ring: 30 100% 50%;
   }
+
+  /* Animus theme (Assassin's Creed inspired) */
+  .theme-animus {
+    --background: 190 30% 98%;
+    --foreground: 210 60% 20%;
+    --card: 0 0% 100%;
+    --card-foreground: 210 60% 20%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 60% 20%;
+    --primary: 180 75% 40%; /* cyan */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 80% 35%; /* deep teal */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 200 20% 92%;
+    --muted-foreground: 210 20% 35%;
+    --accent: 180 70% 45%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 80% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 150 60% 40%;
+    --success-foreground: 0 0% 100%;
+    --border: 200 20% 88%;
+    --input: 200 20% 94%;
+    --ring: 180 75% 40%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 210 60% 20%;
+    --sidebar-primary: 180 75% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 200 20% 92%;
+    --sidebar-accent-foreground: 210 60% 20%;
+    --sidebar-border: 200 20% 88%;
+    --sidebar-ring: 180 75% 40%;
+  }
 }
 
 /* Tactical Font Import */
@@ -155,6 +188,10 @@ All colors MUST be HSL.
 }
 
 @layer utilities {
+  /* Division theme class to ensure dark tactical base */
+  .theme-division {
+    /* keep default root values from earlier section */
+  }
   /* Hide scrollbar but keep functionality */
   .scrollbar-hide {
     -ms-overflow-style: none;  /* IE and Edge */

@@ -11,6 +11,9 @@ import { AIAsphaltDetectionModal } from "@/components/ai/AIAsphaltDetectionModal
 import { MapVisibilityControls } from "./MapVisibilityControls";
 import { EmployeeTrackingLayer } from "./EmployeeTrackingLayer";
 import { MapEffects } from "./MapEffects";
+import { divisionMapStyle, animusMapStyle } from "./themes";
+import { Button } from "@/components/ui/button";
+import { Palette } from "lucide-react";
 import { WeatherRadarLayer } from "@/components/weather/WeatherRadarLayer";
 
 const GOOGLE_MAPS_API_KEY = (import.meta as any).env?.VITE_GOOGLE_MAPS_API_KEY as string;
@@ -22,6 +25,8 @@ interface MapContextType {
 const MapContext = createContext<MapContextType>({ map: null });
 
 export const useMap = () => useContext(MapContext);
+
+type MapTheme = 'division' | 'animus';
 
 export const MapContainer = () => {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -36,6 +41,7 @@ export const MapContainer = () => {
   const [showWeatherRadar, setShowWeatherRadar] = useState(false);
   const [radarOpacity, setRadarOpacity] = useState(70);
   const [alertRadius, setAlertRadius] = useState(15);
+  const [mapTheme, setMapTheme] = useState<MapTheme>('division');
   const { data: jobSites } = useJobSites();
   const { measurement, setDrawingMode, clearDrawings } = useMapDrawing(mapInstanceRef.current);
   const [activeMode, setActiveMode] = useState<DrawingMode>(null);
@@ -196,13 +202,7 @@ export const MapContainer = () => {
           center: defaultCenter,
           zoom: 12,
           mapTypeId: "hybrid",
-          styles: [
-            {
-              featureType: "all",
-              elementType: "all",
-              stylers: [{ saturation: -20 }, { lightness: -10 }],
-            },
-          ],
+          styles: mapTheme === 'division' ? divisionMapStyle : animusMapStyle,
           disableDefaultUI: true,
           zoomControl: true,
           zoomControlOptions: {
@@ -235,7 +235,18 @@ export const MapContainer = () => {
     };
 
     loadGoogleMaps();
-  }, []);
+  }, [mapTheme]);
+
+  // Apply theme class to body for CSS variables
+  useEffect(() => {
+    const clsDivision = 'theme-division';
+    const clsAnimus = 'theme-animus';
+    document.body.classList.remove(clsDivision, clsAnimus);
+    document.body.classList.add(mapTheme === 'division' ? clsDivision : clsAnimus);
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.setOptions({ styles: mapTheme === 'division' ? divisionMapStyle : animusMapStyle });
+    }
+  }, [mapTheme]);
 
   // Add job site markers
   useEffect(() => {
@@ -351,7 +362,8 @@ export const MapContainer = () => {
         showGlitch={true}
         showScanline={true}
         radarSpeed={3}
-        glitchIntensity={0.3}
+        glitchIntensity={mapTheme === 'division' ? 0.3 : 0.15}
+        accentColor={mapTheme === 'division' ? 'rgba(255, 140, 0, 0.12)' : 'rgba(0, 200, 200, 0.12)'}
       />
 
       <MeasurementDisplay distance={measurement.distance} area={measurement.area} />
@@ -371,6 +383,14 @@ export const MapContainer = () => {
         showWeatherRadar={showWeatherRadar}
       />
       <MapVisibilityControls />
+      {/* Theme Switcher */}
+      <div className="absolute left-4 top-20 z-[1000]">
+        <div className="tactical-panel flex items-center gap-2">
+          <Palette className="w-4 h-4" />
+          <Button size="sm" variant={mapTheme === 'division' ? 'default' : 'outline'} onClick={() => setMapTheme('division')}>Division</Button>
+          <Button size="sm" variant={mapTheme === 'animus' ? 'default' : 'outline'} onClick={() => setMapTheme('animus')}>Animus</Button>
+        </div>
+      </div>
       {showEmployeeTracking && <EmployeeTrackingLayer map={mapInstanceRef.current} />}
       {showWeatherRadar && (
         <WeatherRadarLayer
@@ -383,7 +403,7 @@ export const MapContainer = () => {
       <div
         ref={mapRef}
         className="absolute inset-0 w-full h-full"
-        style={{ filter: "brightness(0.8)" }}
+        style={{ filter: mapTheme === 'division' ? "brightness(0.8)" : "brightness(1.05) contrast(1.05)" }}
       />
       {showAIDetection && (
         <AIAsphaltDetectionModal 

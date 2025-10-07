@@ -68,10 +68,16 @@ export const useEstimates = () => {
   const createEstimate = useMutation({
     mutationFn: async (estimate: Estimate) => {
       const { line_items, ...estimateData } = estimate;
+      // Ensure created_by is set to current user
+      const { data: userRes } = await supabase.auth.getUser();
+      const createdBy = userRes?.user?.id;
+      if (!createdBy) {
+        throw new Error("Not authenticated. Please sign in to create estimates.");
+      }
 
       const { data: newEstimate, error: estimateError } = await supabase
         .from("estimates")
-        .insert([estimateData])
+        .insert([{ ...estimateData, created_by: createdBy }])
         .select()
         .single();
 
@@ -111,7 +117,6 @@ export const useEstimates = () => {
   const updateEstimate = useMutation({
     mutationFn: async ({ id, ...estimate }: Estimate & { id: string }) => {
       const { line_items, ...estimateData } = estimate;
-
       const { error: estimateError } = await supabase
         .from("estimates")
         .update(estimateData)
