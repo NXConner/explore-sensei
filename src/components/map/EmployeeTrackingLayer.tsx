@@ -7,7 +7,7 @@ interface EmployeeTrackingLayerProps {
 }
 
 export const EmployeeTrackingLayer = ({ map }: EmployeeTrackingLayerProps) => {
-  const { getLatestLocations } = useEmployeeTracking();
+  const { latestLocations } = useEmployeeTracking(undefined, { subscribeRealtime: false });
   const markersRef = useRef<google.maps.Marker[]>([]);
   const infoWindowsRef = useRef<Map<string, google.maps.InfoWindow>>(new Map());
 
@@ -19,8 +19,6 @@ export const EmployeeTrackingLayer = ({ map }: EmployeeTrackingLayerProps) => {
       markersRef.current.forEach(marker => marker.setMap(null));
       markersRef.current = [];
       infoWindowsRef.current.clear();
-
-      const latestLocations = getLatestLocations();
 
       latestLocations.forEach(location => {
         const empName = `${location.employees?.first_name || ''} ${location.employees?.last_name || ''}`.trim();
@@ -129,7 +127,7 @@ export const EmployeeTrackingLayer = ({ map }: EmployeeTrackingLayerProps) => {
       markersRef.current.forEach(marker => marker.setMap(null));
       infoWindowsRef.current.clear();
     };
-  }, [map, getLatestLocations]);
+  }, [map, latestLocations]);
 
   return null;
 };

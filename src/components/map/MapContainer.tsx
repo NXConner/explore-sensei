@@ -1,5 +1,6 @@
 /// <reference types="@types/google.maps" />
 import React, { useEffect, useRef, useState } from "react";
+import mapboxgl from "mapbox-gl";
 import { useJobSites } from "@/hooks/useJobSites";
 import { MeasurementDisplay } from "./MeasurementDisplay";
 import { MapToolbar } from "./MapToolbar";
@@ -25,18 +26,20 @@ type MapTheme = 'division' | 'animus';
 export const MapContainer = () => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
+  const mapboxInstanceRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
   const trafficLayerRef = useRef<google.maps.TrafficLayer | null>(null);
   const savedMeasurementsRef = useRef<google.maps.Polyline[]>([]);
   const streetViewRef = useRef<google.maps.StreetViewPanorama | null>(null);
   const [showStreetView, setShowStreetView] = useState(false);
   const [showAIDetection, setShowAIDetection] = useState(false);
-  const [showEmployeeTracking, setShowEmployeeTracking] = useState(true);
+  const [showEmployeeTracking, setShowEmployeeTracking] = useState(false);
   const [showWeatherRadar, setShowWeatherRadar] = useState(false);
   const [radarOpacity, setRadarOpacity] = useState(70);
   const [alertRadius, setAlertRadius] = useState(15);
   const [mapTheme, setMapTheme] = useState<MapTheme>('division');
   const [mapsUnavailable, setMapsUnavailable] = useState(false);
+  const [usingMapbox, setUsingMapbox] = useState(false);
   const { data: jobSites } = useJobSites();
   const { measurement, setDrawingMode, clearDrawings } = useMapDrawing(mapInstanceRef.current);
   const [activeMode, setActiveMode] = useState<DrawingMode>(null);
@@ -174,14 +177,59 @@ export const MapContainer = () => {
   };
 
   useEffect(() => {
-    // Graceful fallback if no API key is configured
-    if (!GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY === "undefined") {
-      console.warn("Google Maps API key missing; rendering fallback map.");
-      setMapsUnavailable(true);
-      return;
-    } else {
+    // If no Google Maps key, use Mapbox fallback
+    const noGoogleKey = !GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY === "undefined";
+    if (noGoogleKey) {
+      setUsingMapbox(true);
       setMapsUnavailable(false);
+
+      const initMapbox = async () => {
+        if (!mapRef.current || mapboxInstanceRef.current) return;
+        try {
+          const { data, error } = await supabase.functions.invoke('get-mapbox-token');
+          if (error || !data?.token) throw new Error(error?.message || 'No Mapbox token');
+
+          mapboxgl.accessToken = data.token;
+          const defaultCenter: [number, number] = [-80.2715, 36.6904];
+          const map = new mapboxgl.Map({
+            container: mapRef.current,
+            style: 'mapbox://styles/mapbox/satellite-streets-v12',
+            center: defaultCenter,
+            zoom: 12,
+            projection: 'globe'
+          });
+          mapboxInstanceRef.current = map;
+
+          map.on('load', () => {
+            map.setFog({});
+          });
+
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                map.easeTo({ center: [position.coords.longitude, position.coords.latitude], zoom: 15 });
+              },
+              () => {}
+            );
+          }
+        } catch (e) {
+          console.warn('Failed to initialize Mapbox:', e);
+          setMapsUnavailable(true);
+        }
+      };
+
+      initMapbox();
+
+      return () => {
+        if (mapboxInstanceRef.current) {
+          mapboxInstanceRef.current.remove();
+          mapboxInstanceRef.current = null;
+        }
+      };
     }
+
+    setUsingMapbox(false);
+    setMapsUnavailable(false);
 
     const loadGoogleMaps = () => {
       if (window.google && window.google.maps) {
@@ -199,7 +247,6 @@ export const MapContainer = () => {
 
     const initMap = () => {
       if (mapRef.current && !mapInstanceRef.current) {
-        // Patrick County, Virginia coordinates as default
         const defaultCenter = { lat: 36.6904, lng: -80.2715 };
         
         mapInstanceRef.current = new google.maps.Map(mapRef.current, {
@@ -212,11 +259,10 @@ export const MapContainer = () => {
           zoomControlOptions: {
             position: google.maps.ControlPosition.RIGHT_CENTER,
           },
-          scrollwheel: true, // Enable mouse wheel zoom
-          gestureHandling: "greedy", // Allow scroll wheel zoom without Ctrl
+          scrollwheel: true,
+          gestureHandling: "greedy",
         });
 
-        // Try to get user's location
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(
             (position) => {
@@ -227,18 +273,21 @@ export const MapContainer = () => {
               mapInstanceRef.current?.setCenter(userLocation);
               mapInstanceRef.current?.setZoom(15);
             },
-            (error) => {
-              console.log("Geolocation error, using default location:", error);
-            }
+            () => {}
           );
         }
 
-        // Initialize traffic layer
         trafficLayerRef.current = new google.maps.TrafficLayer();
       }
     };
 
     loadGoogleMaps();
+
+    return () => {
+      if (mapInstanceRef.current) {
+        // No explicit remove for Google Maps; allow GC
+      }
+    };
   }, [mapTheme]);
 
   // Apply theme class to body for CSS variables
@@ -252,9 +301,9 @@ export const MapContainer = () => {
     }
   }, [mapTheme]);
 
-  // Add job site markers
+  // Add job site markers (Google Maps only)
   useEffect(() => {
-    if (!mapInstanceRef.current || !jobSites) return;
+    if (!mapInstanceRef.current || !jobSites || usingMapbox) return;
 
     // Clear existing markers
     markersRef.current.forEach((marker) => marker.setMap(null));
@@ -297,9 +346,9 @@ export const MapContainer = () => {
     });
   }, [jobSites]);
 
-  // Display saved measurements on map
+  // Display saved measurements on map (Google Maps only)
   useEffect(() => {
-    if (!mapInstanceRef.current || !measurements) return;
+    if (!mapInstanceRef.current || !measurements || usingMapbox) return;
 
     // Clear existing measurement overlays
     savedMeasurementsRef.current.forEach((overlay) => overlay.setMap(null));
@@ -371,7 +420,8 @@ export const MapContainer = () => {
       />
 
       <MeasurementDisplay distance={measurement.distance} area={measurement.area} />
-      <MapToolbar
+      {!usingMapbox && (
+        <MapToolbar
         onModeChange={handleModeChange}
         onClear={handleClear}
         onSave={handleSave}
@@ -385,7 +435,8 @@ export const MapContainer = () => {
         showEmployeeTracking={showEmployeeTracking}
         onToggleWeatherRadar={() => setShowWeatherRadar(!showWeatherRadar)}
         showWeatherRadar={showWeatherRadar}
-      />
+        />
+      )}
       <MapVisibilityControls />
       {/* Theme Switcher */}
       <div className="absolute left-4 top-20 z-[1000]">
@@ -395,8 +446,8 @@ export const MapContainer = () => {
           <Button size="sm" variant={mapTheme === 'animus' ? 'default' : 'outline'} onClick={() => setMapTheme('animus')}>Animus</Button>
         </div>
       </div>
-      {showEmployeeTracking && <EmployeeTrackingLayer map={mapInstanceRef.current} />}
-      {showWeatherRadar && (
+      {!usingMapbox && showEmployeeTracking && <EmployeeTrackingLayer map={mapInstanceRef.current} />}
+      {!usingMapbox && showWeatherRadar && (
         <WeatherRadarLayer
           map={mapInstanceRef.current}
           opacity={radarOpacity}
@@ -409,6 +460,13 @@ export const MapContainer = () => {
         className="absolute inset-0 w-full h-full"
         style={{ filter: mapTheme === 'division' ? "brightness(0.8)" : "brightness(1.05) contrast(1.05)" }}
       />
+      {usingMapbox && (
+        <div className="absolute left-4 bottom-4 z-[500]">
+          <div className="tactical-panel max-w-md text-sm">
+            Mapbox fallback active. Advanced tools are disabled without Google Maps.
+          </div>
+        </div>
+      )}
       {mapsUnavailable && (
         <div className="absolute inset-0 flex items-center justify-center z-[500]">
           <div className="tactical-panel max-w-md text-center">
