@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Ruler, Circle, Square, MapPin, Trash2, Save, Navigation, Car, Eye, Scan, Download, Users } from "lucide-react";
+import { Ruler, Circle, Square, MapPin, Trash2, Save, Navigation, Car, Eye, Scan, Download, Users, Cloud } from "lucide-react";
 import { DrawingMode } from "@/hooks/useMapDrawing";
 import { MeasurementExportModal } from "@/components/export/MeasurementExportModal";
 
@@ -16,6 +16,8 @@ interface MapToolbarProps {
   onAIDetect?: () => void;
   onToggleEmployeeTracking?: () => void;
   showEmployeeTracking?: boolean;
+  onToggleWeatherRadar?: () => void;
+  showWeatherRadar?: boolean;
 }
 
 export const MapToolbar = ({ 
@@ -30,6 +32,8 @@ export const MapToolbar = ({
   onAIDetect,
   onToggleEmployeeTracking,
   showEmployeeTracking = false,
+  onToggleWeatherRadar,
+  showWeatherRadar = false,
 }: MapToolbarProps) => {
   const [showExport, setShowExport] = useState(false);
   
@@ -99,6 +103,18 @@ export const MapToolbar = ({
               title="Employee Tracking"
             >
               <Users className="w-5 h-5" />
+            </Button>
+          )}
+
+          {onToggleWeatherRadar && (
+            <Button
+              variant={showWeatherRadar ? "default" : "outline"}
+              size="icon"
+              className="w-12 h-12 hud-element border-sky-500/30 hover:border-sky-500/50 transition-all animate-fade-in"
+              onClick={onToggleWeatherRadar}
+              title="Weather Radar"
+            >
+              <Cloud className="w-5 h-5 text-sky-500" />
             </Button>
           )}
           

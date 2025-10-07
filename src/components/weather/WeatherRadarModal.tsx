@@ -1,7 +1,11 @@
 import React, { useState } from "react";
-import { X, Cloud, Play, Pause, SkipBack, SkipForward } from "lucide-react";
+import { X, Cloud, Play, Pause, SkipBack, SkipForward, AlertTriangle, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { useWeatherAlerts } from "@/hooks/useWeatherAlerts";
 
 interface WeatherRadarModalProps {
   onClose: () => void;
@@ -11,6 +15,9 @@ export const WeatherRadarModal = ({ onClose }: WeatherRadarModalProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [timeIndex, setTimeIndex] = useState(0);
   const [opacity, setOpacity] = useState(70);
+  const [showAlerts, setShowAlerts] = useState(true);
+  const [alertRadius, setAlertRadius] = useState(15);
+  const { data: alerts } = useWeatherAlerts();
 
   const timeFrames = [
     "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", 
@@ -42,17 +49,63 @@ export const WeatherRadarModal = ({ onClose }: WeatherRadarModalProps) => {
             <p className="text-sm font-mono text-primary">{timeFrames[timeIndex]}</p>
           </div>
 
-          {/* Opacity Control */}
-          <div className="absolute top-4 right-4 tactical-panel p-4 w-48">
-            <p className="text-xs mb-2">Opacity: {opacity}%</p>
-            <Slider
-              value={[opacity]}
-              onValueChange={([val]) => setOpacity(val)}
-              min={0}
-              max={100}
-              step={5}
-            />
+          {/* Controls Panel */}
+          <div className="absolute top-4 right-4 tactical-panel p-4 w-64 space-y-4">
+            <div>
+              <p className="text-xs mb-2">Opacity: {opacity}%</p>
+              <Slider
+                value={[opacity]}
+                onValueChange={([val]) => setOpacity(val)}
+                min={0}
+                max={100}
+                step={5}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Show Alerts</Label>
+                <Switch checked={showAlerts} onCheckedChange={setShowAlerts} />
+              </div>
+              
+              {showAlerts && (
+                <div>
+                  <p className="text-xs mb-2">Alert Radius: {alertRadius} miles</p>
+                  <Slider
+                    value={[alertRadius]}
+                    onValueChange={([val]) => setAlertRadius(val)}
+                    min={5}
+                    max={50}
+                    step={5}
+                  />
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* Active Alerts */}
+          {showAlerts && alerts && alerts.length > 0 && (
+            <div className="absolute bottom-4 left-4 tactical-panel p-3 max-w-sm space-y-2">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertTriangle className="w-4 h-4 text-destructive" />
+                <span className="text-xs font-bold">ACTIVE ALERTS</span>
+              </div>
+              {alerts.map((alert) => (
+                <div key={alert.id} className="text-xs space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant={alert.severity === "high" || alert.severity === "extreme" ? "destructive" : "secondary"}
+                      className="text-[10px]"
+                    >
+                      {alert.severity.toUpperCase()}
+                    </Badge>
+                    <span className="font-bold">{alert.type.toUpperCase()}</span>
+                  </div>
+                  <p className="text-muted-foreground">{alert.message}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Controls */}

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, Settings, Moon, Sun, Bell, Map } from "lucide-react";
+import { X, Settings, Moon, Sun, Bell, Map, Zap, Volume2, Eye, Gauge } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -20,6 +20,18 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     screensaver: false,
     screensaverDelay: 5,
     highContrast: false,
+    // Animation & Effects
+    radarEffect: true,
+    glitchEffect: true,
+    scanlineEffect: true,
+    gridOverlay: true,
+    radarSpeed: 3,
+    glitchIntensity: 30,
+    animationSpeed: 100,
+    // Sounds
+    uiSounds: false,
+    alertSounds: true,
+    soundVolume: 70,
   });
 
   const handleToggle = (key: keyof typeof settings) => {
@@ -45,7 +57,8 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
           <TabsList className="mx-4 mt-4">
             <TabsTrigger value="appearance">Appearance</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
-            <TabsTrigger value="map">Map</TabsTrigger>
+            <TabsTrigger value="animations">Animations</TabsTrigger>
+            <TabsTrigger value="sounds">Sounds</TabsTrigger>
             <TabsTrigger value="advanced">Advanced</TabsTrigger>
           </TabsList>
 
@@ -139,15 +152,169 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
               </div>
             </TabsContent>
 
-            <TabsContent value="map" className="mt-0 space-y-6">
-              <div className="tactical-panel p-4">
+            <TabsContent value="animations" className="mt-0 space-y-6">
+              <div className="tactical-panel p-4 space-y-4">
                 <div className="flex items-center gap-3 mb-4">
-                  <Map className="w-5 h-5 text-primary" />
-                  <Label>Default Map View</Label>
+                  <Zap className="w-5 h-5 text-primary" />
+                  <Label>Visual Effects & Animations</Label>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Map preferences will be configured here
-                </p>
+
+                {/* Radar Effect */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Radar Sweep Effect</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Rotating radar sweep on map
+                      </p>
+                    </div>
+                    <Switch
+                      checked={settings.radarEffect}
+                      onCheckedChange={() => handleToggle("radarEffect")}
+                    />
+                  </div>
+                  {settings.radarEffect && (
+                    <div className="pl-4">
+                      <Label className="text-xs">Speed: {settings.radarSpeed}x</Label>
+                      <Slider
+                        value={[settings.radarSpeed]}
+                        onValueChange={([val]) =>
+                          setSettings((prev) => ({ ...prev, radarSpeed: val }))
+                        }
+                        min={1}
+                        max={10}
+                        step={1}
+                        className="mt-2"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Glitch Effect */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Glitch Effect</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Tactical glitch overlay
+                      </p>
+                    </div>
+                    <Switch
+                      checked={settings.glitchEffect}
+                      onCheckedChange={() => handleToggle("glitchEffect")}
+                    />
+                  </div>
+                  {settings.glitchEffect && (
+                    <div className="pl-4">
+                      <Label className="text-xs">Intensity: {settings.glitchIntensity}%</Label>
+                      <Slider
+                        value={[settings.glitchIntensity]}
+                        onValueChange={([val]) =>
+                          setSettings((prev) => ({ ...prev, glitchIntensity: val }))
+                        }
+                        min={10}
+                        max={100}
+                        step={10}
+                        className="mt-2"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Scanline Effect */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Scanline Effect</Label>
+                    <p className="text-xs text-muted-foreground">
+                      CRT-style scanlines
+                    </p>
+                  </div>
+                  <Switch
+                    checked={settings.scanlineEffect}
+                    onCheckedChange={() => handleToggle("scanlineEffect")}
+                  />
+                </div>
+
+                {/* Grid Overlay */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Grid Overlay</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Tactical grid pattern
+                    </p>
+                  </div>
+                  <Switch
+                    checked={settings.gridOverlay}
+                    onCheckedChange={() => handleToggle("gridOverlay")}
+                  />
+                </div>
+
+                {/* Animation Speed */}
+                <div>
+                  <Label className="text-xs">Global Animation Speed: {settings.animationSpeed}%</Label>
+                  <Slider
+                    value={[settings.animationSpeed]}
+                    onValueChange={([val]) =>
+                      setSettings((prev) => ({ ...prev, animationSpeed: val }))
+                    }
+                    min={25}
+                    max={200}
+                    step={25}
+                    className="mt-2"
+                  />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="sounds" className="mt-0 space-y-6">
+              <div className="tactical-panel p-4 space-y-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <Volume2 className="w-5 h-5 text-primary" />
+                  <Label>Sound Settings</Label>
+                </div>
+
+                {/* UI Sounds */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>UI Sounds</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Button clicks and interactions
+                    </p>
+                  </div>
+                  <Switch
+                    checked={settings.uiSounds}
+                    onCheckedChange={() => handleToggle("uiSounds")}
+                  />
+                </div>
+
+                {/* Alert Sounds */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Alert Sounds</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Notification and warning sounds
+                    </p>
+                  </div>
+                  <Switch
+                    checked={settings.alertSounds}
+                    onCheckedChange={() => handleToggle("alertSounds")}
+                  />
+                </div>
+
+                {/* Volume */}
+                <div>
+                  <Label className="text-xs">Master Volume: {settings.soundVolume}%</Label>
+                  <Slider
+                    value={[settings.soundVolume]}
+                    onValueChange={([val]) =>
+                      setSettings((prev) => ({ ...prev, soundVolume: val }))
+                    }
+                    min={0}
+                    max={100}
+                    step={5}
+                    className="mt-2"
+                  />
+                </div>
               </div>
             </TabsContent>
 

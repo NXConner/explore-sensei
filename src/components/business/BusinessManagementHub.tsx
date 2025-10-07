@@ -1,5 +1,5 @@
 import React from "react";
-import { X, Building2, DollarSign, Users, Truck, Shield, FileText, TrendingUp } from "lucide-react";
+import { X, Building2, DollarSign, Users, Truck, Shield, FileText, TrendingUp, Flag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -66,6 +66,14 @@ export const BusinessManagementHub = ({ onClose, onNavigate }: BusinessManagemen
       icon: TrendingUp,
       color: "text-cyan-500",
       bgColor: "bg-cyan-500/10",
+    },
+    {
+      id: "veteran",
+      title: "Veteran Programs",
+      description: "Veteran support & hiring",
+      icon: Flag,
+      color: "text-amber-500",
+      bgColor: "bg-amber-500/10",
     },
   ];
 

@@ -37,11 +37,12 @@ export const KPITicker = () => {
   ];
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 z-[1000] hud-element border-t border-primary/30">
-      <div className="flex items-center justify-around p-2">
-        {kpis.map((kpi) => (
-          <div key={kpi.label} className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center">
+    <div className="absolute bottom-0 left-0 right-0 z-[1000] hud-element border-t border-primary/30 overflow-hidden">
+      <div className="flex animate-marquee">
+        {/* Duplicate KPIs for continuous scroll */}
+        {[...kpis, ...kpis].map((kpi, idx) => (
+          <div key={`${kpi.label}-${idx}`} className="flex items-center gap-3 px-8 py-2 flex-shrink-0">
+            <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center animate-pulse">
               <kpi.icon className="w-4 h-4 text-primary" />
             </div>
             <div>

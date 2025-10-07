@@ -33,6 +33,9 @@ import { SettingsModal } from "@/components/modals/SettingsModal";
 import { EODPlaybackModal } from "@/components/modals/EODPlaybackModal";
 import { EmployeeComplianceModal } from "@/components/compliance/EmployeeComplianceModal";
 import { BusinessManagementHub } from "@/components/business/BusinessManagementHub";
+import { HRManagementModal } from "@/components/business/HRManagementModal";
+import { WeatherRadarModal } from "@/components/weather/WeatherRadarModal";
+import { VeteranModal } from "@/components/modals/VeteranModal";
 
 const Index = () => {
   const [activeModule, setActiveModule] = useState<string | null>(null);
@@ -50,6 +53,8 @@ const Index = () => {
   const [showBusinessHub, setShowBusinessHub] = useState(false);
   const [showHRCompliance, setShowHRCompliance] = useState(false);
   const [showHRManagement, setShowHRManagement] = useState(false);
+  const [showWeatherRadar, setShowWeatherRadar] = useState(false);
+  const [showVeteran, setShowVeteran] = useState(false);
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-background">
@@ -154,6 +159,8 @@ const Index = () => {
               setShowHRCompliance(true);
             } else if (module === "hr") {
               setShowHRManagement(true);
+            } else if (module === "veteran") {
+              setShowVeteran(true);
             }
           }}
         />
@@ -166,6 +173,10 @@ const Index = () => {
       {activeModule === "contracts" && <ContractsModal onClose={() => setActiveModule(null)} />}
       {activeModule === "receipts" && <ReceiptsModal onClose={() => setActiveModule(null)} />}
       {activeModule === "eod-playback" && <EODPlaybackModal onClose={() => setActiveModule(null)} />}
+      
+      {/* Standalone Modals */}
+      {showWeatherRadar && <WeatherRadarModal onClose={() => setShowWeatherRadar(false)} />}
+      {showVeteran && <VeteranModal onClose={() => setShowVeteran(false)} />}
     </div>
   );
 };

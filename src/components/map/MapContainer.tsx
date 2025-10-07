@@ -10,6 +10,8 @@ import { useMapMeasurements } from "@/hooks/useMapMeasurements";
 import { AIAsphaltDetectionModal } from "@/components/ai/AIAsphaltDetectionModal";
 import { MapVisibilityControls } from "./MapVisibilityControls";
 import { EmployeeTrackingLayer } from "./EmployeeTrackingLayer";
+import { MapEffects } from "./MapEffects";
+import { WeatherRadarLayer } from "@/components/weather/WeatherRadarLayer";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyBaUoISC-zfsvfJumBuZnstJv9uf4BgWJM";
 
@@ -31,6 +33,9 @@ export const MapContainer = () => {
   const [showStreetView, setShowStreetView] = useState(false);
   const [showAIDetection, setShowAIDetection] = useState(false);
   const [showEmployeeTracking, setShowEmployeeTracking] = useState(true);
+  const [showWeatherRadar, setShowWeatherRadar] = useState(false);
+  const [radarOpacity, setRadarOpacity] = useState(70);
+  const [alertRadius, setAlertRadius] = useState(15);
   const { data: jobSites } = useJobSites();
   const { measurement, setDrawingMode, clearDrawings } = useMapDrawing(mapInstanceRef.current);
   const [activeMode, setActiveMode] = useState<DrawingMode>(null);
@@ -340,6 +345,15 @@ export const MapContainer = () => {
 
   return (
     <MapContext.Provider value={{ map: mapInstanceRef.current }}>
+      {/* Map Effects */}
+      <MapEffects 
+        showRadar={true}
+        showGlitch={true}
+        showScanline={true}
+        radarSpeed={3}
+        glitchIntensity={0.3}
+      />
+
       <MeasurementDisplay distance={measurement.distance} area={measurement.area} />
       <MapToolbar
         onModeChange={handleModeChange}
@@ -353,9 +367,19 @@ export const MapContainer = () => {
         onAIDetect={handleAIDetect}
         onToggleEmployeeTracking={() => setShowEmployeeTracking(!showEmployeeTracking)}
         showEmployeeTracking={showEmployeeTracking}
+        onToggleWeatherRadar={() => setShowWeatherRadar(!showWeatherRadar)}
+        showWeatherRadar={showWeatherRadar}
       />
       <MapVisibilityControls />
       {showEmployeeTracking && <EmployeeTrackingLayer map={mapInstanceRef.current} />}
+      {showWeatherRadar && (
+        <WeatherRadarLayer
+          map={mapInstanceRef.current}
+          opacity={radarOpacity}
+          showAlerts={true}
+          alertRadius={alertRadius}
+        />
+      )}
       <div
         ref={mapRef}
         className="absolute inset-0 w-full h-full"
