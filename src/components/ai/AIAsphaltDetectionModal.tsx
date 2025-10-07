@@ -135,7 +135,7 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
       const lat = center.lat();
       const lng = center.lng();
 
-      const apiKey = (import.meta as any).env?.VITE_GOOGLE_MAPS_API_KEY as string;
+      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
       if (!apiKey || apiKey === "undefined") {
         toast({
           title: "API Key Missing",

@@ -26,3 +26,6 @@ deleted files/
 *.njsproj
 *.sln
 *.sw?
+
+# Environment files
+.env*
