@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Ruler, Circle, Square, MapPin, Trash2, Save, Navigation, Car, Eye, Scan, Download, Users, Cloud } from "lucide-react";
+import { Ruler, Circle, Square, MapPin, Trash2, Save, Navigation, Car, Eye, Scan, Download, Users, Cloud, Route, LocateFixed } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { DrawingMode } from "@/hooks/useMapDrawing";
 import { MeasurementExportModal } from "@/components/export/MeasurementExportModal";
 
@@ -18,6 +19,8 @@ interface MapToolbarProps {
   showEmployeeTracking?: boolean;
   onToggleWeatherRadar?: () => void;
   showWeatherRadar?: boolean;
+  onGeocode?: (query: string) => void;
+  onRoute?: (origin: string, destination: string) => void;
 }
 
 export const MapToolbar = ({ 
@@ -34,8 +37,13 @@ export const MapToolbar = ({
   showEmployeeTracking = false,
   onToggleWeatherRadar,
   showWeatherRadar = false,
+  onGeocode,
+  onRoute,
 }: MapToolbarProps) => {
   const [showExport, setShowExport] = useState(false);
+  const [geoQuery, setGeoQuery] = useState("");
+  const [origin, setOrigin] = useState("");
+  const [destination, setDestination] = useState("");
   
   const tools = [
     { mode: "measure" as DrawingMode, icon: Ruler, label: "Measure Distance" },
@@ -170,6 +178,27 @@ export const MapToolbar = ({
       </Button>
 
       <MeasurementExportModal isOpen={showExport} onClose={() => setShowExport(false)} />
+      {(onGeocode || onRoute) && (
+        <div className="tactical-panel mt-2 p-2 w-64 space-y-2">
+          {onGeocode && (
+            <div className="flex gap-2">
+              <Input placeholder="Search address" value={geoQuery} onChange={(e) => setGeoQuery(e.target.value)} />
+              <Button size="icon" variant="outline" onClick={() => geoQuery && onGeocode(geoQuery)} title="Geocode">
+                <LocateFixed className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+          {onRoute && (
+            <div className="space-y-2">
+              <Input placeholder="Origin (addr or lat,lng)" value={origin} onChange={(e) => setOrigin(e.target.value)} />
+              <Input placeholder="Destination (addr or lat,lng)" value={destination} onChange={(e) => setDestination(e.target.value)} />
+              <Button className="w-full" variant="outline" onClick={() => origin && destination && onRoute(origin, destination)} title="Get Directions">
+                <Route className="w-4 h-4 mr-2" /> Route
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

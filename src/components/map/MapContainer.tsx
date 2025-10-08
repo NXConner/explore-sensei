@@ -20,6 +20,7 @@ import { Palette } from "lucide-react";
 import { WeatherRadarLayer } from "@/components/weather/WeatherRadarLayer";
 import { MapContext } from "./MapContext";
 import { getGoogleMapsApiKey, getMapboxAccessToken } from "@/config/env";
+import { geocodeAddress, getDirections } from "@/lib/mapsClient";
 
 const GOOGLE_MAPS_API_KEY = getGoogleMapsApiKey();
 const LOCAL_MAPBOX_TOKEN = getMapboxAccessToken();
@@ -35,6 +36,8 @@ export const MapContainer = () => {
   const trafficLayerRef = useRef<google.maps.TrafficLayer | null>(null);
   const savedMeasurementsRef = useRef<google.maps.Polyline[]>([]);
   const streetViewRef = useRef<google.maps.StreetViewPanorama | null>(null);
+  const searchMarkerRef = useRef<google.maps.Marker | null>(null);
+  const routePolylineRef = useRef<google.maps.Polyline | null>(null);
   const [showStreetView, setShowStreetView] = useState(false);
   const [showAIDetection, setShowAIDetection] = useState(false);
   const [showEmployeeTracking, setShowEmployeeTracking] = useState(false);
@@ -194,6 +197,58 @@ export const MapContainer = () => {
 
   const handleAIDetect = () => {
     setShowAIDetection(true);
+  };
+
+  const handleGeocode = async (query: string) => {
+    try {
+      const data = await geocodeAddress(query);
+      const result = data.results?.[0];
+      const loc = result?.geometry?.location;
+      if (!loc) throw new Error("No results");
+      const position = { lat: loc.lat, lng: loc.lng };
+
+      if (!mapInstanceRef.current) return;
+      mapInstanceRef.current.panTo(position);
+      mapInstanceRef.current.setZoom(16);
+
+      if (searchMarkerRef.current) searchMarkerRef.current.setMap(null);
+      searchMarkerRef.current = new google.maps.Marker({
+        position,
+        map: mapInstanceRef.current,
+        title: query,
+      });
+    } catch (e) {
+      toast({ title: "Geocode failed", description: "No results found.", variant: "destructive" });
+    }
+  };
+
+  const handleRoute = async (origin: string, destination: string) => {
+    try {
+      const data = await getDirections({ origin, destination, mode: "driving" });
+      const route = data.routes?.[0];
+      const overview = route?.overview_polyline?.points;
+      if (!overview || !mapInstanceRef.current) throw new Error("No route");
+
+      // decode polyline using geometry library
+      // google.maps.geometry.encoding is included via libraries
+      const path = google.maps.geometry.encoding.decodePath(overview);
+
+      if (routePolylineRef.current) routePolylineRef.current.setMap(null);
+      routePolylineRef.current = new google.maps.Polyline({
+        path,
+        strokeColor: "#00ffff",
+        strokeOpacity: 0.8,
+        strokeWeight: 4,
+        map: mapInstanceRef.current,
+      });
+
+      const bounds = new google.maps.LatLngBounds();
+      path.forEach((latLng) => bounds.extend(latLng));
+      mapInstanceRef.current.fitBounds(bounds, 48);
+      toast({ title: "Route ready", description: `${route.legs?.[0]?.distance?.text || ""} • ${route.legs?.[0]?.duration?.text || ""}` });
+    } catch (e) {
+      toast({ title: "Directions failed", description: "Unable to compute route.", variant: "destructive" });
+    }
   };
 
   const handleSave = async () => {
@@ -520,6 +575,8 @@ export const MapContainer = () => {
         showEmployeeTracking={showEmployeeTracking}
         onToggleWeatherRadar={() => setShowWeatherRadar(!showWeatherRadar)}
         showWeatherRadar={showWeatherRadar}
+        onGeocode={handleGeocode}
+        onRoute={handleRoute}
         />
       )}
       <MapVisibilityControls />
