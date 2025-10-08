@@ -7,6 +7,9 @@ interface MapEffectsProps {
   radarSpeed?: number;
   glitchIntensity?: number;
   accentColor?: string; // css color for radar sweep
+  showGridOverlay?: boolean;
+  glitchClickPreset?: "barely" | "subtle" | "normal";
+  vignetteEffect?: boolean;
 }
 
 export const MapEffects = ({
@@ -16,6 +19,9 @@ export const MapEffects = ({
   radarSpeed = 3,
   glitchIntensity = 0.3,
   accentColor = "rgba(255, 140, 0, 0.1)",
+  showGridOverlay = false,
+  glitchClickPreset = "subtle",
+  vignetteEffect = false,
 }: MapEffectsProps) => {
   const radarRef = useRef<HTMLDivElement>(null);
   const glitchRef = useRef<HTMLDivElement>(null);
@@ -28,7 +34,8 @@ export const MapEffects = ({
 
     const animate = () => {
       angle += radarSpeed * 0.5;
-      radar.style.transform = `rotate(${angle}deg)`;
+      // Keep the radar centered while rotating
+      radar.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
       if (showRadar) {
         requestAnimationFrame(animate);
       }
@@ -42,7 +49,7 @@ export const MapEffects = ({
     if (!showGlitch || !glitchRef.current) return;
 
     const glitch = glitchRef.current;
-    let glitchInterval: NodeJS.Timeout;
+    let glitchInterval: ReturnType<typeof setInterval>;
 
     const triggerGlitch = () => {
       glitch.style.opacity = String(glitchIntensity);
@@ -55,6 +62,39 @@ export const MapEffects = ({
 
     return () => clearInterval(glitchInterval);
   }, [showGlitch, glitchIntensity]);
+
+  // Click-triggered glitch burst on UI interactions
+  useEffect(() => {
+    if (!showGlitch || !glitchRef.current) return;
+    const glitch = glitchRef.current;
+
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      // Heuristic: trigger on common interactive elements
+      const isInteractive = target.closest(
+        'button, [role="button"], [data-glitch], a, .nav, .navigation-menu, .menubar, .menu, .sidebar, [data-radix-collection-item]'
+      );
+      if (!isInteractive) return;
+
+      const ranges: Record<typeof glitchClickPreset, [number, number]> = {
+        barely: [0.04, 0.08],
+        subtle: [0.09, 0.18],
+        normal: [0.2, 0.35],
+      } as const;
+      const [min, max] = ranges[glitchClickPreset];
+      const burst = Math.min(0.95, Math.max(0.02, min + Math.random() * (max - min)));
+
+      const prev = glitch.style.opacity;
+      glitch.style.opacity = String(burst);
+      setTimeout(() => {
+        glitch.style.opacity = prev || "0";
+      }, 140);
+    };
+
+    document.addEventListener("click", handleClick, true);
+    return () => document.removeEventListener("click", handleClick, true);
+  }, [showGlitch, glitchClickPreset]);
 
   return (
     <>
@@ -106,6 +146,27 @@ export const MapEffects = ({
               transparent 2px
             )`,
             animation: "scanline 8s linear infinite",
+          }}
+        />
+      )}
+
+      {/* Grid Overlay */}
+      {showGridOverlay && (
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `var(--grid-overlay)`,
+          }}
+        />
+      )}
+
+      {/* Vignette corners */}
+      {vignetteEffect && (
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(ellipse at center, rgba(0,0,0,0) 60%, rgba(0,0,0,0.35) 100%)",
           }}
         />
       )}
