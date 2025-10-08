@@ -1,12 +1,32 @@
 import React, { useState, useEffect, useRef } from "react";
-import { X, Play, Pause, SkipBack, SkipForward, Calendar, Maximize2, Gauge, MapPin, Clock, Users, Activity } from "lucide-react";
+import {
+  X,
+  Play,
+  Pause,
+  SkipBack,
+  SkipForward,
+  Calendar,
+  Maximize2,
+  Gauge,
+  MapPin,
+  Clock,
+  Users,
+  Activity,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Card } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useEmployeeTracking, EmployeeLocation } from "@/hooks/useEmployeeTracking";
+import { loadGoogleMaps } from "@/lib/googleMapsLoader";
 import { format } from "date-fns";
 
 interface EODPlaybackModalProps {
@@ -24,49 +44,60 @@ export const EODPlaybackModal = ({ onClose }: EODPlaybackModalProps) => {
   const markersRef = useRef<google.maps.Marker[]>([]);
   const pathLineRef = useRef<google.maps.Polyline | null>(null);
   const animationRef = useRef<number | null>(null);
-  
+
   const { locations, summaries, isLoading } = useEmployeeTracking(selectedDate);
-  
+
   // Filter locations by selected employee
-  const filteredLocations = selectedEmployee === "all" 
-    ? locations 
-    : locations.filter(loc => loc.employee_id === selectedEmployee);
-  
+  const filteredLocations =
+    selectedEmployee === "all"
+      ? locations
+      : locations.filter((loc) => loc.employee_id === selectedEmployee);
+
   // Sort locations chronologically
   const sortedLocations = [...filteredLocations].sort(
-    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
   );
 
   // Get unique employees
   const employees = Array.from(
-    new Map(locations.map(loc => [
-      loc.employee_id,
-      { 
-        id: loc.employee_id, 
-        name: `${loc.employees?.first_name || ''} ${loc.employees?.last_name || ''}`.trim() 
-      }
-    ])).values()
+    new Map<string, { id: string; name: string }>(
+      locations.map((loc) => [
+        loc.employee_id,
+        {
+          id: loc.employee_id,
+          name: `${loc.employees?.first_name || ""} ${loc.employees?.last_name || ""}`.trim(),
+        },
+      ]),
+    ).values(),
   );
 
   // Initialize map
   useEffect(() => {
-    if (!mapDivRef.current || !window.google) return;
+    if (!mapDivRef.current) return;
 
-    const map = new google.maps.Map(mapDivRef.current, {
-      center: { lat: 36.5, lng: -80.5 },
-      zoom: 12,
-      mapTypeId: google.maps.MapTypeId.ROADMAP,
-      styles: [
-        { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
-        { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
-        { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
-      ],
-    });
-
-    mapRef.current = map;
+    let cancelled = false;
+    loadGoogleMaps(["places"])
+      .then(() => {
+        if (cancelled || !mapDivRef.current) return;
+        const map = new google.maps.Map(mapDivRef.current, {
+          center: { lat: 36.5, lng: -80.5 },
+          zoom: 12,
+          mapTypeId: google.maps.MapTypeId.ROADMAP,
+          styles: [
+            { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+            { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+            { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+          ],
+        });
+        mapRef.current = map;
+      })
+      .catch(() => {
+        // If Maps fails to load, leave the DIV empty; modal still usable
+      });
 
     return () => {
-      markersRef.current.forEach(marker => marker.setMap(null));
+      cancelled = true;
+      markersRef.current.forEach((marker) => marker.setMap(null));
       if (pathLineRef.current) pathLineRef.current.setMap(null);
     };
   }, []);
@@ -76,7 +107,7 @@ export const EODPlaybackModal = ({ onClose }: EODPlaybackModalProps) => {
     if (!mapRef.current || sortedLocations.length === 0) return;
 
     // Clear existing markers and paths
-    markersRef.current.forEach(marker => marker.setMap(null));
+    markersRef.current.forEach((marker) => marker.setMap(null));
     markersRef.current = [];
     if (pathLineRef.current) {
       pathLineRef.current.setMap(null);
@@ -87,7 +118,7 @@ export const EODPlaybackModal = ({ onClose }: EODPlaybackModalProps) => {
     if (currentLocations.length === 0) return;
 
     // Create path
-    const pathCoords = currentLocations.map(loc => ({
+    const pathCoords = currentLocations.map((loc) => ({
       lat: Number(loc.latitude),
       lng: Number(loc.longitude),
     }));
@@ -103,7 +134,7 @@ export const EODPlaybackModal = ({ onClose }: EODPlaybackModalProps) => {
 
     // Group locations by employee
     const employeeGroups = new Map<string, EmployeeLocation[]>();
-    currentLocations.forEach(loc => {
+    currentLocations.forEach((loc) => {
       if (!employeeGroups.has(loc.employee_id)) {
         employeeGroups.set(loc.employee_id, []);
       }
@@ -113,7 +144,8 @@ export const EODPlaybackModal = ({ onClose }: EODPlaybackModalProps) => {
     // Create marker for each employee's current position
     employeeGroups.forEach((locs, empId) => {
       const latestLoc = locs[locs.length - 1];
-      const empName = `${latestLoc.employees?.first_name || ''} ${latestLoc.employees?.last_name || ''}`.trim();
+      const empName =
+        `${latestLoc.employees?.first_name || ""} ${latestLoc.employees?.last_name || ""}`.trim();
 
       const marker = new google.maps.Marker({
         position: { lat: Number(latestLoc.latitude), lng: Number(latestLoc.longitude) },
@@ -128,7 +160,10 @@ export const EODPlaybackModal = ({ onClose }: EODPlaybackModalProps) => {
           strokeWeight: 2,
         },
         label: {
-          text: empName.split(' ').map(n => n[0]).join(''),
+          text: empName
+            .split(" ")
+            .map((n) => n[0])
+            .join(""),
           color: "#000000",
           fontSize: "10px",
           fontWeight: "bold",
@@ -140,9 +175,9 @@ export const EODPlaybackModal = ({ onClose }: EODPlaybackModalProps) => {
         content: `
           <div style="color: #000; padding: 8px;">
             <strong>${empName}</strong><br/>
-            <small>${format(new Date(latestLoc.timestamp), 'HH:mm:ss')}</small><br/>
-            ${latestLoc.speed ? `Speed: ${latestLoc.speed.toFixed(1)} km/h<br/>` : ''}
-            ${latestLoc.activity_type ? `Activity: ${latestLoc.activity_type}<br/>` : ''}
+            <small>${format(new Date(latestLoc.timestamp), "HH:mm:ss")}</small><br/>
+            ${latestLoc.speed ? `Speed: ${latestLoc.speed.toFixed(1)} km/h<br/>` : ""}
+            ${latestLoc.activity_type ? `Activity: ${latestLoc.activity_type}<br/>` : ""}
           </div>
         `,
       });
@@ -160,7 +195,6 @@ export const EODPlaybackModal = ({ onClose }: EODPlaybackModalProps) => {
       lat: Number(currentLoc.latitude),
       lng: Number(currentLoc.longitude),
     });
-
   }, [playbackTime, sortedLocations]);
 
   // Auto-play animation
@@ -182,7 +216,7 @@ export const EODPlaybackModal = ({ onClose }: EODPlaybackModalProps) => {
         // Advance playback based on speed and time delta
         const framesPerSecond = 60;
         const advanceAmount = (delta / 1000) * framesPerSecond;
-        setPlaybackTime(prev => Math.min(prev + advanceAmount, sortedLocations.length - 1));
+        setPlaybackTime((prev) => Math.min(prev + advanceAmount, sortedLocations.length - 1));
         animationRef.current = requestAnimationFrame(animate);
       } else {
         setIsPlaying(false);
@@ -207,7 +241,7 @@ export const EODPlaybackModal = ({ onClose }: EODPlaybackModalProps) => {
   };
 
   const currentLocation = sortedLocations[Math.floor(playbackTime)];
-  const currentSummary = summaries.find(s => s.employee_id === selectedEmployee);
+  const currentSummary = summaries.find((s) => s.employee_id === selectedEmployee);
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/80 backdrop-blur-sm">
@@ -217,9 +251,7 @@ export const EODPlaybackModal = ({ onClose }: EODPlaybackModalProps) => {
           <div className="flex items-center gap-3">
             <Activity className="w-5 h-5 text-primary" />
             <h2 className="text-lg font-bold">END-OF-DAY PLAYBACK</h2>
-            <Badge variant="outline">
-              {format(selectedDate, "MMMM dd, yyyy")}
-            </Badge>
+            <Badge variant="outline">{format(selectedDate, "MMMM dd, yyyy")}</Badge>
             {!isLoading && sortedLocations.length > 0 && (
               <Badge className="bg-green-500/20 text-green-400">
                 {sortedLocations.length} locations
@@ -240,7 +272,7 @@ export const EODPlaybackModal = ({ onClose }: EODPlaybackModalProps) => {
           {/* Map Area */}
           <div className="flex-1 relative">
             <div ref={mapDivRef} className="absolute inset-0" />
-            
+
             {/* Stats Overlay */}
             <div className="absolute top-4 left-4 space-y-2">
               <Card className="hud-element border-primary/30 p-3">
@@ -254,7 +286,7 @@ export const EODPlaybackModal = ({ onClose }: EODPlaybackModalProps) => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Employees</SelectItem>
-                    {employees.map(emp => (
+                    {employees.map((emp) => (
                       <SelectItem key={emp.id} value={emp.id}>
                         {emp.name}
                       </SelectItem>
@@ -267,11 +299,16 @@ export const EODPlaybackModal = ({ onClose }: EODPlaybackModalProps) => {
                 <Card className="hud-element border-primary/30 p-3 space-y-2">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-blue-400" />
-                    <span className="text-sm">Distance: {currentSummary.total_distance_km?.toFixed(2)} km</span>
+                    <span className="text-sm">
+                      Distance: {currentSummary.total_distance_km?.toFixed(2)} km
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-green-400" />
-                    <span className="text-sm">Time: {Math.floor((currentSummary.total_time_minutes || 0) / 60)}h {(currentSummary.total_time_minutes || 0) % 60}m</span>
+                    <span className="text-sm">
+                      Time: {Math.floor((currentSummary.total_time_minutes || 0) / 60)}h{" "}
+                      {(currentSummary.total_time_minutes || 0) % 60}m
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Activity className="w-4 h-4 text-purple-400" />
@@ -287,7 +324,7 @@ export const EODPlaybackModal = ({ onClose }: EODPlaybackModalProps) => {
                 <Card className="hud-element border-primary/30 p-3">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-primary">
-                      {format(new Date(currentLocation.timestamp), 'HH:mm:ss')}
+                      {format(new Date(currentLocation.timestamp), "HH:mm:ss")}
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">
                       {currentLocation.employees?.first_name} {currentLocation.employees?.last_name}
@@ -323,7 +360,7 @@ export const EODPlaybackModal = ({ onClose }: EODPlaybackModalProps) => {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-xs font-mono text-primary">
-                            {format(new Date(location.timestamp), 'HH:mm:ss')}
+                            {format(new Date(location.timestamp), "HH:mm:ss")}
                           </span>
                           {location.activity_type && (
                             <Badge variant="outline" className="text-xs">
@@ -335,7 +372,8 @@ export const EODPlaybackModal = ({ onClose }: EODPlaybackModalProps) => {
                           {location.employees?.first_name} {location.employees?.last_name}
                         </p>
                         <p className="text-xs font-mono mt-1">
-                          {Number(location.latitude).toFixed(6)}, {Number(location.longitude).toFixed(6)}
+                          {Number(location.latitude).toFixed(6)},{" "}
+                          {Number(location.longitude).toFixed(6)}
                         </p>
                       </div>
                     </div>
@@ -357,8 +395,8 @@ export const EODPlaybackModal = ({ onClose }: EODPlaybackModalProps) => {
           {/* Control Buttons */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="icon"
                 onClick={handleSkipBack}
                 disabled={playbackTime === 0}
@@ -371,14 +409,10 @@ export const EODPlaybackModal = ({ onClose }: EODPlaybackModalProps) => {
                 onClick={() => setIsPlaying(!isPlaying)}
                 disabled={sortedLocations.length === 0}
               >
-                {isPlaying ? (
-                  <Pause className="w-5 h-5" />
-                ) : (
-                  <Play className="w-5 h-5" />
-                )}
+                {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="icon"
                 onClick={handleSkipForward}
                 disabled={playbackTime >= sortedLocations.length - 1}
@@ -390,8 +424,8 @@ export const EODPlaybackModal = ({ onClose }: EODPlaybackModalProps) => {
             {/* Playback Speed */}
             <div className="flex items-center gap-2">
               <Gauge className="w-4 h-4 text-muted-foreground" />
-              <Select 
-                value={playbackSpeed.toString()} 
+              <Select
+                value={playbackSpeed.toString()}
                 onValueChange={(v) => setPlaybackSpeed(parseFloat(v))}
               >
                 <SelectTrigger className="w-24">
@@ -413,19 +447,19 @@ export const EODPlaybackModal = ({ onClose }: EODPlaybackModalProps) => {
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-muted-foreground">
               <span>
-                {sortedLocations.length > 0 
-                  ? format(new Date(sortedLocations[0].timestamp), 'HH:mm')
-                  : '00:00'}
+                {sortedLocations.length > 0
+                  ? format(new Date(sortedLocations[0].timestamp), "HH:mm")
+                  : "00:00"}
               </span>
               <span className="text-primary font-medium">
-                {currentLocation 
-                  ? format(new Date(currentLocation.timestamp), 'HH:mm:ss')
-                  : '--:--:--'}
+                {currentLocation
+                  ? format(new Date(currentLocation.timestamp), "HH:mm:ss")
+                  : "--:--:--"}
               </span>
               <span>
-                {sortedLocations.length > 0 
-                  ? format(new Date(sortedLocations[sortedLocations.length - 1].timestamp), 'HH:mm')
-                  : '00:00'}
+                {sortedLocations.length > 0
+                  ? format(new Date(sortedLocations[sortedLocations.length - 1].timestamp), "HH:mm")
+                  : "00:00"}
               </span>
             </div>
             <Slider
