@@ -1,7 +1,7 @@
-/// <reference types="@types/google.maps" />
+/// <reference types="google.maps" />
 import React, { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
-import { Loader } from "@googlemaps/js-api-loader";
+import { loadGoogleMaps } from "@/lib/googleMapsLoader";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import { useJobSites } from "@/hooks/useJobSites";
 import { MeasurementDisplay } from "./MeasurementDisplay";
@@ -25,7 +25,7 @@ import { geocodeAddress, getDirections } from "@/lib/mapsClient";
 const GOOGLE_MAPS_API_KEY = getGoogleMapsApiKey();
 const LOCAL_MAPBOX_TOKEN = getMapboxAccessToken();
 
-type MapTheme = 'division' | 'animus';
+type MapTheme = "division" | "animus";
 
 export const MapContainer = () => {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -44,7 +44,7 @@ export const MapContainer = () => {
   const [showWeatherRadar, setShowWeatherRadar] = useState(false);
   const [radarOpacity, setRadarOpacity] = useState(70);
   const [alertRadius, setAlertRadius] = useState(15);
-  const [mapTheme, setMapTheme] = useState<MapTheme>('division');
+  const [mapTheme, setMapTheme] = useState<MapTheme>("division");
   const [mapsUnavailable, setMapsUnavailable] = useState(false);
   const [usingMapbox, setUsingMapbox] = useState(false);
   const { data: jobSites } = useJobSites();
@@ -61,14 +61,14 @@ export const MapContainer = () => {
     gridOverlay: true,
     radarSpeed: 3,
     glitchIntensity: 30, // percent
-    glitchClickPreset: 'subtle' as 'barely' | 'subtle' | 'normal',
+    glitchClickPreset: "subtle" as "barely" | "subtle" | "normal",
     vignetteEffect: false,
   });
 
   useEffect(() => {
     // Load persisted settings
     try {
-      const raw = localStorage.getItem('aos_settings');
+      const raw = localStorage.getItem("aos_settings");
       if (raw) {
         const parsed = JSON.parse(raw);
         setUiSettings((prev) => ({
@@ -83,11 +83,13 @@ export const MapContainer = () => {
           vignetteEffect: parsed.vignetteEffect ?? prev.vignetteEffect,
         }));
       }
-    } catch {}
+    } catch (err) {
+      console.warn("Failed to load persisted UI settings:", err);
+    }
 
     // Sync across tabs/windows and when settings modal updates
     const onStorage = (e: StorageEvent) => {
-      if (e.key !== 'aos_settings' || !e.newValue) return;
+      if (e.key !== "aos_settings" || !e.newValue) return;
       try {
         const parsed = JSON.parse(e.newValue);
         setUiSettings((prev) => ({
@@ -101,10 +103,12 @@ export const MapContainer = () => {
           glitchClickPreset: parsed.glitchClickPreset ?? prev.glitchClickPreset,
           vignetteEffect: parsed.vignetteEffect ?? prev.vignetteEffect,
         }));
-      } catch {}
+      } catch (err) {
+        console.warn("Failed to sync UI settings from storage event:", err);
+      }
     };
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
   }, []);
 
   const handleModeChange = (mode: DrawingMode) => {
@@ -119,7 +123,7 @@ export const MapContainer = () => {
 
   const handleLocateMe = () => {
     if (!mapInstanceRef.current) return;
-    
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -129,7 +133,7 @@ export const MapContainer = () => {
           };
           mapInstanceRef.current?.panTo(userLocation);
           mapInstanceRef.current?.setZoom(18);
-          
+
           toast({
             title: "Location Found",
             description: "Map centered on your location.",
@@ -141,7 +145,7 @@ export const MapContainer = () => {
             description: "Unable to get your location. Please enable location services.",
             variant: "destructive",
           });
-        }
+        },
       );
     } else {
       toast({
@@ -154,7 +158,7 @@ export const MapContainer = () => {
 
   const handleToggleTraffic = () => {
     if (!trafficLayerRef.current || !mapInstanceRef.current) return;
-    
+
     if (trafficLayerRef.current.getMap()) {
       trafficLayerRef.current.setMap(null);
       toast({
@@ -174,7 +178,7 @@ export const MapContainer = () => {
     if (!mapInstanceRef.current) return;
 
     setShowStreetView(!showStreetView);
-    
+
     if (!showStreetView) {
       const center = mapInstanceRef.current.getCenter();
       if (center) {
@@ -245,9 +249,16 @@ export const MapContainer = () => {
       const bounds = new google.maps.LatLngBounds();
       path.forEach((latLng) => bounds.extend(latLng));
       mapInstanceRef.current.fitBounds(bounds, 48);
-      toast({ title: "Route ready", description: `${route.legs?.[0]?.distance?.text || ""} • ${route.legs?.[0]?.duration?.text || ""}` });
+      toast({
+        title: "Route ready",
+        description: `${route.legs?.[0]?.distance?.text || ""} • ${route.legs?.[0]?.duration?.text || ""}`,
+      });
     } catch (e) {
-      toast({ title: "Directions failed", description: "Unable to compute route.", variant: "destructive" });
+      toast({
+        title: "Directions failed",
+        description: "Unable to compute route.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -267,10 +278,12 @@ export const MapContainer = () => {
         type: measurement.distance ? "distance" : "area",
         value: measurement.distance || measurement.area,
         unit: measurement.distance ? "meters" : "square_meters",
-        geojson: center ? {
-          type: "Point",
-          coordinates: [center.lng(), center.lat()]
-        } : null,
+        geojson: center
+          ? {
+              type: "Point",
+              coordinates: [center.lng(), center.lat()],
+            }
+          : null,
       });
 
       if (error) throw error;
@@ -299,8 +312,8 @@ export const MapContainer = () => {
       try {
         let token = LOCAL_MAPBOX_TOKEN;
         if (!token) {
-          const { data, error } = await supabase.functions.invoke('get-mapbox-token');
-          if (error || !data?.token) throw new Error(error?.message || 'No Mapbox token');
+          const { data, error } = await supabase.functions.invoke("get-mapbox-token");
+          if (error || !data?.token) throw new Error(error?.message || "No Mapbox token");
           token = data.token as string;
         }
 
@@ -308,27 +321,30 @@ export const MapContainer = () => {
         const defaultCenter: [number, number] = [-80.2715, 36.6904];
         const map = new mapboxgl.Map({
           container: mapRef.current,
-          style: 'mapbox://styles/mapbox/satellite-streets-v12',
+          style: "mapbox://styles/mapbox/satellite-streets-v12",
           center: defaultCenter,
           zoom: 12,
-          projection: 'globe'
+          projection: "globe",
         });
         mapboxInstanceRef.current = map;
 
-        map.on('load', () => {
+        map.on("load", () => {
           map.setFog({});
         });
 
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(
             (position) => {
-              map.easeTo({ center: [position.coords.longitude, position.coords.latitude], zoom: 15 });
+              map.easeTo({
+                center: [position.coords.longitude, position.coords.latitude],
+                zoom: 15,
+              });
             },
-            () => {}
+            () => {},
           );
         }
       } catch (e) {
-        console.warn('Failed to initialize Mapbox:', e);
+        console.warn("Failed to initialize Mapbox:", e);
         setMapsUnavailable(true);
       }
     };
@@ -347,7 +363,7 @@ export const MapContainer = () => {
     setUsingMapbox(false);
     setMapsUnavailable(false);
 
-    const loadGoogleMaps = () => {
+    const beginLoadGoogleMaps = () => {
       if (window.google && window.google.maps) {
         initMap();
         return;
@@ -357,28 +373,25 @@ export const MapContainer = () => {
         return;
       }
 
-      const loader = new Loader({
-        apiKey: GOOGLE_MAPS_API_KEY,
-        libraries: ["places", "drawing", "geometry"],
-      });
-
-      loader.load().then(() => {
-        initMap();
-      }).catch((err) => {
-        console.warn('Google Maps failed to load via Loader. Falling back to Mapbox.', err);
-        initializeMapboxFallback();
-      });
+      loadGoogleMaps(["places", "drawing", "geometry"])
+        .then(() => {
+          initMap();
+        })
+        .catch((err) => {
+          console.warn("Google Maps failed to load. Falling back to Mapbox.", err);
+          initializeMapboxFallback();
+        });
     };
 
     const initMap = () => {
       if (mapRef.current && !mapInstanceRef.current) {
         const defaultCenter = { lat: 36.6904, lng: -80.2715 };
-        
+
         mapInstanceRef.current = new google.maps.Map(mapRef.current, {
           center: defaultCenter,
           zoom: 12,
           mapTypeId: "hybrid",
-          styles: mapTheme === 'division' ? divisionMapStyle : animusMapStyle,
+          styles: mapTheme === "division" ? divisionMapStyle : animusMapStyle,
           disableDefaultUI: true,
           zoomControl: true,
           zoomControlOptions: {
@@ -398,7 +411,7 @@ export const MapContainer = () => {
               mapInstanceRef.current?.setCenter(userLocation);
               mapInstanceRef.current?.setZoom(15);
             },
-            () => {}
+            () => {},
           );
         }
 
@@ -406,7 +419,7 @@ export const MapContainer = () => {
       }
     };
 
-    loadGoogleMaps();
+    beginLoadGoogleMaps();
 
     return () => {
       if (mapInstanceRef.current) {
@@ -417,12 +430,14 @@ export const MapContainer = () => {
 
   // Apply theme class to body for CSS variables
   useEffect(() => {
-    const clsDivision = 'theme-division';
-    const clsAnimus = 'theme-animus';
+    const clsDivision = "theme-division";
+    const clsAnimus = "theme-animus";
     document.body.classList.remove(clsDivision, clsAnimus);
-    document.body.classList.add(mapTheme === 'division' ? clsDivision : clsAnimus);
+    document.body.classList.add(mapTheme === "division" ? clsDivision : clsAnimus);
     if (mapInstanceRef.current) {
-      mapInstanceRef.current.setOptions({ styles: mapTheme === 'division' ? divisionMapStyle : animusMapStyle });
+      mapInstanceRef.current.setOptions({
+        styles: mapTheme === "division" ? divisionMapStyle : animusMapStyle,
+      });
     }
   }, [mapTheme]);
 
@@ -547,13 +562,15 @@ export const MapContainer = () => {
   return (
     <MapContext.Provider value={{ map: mapInstanceRef.current }}>
       {/* Map Effects */}
-      <MapEffects 
+      <MapEffects
         showRadar={uiSettings.radarEffect}
         showGlitch={uiSettings.glitchEffect}
         showScanline={uiSettings.scanlineEffect}
         radarSpeed={uiSettings.radarSpeed}
         glitchIntensity={Math.max(0.03, Math.min(0.9, (uiSettings.glitchIntensity || 0) / 100))}
-        accentColor={mapTheme === 'division' ? 'rgba(255, 140, 0, 0.12)' : 'rgba(0, 200, 200, 0.12)'}
+        accentColor={
+          mapTheme === "division" ? "rgba(255, 140, 0, 0.12)" : "rgba(0, 200, 200, 0.12)"
+        }
         showGridOverlay={uiSettings.gridOverlay}
         glitchClickPreset={uiSettings.glitchClickPreset}
         vignetteEffect={uiSettings.vignetteEffect}
@@ -562,21 +579,21 @@ export const MapContainer = () => {
       <MeasurementDisplay distance={measurement.distance} area={measurement.area} />
       {!usingMapbox && (
         <MapToolbar
-        onModeChange={handleModeChange}
-        onClear={handleClear}
-        onSave={handleSave}
-        activeMode={activeMode}
-        onLocateMe={handleLocateMe}
-        onToggleTraffic={handleToggleTraffic}
-        showTraffic={trafficLayerRef.current?.getMap() != null}
-        onToggleStreetView={handleToggleStreetView}
-        onAIDetect={handleAIDetect}
-        onToggleEmployeeTracking={() => setShowEmployeeTracking(!showEmployeeTracking)}
-        showEmployeeTracking={showEmployeeTracking}
-        onToggleWeatherRadar={() => setShowWeatherRadar(!showWeatherRadar)}
-        showWeatherRadar={showWeatherRadar}
-        onGeocode={handleGeocode}
-        onRoute={handleRoute}
+          onModeChange={handleModeChange}
+          onClear={handleClear}
+          onSave={handleSave}
+          activeMode={activeMode}
+          onLocateMe={handleLocateMe}
+          onToggleTraffic={handleToggleTraffic}
+          showTraffic={trafficLayerRef.current?.getMap() != null}
+          onToggleStreetView={handleToggleStreetView}
+          onAIDetect={handleAIDetect}
+          onToggleEmployeeTracking={() => setShowEmployeeTracking(!showEmployeeTracking)}
+          showEmployeeTracking={showEmployeeTracking}
+          onToggleWeatherRadar={() => setShowWeatherRadar(!showWeatherRadar)}
+          showWeatherRadar={showWeatherRadar}
+          onGeocode={handleGeocode}
+          onRoute={handleRoute}
         />
       )}
       <MapVisibilityControls />
@@ -584,11 +601,25 @@ export const MapContainer = () => {
       <div className="absolute left-4 top-20 z-[1000]">
         <div className="tactical-panel flex items-center gap-2">
           <Palette className="w-4 h-4" />
-          <Button size="sm" variant={mapTheme === 'division' ? 'default' : 'outline'} onClick={() => setMapTheme('division')}>Division</Button>
-          <Button size="sm" variant={mapTheme === 'animus' ? 'default' : 'outline'} onClick={() => setMapTheme('animus')}>Animus</Button>
+          <Button
+            size="sm"
+            variant={mapTheme === "division" ? "default" : "outline"}
+            onClick={() => setMapTheme("division")}
+          >
+            Division
+          </Button>
+          <Button
+            size="sm"
+            variant={mapTheme === "animus" ? "default" : "outline"}
+            onClick={() => setMapTheme("animus")}
+          >
+            Animus
+          </Button>
         </div>
       </div>
-      {!usingMapbox && showEmployeeTracking && <EmployeeTrackingLayer map={mapInstanceRef.current} />}
+      {!usingMapbox && showEmployeeTracking && (
+        <EmployeeTrackingLayer map={mapInstanceRef.current} />
+      )}
       {!usingMapbox && showWeatherRadar && (
         <WeatherRadarLayer
           map={mapInstanceRef.current}
@@ -600,7 +631,9 @@ export const MapContainer = () => {
       <div
         ref={mapRef}
         className="absolute inset-0 w-full h-full"
-        style={{ filter: mapTheme === 'division' ? "brightness(0.8)" : "brightness(1.05) contrast(1.05)" }}
+        style={{
+          filter: mapTheme === "division" ? "brightness(0.8)" : "brightness(1.05) contrast(1.05)",
+        }}
       />
       {usingMapbox && (
         <div className="absolute left-4 bottom-4 z-[500]">
@@ -613,14 +646,17 @@ export const MapContainer = () => {
         <div className="absolute inset-0 flex items-center justify-center z-[500]">
           <div className="tactical-panel max-w-md text-center">
             <h3 className="text-lg font-bold mb-2">Map preview disabled</h3>
-            <p className="text-sm text-muted-foreground">No Google Maps API key configured. Add your key to enable live map, or continue using other features.</p>
+            <p className="text-sm text-muted-foreground">
+              No Google Maps API key configured. Add your key to enable live map, or continue using
+              other features.
+            </p>
           </div>
         </div>
       )}
       {showAIDetection && (
-        <AIAsphaltDetectionModal 
-          isOpen={showAIDetection} 
-          onClose={() => setShowAIDetection(false)} 
+        <AIAsphaltDetectionModal
+          isOpen={showAIDetection}
+          onClose={() => setShowAIDetection(false)}
         />
       )}
     </MapContext.Provider>
