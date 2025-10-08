@@ -1,6 +1,8 @@
 /// <reference types="@types/google.maps" />
 import React, { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
+import { Loader } from "@googlemaps/js-api-loader";
+import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import { useJobSites } from "@/hooks/useJobSites";
 import { MeasurementDisplay } from "./MeasurementDisplay";
 import { MapToolbar } from "./MapToolbar";
@@ -29,6 +31,7 @@ export const MapContainer = () => {
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const mapboxInstanceRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
+  const clustererRef = useRef<MarkerClusterer | null>(null);
   const trafficLayerRef = useRef<google.maps.TrafficLayer | null>(null);
   const savedMeasurementsRef = useRef<google.maps.Polyline[]>([]);
   const streetViewRef = useRef<google.maps.StreetViewPanorama | null>(null);
@@ -294,22 +297,22 @@ export const MapContainer = () => {
         initMap();
         return;
       }
-
-      // Avoid duplicate insertion
-      const existing = document.getElementById('gmaps-script');
-      if (existing) existing.remove();
-
-      const script = document.createElement("script");
-      script.id = 'gmaps-script';
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,drawing,geometry`;
-      script.async = true;
-      script.defer = true;
-      script.onload = () => initMap();
-      script.onerror = () => {
-        console.warn('Google Maps failed to load. Falling back to Mapbox.');
+      if (!GOOGLE_MAPS_API_KEY) {
         initializeMapboxFallback();
-      };
-      document.head.appendChild(script);
+        return;
+      }
+
+      const loader = new Loader({
+        apiKey: GOOGLE_MAPS_API_KEY,
+        libraries: ["places", "drawing", "geometry"],
+      });
+
+      loader.load().then(() => {
+        initMap();
+      }).catch((err) => {
+        console.warn('Google Maps failed to load via Loader. Falling back to Mapbox.', err);
+        initializeMapboxFallback();
+      });
     };
 
     const initMap = () => {
@@ -368,11 +371,15 @@ export const MapContainer = () => {
     }
   }, [mapTheme]);
 
-  // Add job site markers (Google Maps only)
+  // Add job site markers (Google Maps only) with clustering
   useEffect(() => {
     if (!mapInstanceRef.current || !jobSites || usingMapbox) return;
 
-    // Clear existing markers
+    // Clear previous clusterer and markers
+    if (clustererRef.current) {
+      clustererRef.current.clearMarkers();
+      clustererRef.current = null;
+    }
     markersRef.current.forEach((marker) => marker.setMap(null));
     markersRef.current = [];
 
@@ -411,6 +418,14 @@ export const MapContainer = () => {
 
       markersRef.current.push(marker);
     });
+
+    // Create clusterer
+    if (markersRef.current.length > 0) {
+      clustererRef.current = new MarkerClusterer({
+        markers: markersRef.current,
+        map: mapInstanceRef.current,
+      });
+    }
   }, [jobSites]);
 
   // Display saved measurements on map (Google Maps only)
