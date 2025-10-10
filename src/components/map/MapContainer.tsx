@@ -1,5 +1,5 @@
 /// <reference types="google.maps" />
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import mapboxgl from "mapbox-gl";
 import { loadGoogleMaps } from "@/lib/googleMapsLoader";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
@@ -27,7 +27,22 @@ const LOCAL_MAPBOX_TOKEN = getMapboxAccessToken();
 
 type MapTheme = "division" | "animus";
 
-export const MapContainer = () => {
+export interface MapContainerRef {
+  handleLocateMe: () => void;
+  handleToggleTraffic: () => void;
+  handleToggleStreetView: () => void;
+  toggleEmployeeTracking: () => void;
+  toggleWeatherRadar: () => void;
+  handleModeChange: (mode: DrawingMode) => void;
+  handleClear: () => void;
+  handleSave: () => void;
+  getShowTraffic: () => boolean;
+  getShowEmployeeTracking: () => boolean;
+  getShowWeatherRadar: () => boolean;
+  getActiveMode: () => DrawingMode;
+}
+
+export const MapContainer = forwardRef<MapContainerRef, { initialMapTheme?: "division" | "animus" }>((props, ref) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const mapboxInstanceRef = useRef<mapboxgl.Map | null>(null);
@@ -44,7 +59,7 @@ export const MapContainer = () => {
   const [showWeatherRadar, setShowWeatherRadar] = useState(false);
   const [radarOpacity, setRadarOpacity] = useState(70);
   const [alertRadius, setAlertRadius] = useState(15);
-  const [mapTheme, setMapTheme] = useState<MapTheme>("division");
+  const [mapTheme, setMapTheme] = useState<MapTheme>(props.initialMapTheme || "division");
   const [mapsUnavailable, setMapsUnavailable] = useState(false);
   const [usingMapbox, setUsingMapbox] = useState(false);
   const { data: jobSites } = useJobSites();
@@ -52,6 +67,22 @@ export const MapContainer = () => {
   const [activeMode, setActiveMode] = useState<DrawingMode>(null);
   const { toast } = useToast();
   const { measurements } = useMapMeasurements();
+
+  // Expose methods to parent component
+  useImperativeHandle(ref, () => ({
+    handleLocateMe,
+    handleToggleTraffic,
+    handleToggleStreetView,
+    toggleEmployeeTracking: () => setShowEmployeeTracking(!showEmployeeTracking),
+    toggleWeatherRadar: () => setShowWeatherRadar(!showWeatherRadar),
+    handleModeChange,
+    handleClear,
+    handleSave,
+    getShowTraffic: () => trafficLayerRef.current?.getMap() != null,
+    getShowEmployeeTracking: () => showEmployeeTracking,
+    getShowWeatherRadar: () => showWeatherRadar,
+    getActiveMode: () => activeMode,
+  }));
 
   // UI settings loaded from SettingsModal persistence
   const [uiSettings, setUiSettings] = useState({
@@ -66,7 +97,7 @@ export const MapContainer = () => {
   });
 
   useEffect(() => {
-    // Load persisted settings
+    // Load persisted settings including map theme
     try {
       const raw = localStorage.getItem("aos_settings");
       if (raw) {
@@ -82,6 +113,10 @@ export const MapContainer = () => {
           glitchClickPreset: parsed.glitchClickPreset ?? prev.glitchClickPreset,
           vignetteEffect: parsed.vignetteEffect ?? prev.vignetteEffect,
         }));
+        // Update map theme from settings
+        if (parsed.mapTheme && (parsed.mapTheme === "division" || parsed.mapTheme === "animus")) {
+          setMapTheme(parsed.mapTheme);
+        }
       }
     } catch (err) {
       console.warn("Failed to load persisted UI settings:", err);
@@ -103,6 +138,10 @@ export const MapContainer = () => {
           glitchClickPreset: parsed.glitchClickPreset ?? prev.glitchClickPreset,
           vignetteEffect: parsed.vignetteEffect ?? prev.vignetteEffect,
         }));
+        // Update map theme from settings
+        if (parsed.mapTheme && (parsed.mapTheme === "division" || parsed.mapTheme === "animus")) {
+          setMapTheme(parsed.mapTheme);
+        }
       } catch (err) {
         console.warn("Failed to sync UI settings from storage event:", err);
       }
@@ -577,46 +616,7 @@ export const MapContainer = () => {
       />
 
       <MeasurementDisplay distance={measurement.distance} area={measurement.area} />
-      {!usingMapbox && (
-        <MapToolbar
-          onModeChange={handleModeChange}
-          onClear={handleClear}
-          onSave={handleSave}
-          activeMode={activeMode}
-          onLocateMe={handleLocateMe}
-          onToggleTraffic={handleToggleTraffic}
-          showTraffic={trafficLayerRef.current?.getMap() != null}
-          onToggleStreetView={handleToggleStreetView}
-          onAIDetect={handleAIDetect}
-          onToggleEmployeeTracking={() => setShowEmployeeTracking(!showEmployeeTracking)}
-          showEmployeeTracking={showEmployeeTracking}
-          onToggleWeatherRadar={() => setShowWeatherRadar(!showWeatherRadar)}
-          showWeatherRadar={showWeatherRadar}
-          onGeocode={handleGeocode}
-          onRoute={handleRoute}
-        />
-      )}
       <MapVisibilityControls />
-      {/* Theme Switcher */}
-      <div className="absolute left-4 top-20 z-[1000]">
-        <div className="tactical-panel flex items-center gap-2">
-          <Palette className="w-4 h-4" />
-          <Button
-            size="sm"
-            variant={mapTheme === "division" ? "default" : "outline"}
-            onClick={() => setMapTheme("division")}
-          >
-            Division
-          </Button>
-          <Button
-            size="sm"
-            variant={mapTheme === "animus" ? "default" : "outline"}
-            onClick={() => setMapTheme("animus")}
-          >
-            Animus
-          </Button>
-        </div>
-      </div>
       {!usingMapbox && showEmployeeTracking && (
         <EmployeeTrackingLayer map={mapInstanceRef.current} />
       )}
@@ -661,4 +661,4 @@ export const MapContainer = () => {
       )}
     </MapContext.Provider>
   );
-};
+});

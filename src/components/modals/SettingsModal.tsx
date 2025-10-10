@@ -36,6 +36,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     soundVolume: 70,
     // Themes & Wallpapers
     theme: "tactical-dark" as "tactical-dark" | "light" | "high-contrast" | "church-blue" | "safety-green" | "construction" | "landscaping" | "security" | "aviation",
+    mapTheme: "division" as "division" | "animus",
     wallpaperUrl: "",
     wallpaperOpacity: 60,
     // Premium gating
@@ -272,8 +273,35 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     >
                       {t.label}
                     </Button>
-                  ))}
+                   ))}
                 </div>
+              </div>
+
+              {/* Map Theme Selection */}
+              <div className="tactical-panel p-4 space-y-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <Palette className="w-5 h-5 text-primary" />
+                  <Label>Map Theme</Label>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant={settings.mapTheme === "division" ? "default" : "outline"}
+                    onClick={() => setSettings((p) => ({ ...p, mapTheme: "division" }))}
+                    className="justify-start"
+                  >
+                    Division
+                  </Button>
+                  <Button
+                    variant={settings.mapTheme === "animus" ? "default" : "outline"}
+                    onClick={() => setSettings((p) => ({ ...p, mapTheme: "animus" }))}
+                    className="justify-start"
+                  >
+                    Animus
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Choose between Division (orange) and Animus (cyan) map styles
+                </p>
               </div>
 
               <div className="tactical-panel p-4 space-y-4">

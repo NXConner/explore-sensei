@@ -1,5 +1,6 @@
-import React, { Suspense, lazy, useState } from "react";
-import { MapContainer } from "@/components/map/MapContainer";
+import React, { Suspense, lazy, useState, useRef, useEffect } from "react";
+import { MapContainer, MapContainerRef } from "@/components/map/MapContainer";
+import { DrawingMode } from "@/hooks/useMapDrawing";
 import { TopBar } from "@/components/layout/TopBar";
 import { LeftSidebar } from "@/components/layout/LeftSidebar";
 import { RightSidebar } from "@/components/layout/RightSidebar";
@@ -55,11 +56,48 @@ const Index = () => {
   const [showHRManagement, setShowHRManagement] = useState(false);
   const [showWeatherRadar, setShowWeatherRadar] = useState(false);
   const [showVeteran, setShowVeteran] = useState(false);
+  const [showExport, setShowExport] = useState(false);
+  const mapContainerRef = useRef<MapContainerRef>(null);
+  const [mapTheme, setMapTheme] = useState<"division" | "animus">("division");
+  const [mapState, setMapState] = useState({
+    showTraffic: false,
+    showEmployeeTracking: false,
+    showWeatherRadar: false,
+    activeMode: null as DrawingMode,
+  });
+
+  // Load map theme from settings
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("aos_settings");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.mapTheme) {
+          setMapTheme(parsed.mapTheme);
+        }
+      }
+    } catch {}
+  }, []);
+
+  // Sync map state periodically
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (mapContainerRef.current) {
+        setMapState({
+          showTraffic: mapContainerRef.current.getShowTraffic(),
+          showEmployeeTracking: mapContainerRef.current.getShowEmployeeTracking(),
+          showWeatherRadar: mapContainerRef.current.getShowWeatherRadar(),
+          activeMode: mapContainerRef.current.getActiveMode(),
+        });
+      }
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-background" data-testid="root-shell">
       {/* Main Map */}
-      <MapContainer />
+      <MapContainer ref={mapContainerRef} initialMapTheme={mapTheme} />
 
       {/* Top Bar */}
       <TopBar 
@@ -77,6 +115,20 @@ const Index = () => {
       <RightSidebar 
         onAIClick={() => setShowAI(true)}
         onSettingsClick={() => setShowSettings(true)}
+        onLocateMe={() => mapContainerRef.current?.handleLocateMe()}
+        onToggleTraffic={() => mapContainerRef.current?.handleToggleTraffic()}
+        showTraffic={mapState.showTraffic}
+        onToggleStreetView={() => mapContainerRef.current?.handleToggleStreetView()}
+        onAIDetect={() => setShowAIDetection(true)}
+        onToggleEmployeeTracking={() => mapContainerRef.current?.toggleEmployeeTracking()}
+        showEmployeeTracking={mapState.showEmployeeTracking}
+        onToggleWeatherRadar={() => mapContainerRef.current?.toggleWeatherRadar()}
+        showWeatherRadar={mapState.showWeatherRadar}
+        onModeChange={(mode) => mapContainerRef.current?.handleModeChange(mode)}
+        activeMode={mapState.activeMode}
+        onClear={() => mapContainerRef.current?.handleClear()}
+        onSave={() => mapContainerRef.current?.handleSave()}
+        onExport={() => setShowExport(true)}
       />
 
       {/* KPI Ticker */}
@@ -177,6 +229,16 @@ const Index = () => {
       {/* Standalone Modals */}
       {showWeatherRadar && <Suspense fallback={null}><WeatherRadarModal onClose={() => setShowWeatherRadar(false)} /></Suspense>}
       {showVeteran && <Suspense fallback={null}><VeteranModal onClose={() => setShowVeteran(false)} /></Suspense>}
+      
+      {/* Export Modal */}
+      {showExport && (
+        <Suspense fallback={null}>
+          {React.createElement(
+            lazy(() => import("@/components/export/MeasurementExportModal").then(m => ({ default: m.MeasurementExportModal }))),
+            { isOpen: showExport, onClose: () => setShowExport(false) }
+          )}
+        </Suspense>
+      )}
     </div>
   );
 };
