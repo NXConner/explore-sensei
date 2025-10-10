@@ -66,7 +66,7 @@ export const LeftSidebar = () => {
 
   if (isMinimized) {
     return (
-      <div className="absolute left-0 top-16 bottom-0 w-12 z-[900] hud-element border-r border-primary/30 flex items-center justify-center">
+      <div className="absolute left-0 top-16 bottom-16 w-12 z-[900] hud-element border-r border-primary/30 flex items-center justify-center">
         <Button
           onClick={() => setIsMinimized(false)}
           variant="ghost"
@@ -80,9 +80,9 @@ export const LeftSidebar = () => {
   }
 
   return (
-    <div className="absolute left-0 top-16 bottom-0 w-72 z-[900] hud-element border-r border-primary/30">
+    <div className="absolute left-0 top-16 bottom-16 w-72 z-[900] hud-element border-r border-primary/30 flex flex-col">
       {/* Minimize Button */}
-      <div className="flex justify-end p-2 border-b border-primary/30">
+      <div className="flex justify-end p-2 border-b border-primary/30 flex-shrink-0">
         <Button
           onClick={() => setIsMinimized(true)}
           variant="ghost"
@@ -93,7 +93,7 @@ export const LeftSidebar = () => {
         </Button>
       </div>
 
-      <ScrollArea className="h-[calc(100%-3rem)]">
+      <ScrollArea className="flex-1 h-full">
         {/* Address Search */}
         <div className="tactical-panel m-2 p-4">
           <h3 className="text-xs font-bold text-primary mb-3">ADDRESS SEARCH</h3>

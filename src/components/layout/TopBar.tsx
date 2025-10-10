@@ -54,7 +54,7 @@ export const TopBar = ({ onModuleClick, onShowAnalytics, onShowChat, onShowAutom
     <div className="absolute top-0 left-0 right-0 z-[1000] hud-element animate-fade-in">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between p-2 md:p-3 gap-2 border-b border-primary/30">
         {/* Top row on mobile: Logo and Profile */}
-        <div className="flex items-center justify-between w-full md:w-auto">
+        <div className="flex items-center justify-between w-full md:w-auto flex-shrink-0">
           {/* Logo */}
           <div className="flex items-center gap-2 md:gap-3">
             <div className="w-8 h-8 md:w-10 md:h-10 bg-primary rounded flex items-center justify-center">
@@ -76,8 +76,8 @@ export const TopBar = ({ onModuleClick, onShowAnalytics, onShowChat, onShowAutom
           </a>
         </div>
 
-        {/* Module Buttons - scrollable on mobile */}
-        <div className="flex gap-1 md:gap-2 overflow-x-auto w-full md:w-auto scrollbar-hide pb-1 md:pb-0">
+        {/* Module Buttons - scrollable */}
+        <div className="flex gap-1 md:gap-2 overflow-x-auto w-full md:flex-1 scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent pb-1 md:pb-0 hover:scrollbar-thumb-primary/50">
           {modules.map((module) => (
             <Button
               key={module.id}
@@ -93,7 +93,7 @@ export const TopBar = ({ onModuleClick, onShowAnalytics, onShowChat, onShowAutom
         </div>
 
         {/* User Profile - visible on desktop */}
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden md:flex items-center gap-2 flex-shrink-0">
           {/* Premium Features */}
           <NotificationCenter />
           {onShowChat && (

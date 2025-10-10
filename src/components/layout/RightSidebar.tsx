@@ -9,7 +9,7 @@ interface RightSidebarProps {
 
 export const RightSidebar = ({ onAIClick, onSettingsClick }: RightSidebarProps) => {
   return (
-    <div className="absolute right-0 top-16 bottom-0 w-16 z-[900] hud-element border-l border-primary/30 flex flex-col">
+    <div className="absolute right-0 top-16 bottom-16 w-16 z-[900] hud-element border-l border-primary/30 flex flex-col">
       <div className="flex flex-col items-center gap-4 p-2">
         <Button
           onClick={onAIClick}
