@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { X, Settings, Moon, Sun, Bell, ImageUp, Zap, Volume2, Palette } from "lucide-react";
+import { X, Settings, Moon, Sun, Bell, ImageUp, Zap, Volume2, Palette, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -39,6 +39,9 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     mapTheme: "division" as "division" | "animus",
     wallpaperUrl: "",
     wallpaperOpacity: 60,
+    // Map defaults
+    defaultMapAddress: "",
+    useDefaultLocation: false,
     // Premium gating
     premiumEnabled: false,
   });
@@ -302,6 +305,37 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                 <p className="text-xs text-muted-foreground">
                   Choose between Division (orange) and Animus (cyan) map styles
                 </p>
+              </div>
+
+              {/* Default Map Location */}
+              <div className="tactical-panel p-4 space-y-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <MapPin className="w-5 h-5 text-primary" />
+                  <Label>Default Map Location</Label>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Use default location</span>
+                    <Switch
+                      checked={settings.useDefaultLocation}
+                      onCheckedChange={() => handleToggle("useDefaultLocation")}
+                    />
+                  </div>
+                  <div>
+                    <Label>Address</Label>
+                    <input
+                      type="text"
+                      value={settings.defaultMapAddress}
+                      onChange={(e) => setSettings((p) => ({ ...p, defaultMapAddress: e.target.value }))}
+                      placeholder="123 Main St, City, State"
+                      className="w-full mt-1 px-3 py-2 bg-background border border-border rounded-md text-sm"
+                      disabled={!settings.useDefaultLocation}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Fallback location when GPS is unavailable
+                    </p>
+                  </div>
+                </div>
               </div>
 
               <div className="tactical-panel p-4 space-y-4">

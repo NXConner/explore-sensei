@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { BackToMapButton } from "@/components/common/BackToMapButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -198,9 +199,12 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl h-[85vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Calculator className="w-5 h-5" />
-            Estimate Calculator
+          <DialogTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Calculator className="w-5 h-5" />
+              Estimate Calculator
+            </div>
+            <BackToMapButton variant="ghost" />
           </DialogTitle>
         </DialogHeader>
 

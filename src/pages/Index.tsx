@@ -37,6 +37,8 @@ const BusinessManagementHub = lazy(() => import("@/components/business/BusinessM
 const HRManagementModal = lazy(() => import("@/components/business/HRManagementModal").then(m => ({ default: m.HRManagementModal })));
 const WeatherRadarModal = lazy(() => import("@/components/weather/WeatherRadarModal").then(m => ({ default: m.WeatherRadarModal })));
 const VeteranModal = lazy(() => import("@/components/modals/VeteranModal").then(m => ({ default: m.VeteranModal })));
+import { JobStatusLegend } from "@/components/map/JobStatusLegend";
+import { ClockInStatus } from "@/components/time/ClockInStatus";
 
 const Index = () => {
   const [activeModule, setActiveModule] = useState<string | null>(null);
@@ -133,6 +135,12 @@ const Index = () => {
 
       {/* KPI Ticker */}
       <KPITicker />
+
+      {/* Job Status Legend */}
+      <JobStatusLegend />
+
+      {/* Clock In/Out Status */}
+      <ClockInStatus />
 
       {/* AI Assistant */}
       {showAI && <AIAssistant onClose={() => setShowAI(false)} />}

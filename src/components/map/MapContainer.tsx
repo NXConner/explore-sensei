@@ -18,6 +18,7 @@ import { divisionMapStyle, animusMapStyle } from "./themes";
 import { Button } from "@/components/ui/button";
 import { Palette } from "lucide-react";
 import { WeatherRadarLayer } from "@/components/weather/WeatherRadarLayer";
+import { RainRadarOverlay } from "@/components/weather/RainRadarOverlay";
 import { MapContext } from "./MapContext";
 import { getGoogleMapsApiKey, getMapboxAccessToken } from "@/config/env";
 import { geocodeAddress, getDirections } from "@/lib/mapsClient";
@@ -95,6 +96,60 @@ export const MapContainer = forwardRef<MapContainerRef, { initialMapTheme?: "div
     glitchClickPreset: "subtle" as "barely" | "subtle" | "normal",
     vignetteEffect: false,
   });
+
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+
+    // Auto-locate user on mount
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+          
+          // Check if there's a default address in settings
+          const savedSettings = localStorage.getItem("aos_settings");
+          if (savedSettings) {
+            try {
+              const settings = JSON.parse(savedSettings);
+              if (settings.defaultMapAddress && settings.useDefaultLocation) {
+                // Use default address instead
+                return;
+              }
+            } catch (e) {}
+          }
+
+          // Zoom to user location (all the way in = zoom 20)
+          mapInstanceRef.current?.setCenter(userLocation);
+          mapInstanceRef.current?.setZoom(20);
+          
+          toast({
+            title: "Location Found",
+            description: "Centered map on your current location",
+          });
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          // Fallback to default location or saved address
+          const savedSettings = localStorage.getItem("aos_settings");
+          if (savedSettings) {
+            try {
+              const settings = JSON.parse(savedSettings);
+              if (settings.defaultMapAddress) {
+                // Geocode the default address
+                toast({
+                  title: "Using Default Location",
+                  description: "GPS unavailable, using saved address",
+                });
+              }
+            } catch (e) {}
+          }
+        }
+      );
+    }
+  }, [toast]);
 
   useEffect(() => {
     // Load persisted settings including map theme
@@ -621,12 +676,15 @@ export const MapContainer = forwardRef<MapContainerRef, { initialMapTheme?: "div
         <EmployeeTrackingLayer map={mapInstanceRef.current} />
       )}
       {!usingMapbox && showWeatherRadar && (
-        <WeatherRadarLayer
-          map={mapInstanceRef.current}
-          opacity={radarOpacity}
-          showAlerts={true}
-          alertRadius={alertRadius}
-        />
+        <>
+          <RainRadarOverlay map={mapInstanceRef.current} opacity={radarOpacity} />
+          <WeatherRadarLayer
+            map={mapInstanceRef.current}
+            opacity={radarOpacity}
+            showAlerts={true}
+            alertRadius={alertRadius}
+          />
+        </>
       )}
       <div
         ref={mapRef}

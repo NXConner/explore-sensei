@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { BackToMapButton } from "@/components/common/BackToMapButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -89,8 +90,9 @@ export const CostCatalogModal = ({ isOpen, onClose }: CostCatalogModalProps) => 
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            Cost Catalog Management
+          <DialogTitle className="flex items-center justify-between">
+            <span>Cost Catalog Management</span>
+            <BackToMapButton variant="ghost" />
           </DialogTitle>
         </DialogHeader>
 
