@@ -9,33 +9,22 @@ export type EmitEventInput = {
   metadata?: Record<string, unknown>;
 };
 
-async function callEdge(path: string, body?: any) {
-  const session = await supabase.auth.getSession();
-  const token = session.data.session?.access_token;
-  if (!token) throw new Error("Not authenticated");
-
-  const url = `${import.meta.env.VITE_SUPABASE_URL ?? ""}/functions/v1/${path}`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-      apikey: (import.meta.env.VITE_SUPABASE_ANON_KEY as string) ?? "",
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
-}
-
 export async function emitGamificationEvent(input: EmitEventInput) {
-  return callEdge("game-process-event", input);
+  const { data, error } = await supabase.functions.invoke("game-process-event", {
+    body: input,
+  });
+  if (error) throw error;
+  return data;
 }
 
 export async function fetchGamificationProfile() {
-  return callEdge("game-get-profile");
+  const { data, error } = await supabase.functions.invoke("game-get-profile");
+  if (error) throw error;
+  return data;
 }
 
 export async function fetchLeaderboard() {
-  return callEdge("game-get-leaderboard");
+  const { data, error } = await supabase.functions.invoke("game-get-leaderboard");
+  if (error) throw error;
+  return data;
 }
