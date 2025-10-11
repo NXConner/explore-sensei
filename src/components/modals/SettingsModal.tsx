@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
+import { WeatherAlertLocationsManager } from "./WeatherAlertLocationsManager";
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -22,6 +23,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     highContrast: false,
     // Animation & Effects
     radarEffect: true,
+    radarType: 'standard' as 'standard' | 'sonar' | 'aviation',
     glitchEffect: true,
     scanlineEffect: true,
     gridOverlay: true,
@@ -34,6 +36,11 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     uiSounds: false,
     alertSounds: true,
     soundVolume: 70,
+    radarAudioEnabled: false,
+    radarAudioVolume: 50,
+    // Weather Alerts
+    weatherAlertsEnabled: true,
+    weatherAlertRadius: 15,
     // Themes & Wallpapers
     theme: "tactical-dark" as "tactical-dark" | "light" | "high-contrast" | "church-blue" | "safety-green" | "construction" | "landscaping" | "security" | "aviation",
     mapTheme: "division" as "division" | "animus",
@@ -188,6 +195,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="animations">Animations</TabsTrigger>
             <TabsTrigger value="sounds">Sounds</TabsTrigger>
+            <TabsTrigger value="weather">Weather</TabsTrigger>
             <TabsTrigger value="advanced">Advanced</TabsTrigger>
           </TabsList>
 
@@ -244,6 +252,34 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   />
                 </div>
               </div>
+            </TabsContent>
+
+            <TabsContent value="weather" className="mt-0 space-y-6">
+              <div className="tactical-panel p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Enable Weather Alerts</Label>
+                    <p className="text-xs text-muted-foreground">Show alert radius circles and markers</p>
+                  </div>
+                  <Switch
+                    checked={settings.weatherAlertsEnabled}
+                    onCheckedChange={() => handleToggle('weatherAlertsEnabled')}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Alert Radius: {settings.weatherAlertRadius} miles</Label>
+                  <Slider
+                    value={[settings.weatherAlertRadius]}
+                    onValueChange={([val]) => setSettings((p) => ({ ...p, weatherAlertRadius: val }))}
+                    min={5}
+                    max={50}
+                    step={1}
+                    className="mt-2"
+                  />
+                </div>
+              </div>
+
+              <WeatherAlertLocationsManager />
             </TabsContent>
 
             <TabsContent value="themes" className="mt-0 space-y-6">
@@ -494,6 +530,21 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                         step={1}
                         className="mt-2"
                       />
+                      <div className="mt-3">
+                        <Label className="text-xs">Radar Type</Label>
+                        <div className="flex gap-2 mt-1">
+                          {(["standard","sonar","aviation"] as const).map((t) => (
+                            <Button
+                              key={t}
+                              variant={settings.radarType === t ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setSettings((p) => ({ ...p, radarType: t }))}
+                            >
+                              {t.charAt(0).toUpperCase() + t.slice(1)}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -635,7 +686,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   />
                 </div>
 
-                {/* Volume */}
+              {/* Volume */}
                 <div>
                   <Label className="text-xs">Master Volume: {settings.soundVolume}%</Label>
                   <Slider
@@ -649,6 +700,31 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     className="mt-2"
                   />
                 </div>
+
+              {/* Radar Ping Audio */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Radar Ping Audio</Label>
+                  <p className="text-xs text-muted-foreground">Beep on sweep rotation</p>
+                </div>
+                <Switch
+                  checked={settings.radarAudioEnabled}
+                  onCheckedChange={() => handleToggle('radarAudioEnabled')}
+                />
+              </div>
+              {settings.radarAudioEnabled && (
+                <div>
+                  <Label className="text-xs">Radar Volume: {settings.radarAudioVolume}%</Label>
+                  <Slider
+                    value={[settings.radarAudioVolume]}
+                    onValueChange={([val]) => setSettings((prev) => ({ ...prev, radarAudioVolume: val }))}
+                    min={0}
+                    max={100}
+                    step={5}
+                    className="mt-2"
+                  />
+                </div>
+              )}
               </div>
             </TabsContent>
 

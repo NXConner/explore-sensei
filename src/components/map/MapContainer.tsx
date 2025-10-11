@@ -22,6 +22,11 @@ import { RainRadarOverlay } from "@/components/weather/RainRadarOverlay";
 import { MapContext } from "./MapContext";
 import { getGoogleMapsApiKey, getMapboxAccessToken } from "@/config/env";
 import { geocodeAddress, getDirections } from "@/lib/mapsClient";
+import { CornerBrackets } from "@/components/hud/CornerBrackets";
+import { CompassRose } from "@/components/hud/CompassRose";
+import { CoordinateDisplay } from "@/components/hud/CoordinateDisplay";
+import { ScaleBar } from "@/components/hud/ScaleBar";
+// import { MiniMap } from "@/components/hud/MiniMap";
 
 const GOOGLE_MAPS_API_KEY = getGoogleMapsApiKey();
 const LOCAL_MAPBOX_TOKEN = getMapboxAccessToken();
@@ -95,6 +100,9 @@ export const MapContainer = forwardRef<MapContainerRef, { initialMapTheme?: "div
     glitchIntensity: 30, // percent
     glitchClickPreset: "subtle" as "barely" | "subtle" | "normal",
     vignetteEffect: false,
+    radarType: "standard" as "standard" | "sonar" | "aviation",
+    radarAudioEnabled: false,
+    radarAudioVolume: 50,
   });
 
   useEffect(() => {
@@ -167,6 +175,9 @@ export const MapContainer = forwardRef<MapContainerRef, { initialMapTheme?: "div
           glitchIntensity: parsed.glitchIntensity ?? prev.glitchIntensity,
           glitchClickPreset: parsed.glitchClickPreset ?? prev.glitchClickPreset,
           vignetteEffect: parsed.vignetteEffect ?? prev.vignetteEffect,
+          radarType: parsed.radarType ?? prev.radarType,
+          radarAudioEnabled: parsed.radarAudioEnabled ?? prev.radarAudioEnabled,
+          radarAudioVolume: parsed.radarAudioVolume ?? prev.radarAudioVolume,
         }));
         // Update map theme from settings
         if (parsed.mapTheme && (parsed.mapTheme === "division" || parsed.mapTheme === "animus")) {
@@ -192,6 +203,9 @@ export const MapContainer = forwardRef<MapContainerRef, { initialMapTheme?: "div
           glitchIntensity: parsed.glitchIntensity ?? prev.glitchIntensity,
           glitchClickPreset: parsed.glitchClickPreset ?? prev.glitchClickPreset,
           vignetteEffect: parsed.vignetteEffect ?? prev.vignetteEffect,
+          radarType: parsed.radarType ?? prev.radarType,
+          radarAudioEnabled: parsed.radarAudioEnabled ?? prev.radarAudioEnabled,
+          radarAudioVolume: parsed.radarAudioVolume ?? prev.radarAudioVolume,
         }));
         // Update map theme from settings
         if (parsed.mapTheme && (parsed.mapTheme === "division" || parsed.mapTheme === "animus")) {
@@ -668,7 +682,18 @@ export const MapContainer = forwardRef<MapContainerRef, { initialMapTheme?: "div
         showGridOverlay={uiSettings.gridOverlay}
         glitchClickPreset={uiSettings.glitchClickPreset}
         vignetteEffect={uiSettings.vignetteEffect}
+        radarType={uiSettings.radarType}
+        radarAudioEnabled={uiSettings.radarAudioEnabled}
+        radarAudioVolume={uiSettings.radarAudioVolume}
       />
+
+      {/* HUD overlay elements */}
+      <CornerBrackets />
+      <CompassRose />
+      <CoordinateDisplay lat={mapInstanceRef.current?.getCenter?.()?.lat()} lng={mapInstanceRef.current?.getCenter?.()?.lng()} />
+      <ScaleBar />
+      {/* Optional */}
+      {/* <MiniMap /> */}
 
       <MeasurementDisplay distance={measurement.distance} area={measurement.area} />
       <MapVisibilityControls />
@@ -688,7 +713,7 @@ export const MapContainer = forwardRef<MapContainerRef, { initialMapTheme?: "div
       )}
       <div
         ref={mapRef}
-        className="absolute inset-0 w-full h-full"
+        className="absolute inset-0 w-full h-full map-container"
         style={{
           filter: mapTheme === "division" ? "brightness(0.8)" : "brightness(1.05) contrast(1.05)",
         }}

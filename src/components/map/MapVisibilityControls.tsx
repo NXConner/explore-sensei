@@ -50,6 +50,15 @@ export const MapVisibilityControls = () => {
     });
   };
 
+  // Apply computed CSS filter to the actual map container in real-time
+  React.useEffect(() => {
+    const mapEl = document.querySelector('.map-container') as HTMLElement | null;
+    if (!mapEl) return;
+
+    const filterString = `brightness(${controls.brightness}%) contrast(${controls.contrast}%) saturate(${100 + controls.sharpness}%) hue-rotate(${controls.hdr}deg) sepia(${Math.max(0, controls.gamma - 100)}%)`;
+    mapEl.style.filter = filterString;
+  }, [controls]);
+
   if (!isOpen) {
     return (
       <div className="absolute left-80 top-20 z-[900]">

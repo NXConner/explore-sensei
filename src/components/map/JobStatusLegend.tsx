@@ -12,14 +12,14 @@ const jobStatuses = [
 
 export const JobStatusLegend = () => {
   return (
-    <Card className="fixed right-[280px] bottom-20 z-[400] p-3 bg-background/95 backdrop-blur-sm border-primary/30">
+    <Card className="absolute right-16 bottom-10 z-[950] p-2 bg-background/80 backdrop-blur-sm border-primary/30 rounded hud-element w-[180px]">
       <div className="text-xs font-bold mb-2 text-primary">JOB STATUS</div>
-      <div className="space-y-1.5">
+      <div className="grid grid-cols-2 gap-1">
         {jobStatuses.map((item) => (
-          <div key={item.status} className="flex items-center gap-2 text-xs">
-            <div className={`w-3 h-3 rounded-full ${item.color}`} />
-            <span className="text-muted-foreground">{item.status}</span>
-            <Badge variant="outline" className="ml-auto text-[10px] px-1.5 py-0">
+          <div key={item.status} className="flex items-center gap-1 text-[10px]">
+            <div className={`w-3 h-3 rounded ${item.color}`} />
+            <span className="text-muted-foreground truncate">{item.status}</span>
+            <Badge variant="outline" className="ml-auto text-[9px] px-1 py-0">
               {item.count}
             </Badge>
           </div>
