@@ -194,6 +194,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
             <TabsTrigger value="themes">Themes</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="animations">Animations</TabsTrigger>
+            <TabsTrigger value="hud">HUD</TabsTrigger>
             <TabsTrigger value="sounds">Sounds</TabsTrigger>
             <TabsTrigger value="weather">Weather</TabsTrigger>
             <TabsTrigger value="advanced">Advanced</TabsTrigger>
@@ -250,6 +251,32 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     checked={settings.kpiTicker}
                     onCheckedChange={() => handleToggle("kpiTicker")}
                   />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="hud" className="mt-0 space-y-6">
+              <div className="tactical-panel p-4 space-y-3">
+                <div className="text-sm font-semibold">HUD Elements</div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs">Corner Brackets</span>
+                  <Switch checked={true} disabled />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs">Compass Rose</span>
+                  <Switch checked={true} disabled />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs">Coordinate Display</span>
+                  <Switch checked={true} disabled />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs">Scale Bar</span>
+                  <Switch checked={true} disabled />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs">Zoom Indicator</span>
+                  <Switch checked={true} disabled />
                 </div>
               </div>
             </TabsContent>

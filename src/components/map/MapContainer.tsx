@@ -26,6 +26,7 @@ import { CornerBrackets } from "@/components/hud/CornerBrackets";
 import { CompassRose } from "@/components/hud/CompassRose";
 import { CoordinateDisplay } from "@/components/hud/CoordinateDisplay";
 import { ScaleBar } from "@/components/hud/ScaleBar";
+import { ZoomIndicator } from "@/components/hud/ZoomIndicator";
 // import { MiniMap } from "@/components/hud/MiniMap";
 
 const GOOGLE_MAPS_API_KEY = getGoogleMapsApiKey();
@@ -691,7 +692,8 @@ export const MapContainer = forwardRef<MapContainerRef, { initialMapTheme?: "div
       <CornerBrackets />
       <CompassRose />
       <CoordinateDisplay lat={mapInstanceRef.current?.getCenter?.()?.lat()} lng={mapInstanceRef.current?.getCenter?.()?.lng()} />
-      <ScaleBar />
+      <ScaleBar lat={mapInstanceRef.current?.getCenter?.()?.lat()} zoom={mapInstanceRef.current?.getZoom?.() || 0} />
+      <ZoomIndicator zoom={mapInstanceRef.current?.getZoom?.() || 0} />
       {/* Optional */}
       {/* <MiniMap /> */}
 
