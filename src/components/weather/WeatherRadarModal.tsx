@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useWeatherAlerts } from "@/hooks/useWeatherAlerts";
+import { useGamification } from "@/hooks/useGamification";
 
 interface WeatherRadarModalProps {
   onClose: () => void;
@@ -18,6 +19,7 @@ export const WeatherRadarModal = ({ onClose }: WeatherRadarModalProps) => {
   const [showAlerts, setShowAlerts] = useState(true);
   const [alertRadius, setAlertRadius] = useState(15);
   const { data: alerts } = useWeatherAlerts();
+  const { emitEvent } = useGamification();
 
   const timeFrames = [
     "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", 
@@ -73,7 +75,10 @@ export const WeatherRadarModal = ({ onClose }: WeatherRadarModalProps) => {
                   <p className="text-xs mb-2">Alert Radius: {alertRadius} miles</p>
                   <Slider
                     value={[alertRadius]}
-                    onValueChange={([val]) => setAlertRadius(val)}
+                    onValueChange={([val]) => {
+                      setAlertRadius(val);
+                      try { emitEvent({ event_type: "weather_alert_configured", metadata: { radius_miles: val } }); } catch {}
+                    }}
                     min={5}
                     max={50}
                     step={5}

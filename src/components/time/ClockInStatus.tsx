@@ -4,12 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Clock, LogIn, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useGamification } from "@/hooks/useGamification";
 
 export const ClockInStatus = () => {
   const [isClockedIn, setIsClockedIn] = useState(false);
   const [clockInTime, setClockInTime] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState("00:00:00");
   const { toast } = useToast();
+  const { emitEvent } = useGamification();
 
   useEffect(() => {
     // Check if user is clocked in from localStorage
@@ -49,11 +51,13 @@ export const ClockInStatus = () => {
       setClockInTime(now);
       localStorage.setItem("clock_status", JSON.stringify({ isClockedIn: true, clockInTime: now.toISOString() }));
       toast({ title: "Clocked In", description: `Started at ${now.toLocaleTimeString()}` });
+      try { await emitEvent({ event_type: "clock_in", metadata: { at: now.toISOString() } }); } catch {}
     } else {
       setIsClockedIn(false);
       setClockInTime(null);
       localStorage.removeItem("clock_status");
       toast({ title: "Clocked Out", description: `Total time: ${elapsedTime}` });
+      try { await emitEvent({ event_type: "clock_out", metadata: { at: now.toISOString(), elapsed: elapsedTime } }); } catch {}
     }
 
     // Save to localStorage only for now
