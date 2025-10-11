@@ -20,6 +20,18 @@ const AnalyticsListener = () => {
   useEffect(() => {
     trackPageView(location.pathname);
   }, [location.pathname]);
+  // HUD: route-change glitch effect based on settings
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("aos_settings");
+      const settings = raw ? JSON.parse(raw) : {};
+      if (settings?.glitchEffect !== false && settings?.glitchOnPageTransition !== false) {
+        document.body.classList.add("glitch-distortion");
+        const t = setTimeout(() => document.body.classList.remove("glitch-distortion"), 220);
+        return () => clearTimeout(t);
+      }
+    } catch {}
+  }, [location.pathname]);
   return null;
 };
 

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import { beep } from "@/lib/audioEffects";
 
 interface MapEffectsProps {
   showRadar?: boolean;
@@ -10,6 +11,9 @@ interface MapEffectsProps {
   showGridOverlay?: boolean;
   glitchClickPreset?: "barely" | "subtle" | "normal";
   vignetteEffect?: boolean;
+  radarType?: "standard" | "sonar" | "aviation";
+  radarAudioEnabled?: boolean;
+  radarAudioVolume?: number; // 0..100
 }
 
 export const MapEffects = ({
@@ -22,27 +26,33 @@ export const MapEffects = ({
   showGridOverlay = false,
   glitchClickPreset = "subtle",
   vignetteEffect = false,
+  radarType = "standard",
+  radarAudioEnabled = false,
+  radarAudioVolume = 50,
 }: MapEffectsProps) => {
   const radarRef = useRef<HTMLDivElement>(null);
   const glitchRef = useRef<HTMLDivElement>(null);
+  const sonarRef = useRef<HTMLDivElement>(null);
+  const aviationRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!showRadar || !radarRef.current) return;
-
-    const radar = radarRef.current;
+    if (!showRadar) return;
+    let raf: number | null = null;
     let angle = 0;
-
     const animate = () => {
       angle += radarSpeed * 0.5;
-      // Keep the radar centered while rotating
-      radar.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
-      if (showRadar) {
-        requestAnimationFrame(animate);
+      if (radarRef.current) {
+        radarRef.current.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
       }
+      if (aviationRef.current) {
+        aviationRef.current.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+      }
+      raf = requestAnimationFrame(animate);
     };
-
-    const animationId = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animationId);
+    raf = requestAnimationFrame(animate);
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+    };
   }, [showRadar, radarSpeed]);
 
   useEffect(() => {
@@ -96,10 +106,38 @@ export const MapEffects = ({
     return () => document.removeEventListener("click", handleClick, true);
   }, [showGlitch, glitchClickPreset]);
 
+  // Audio pings for radar
+  useEffect(() => {
+    if (!radarAudioEnabled || !showRadar) return;
+    const revolutionMs = Math.max(800, 6000 - (radarSpeed || 1) * 500);
+    const pingEveryDegrees = 45; // 8 pings per revolution
+    const pingInterval = Math.max(120, (revolutionMs * pingEveryDegrees) / 360);
+
+    const frequency = (() => {
+      switch (radarType) {
+        case "sonar":
+          return 660;
+        case "aviation":
+          return 990;
+        default:
+          return 820;
+      }
+    })();
+
+    const type = radarType === "aviation" ? "square" : radarType === "sonar" ? "sine" : "triangle";
+    const vol = Math.max(0, Math.min(1, (radarAudioVolume ?? 50) / 100));
+
+    const id = window.setInterval(() => {
+      try { beep({ frequency, durationMs: 60, volume: vol, type: type as any }); } catch {}
+    }, pingInterval);
+
+    return () => window.clearInterval(id);
+  }, [radarAudioEnabled, showRadar, radarSpeed, radarType, radarAudioVolume]);
+
   return (
     <>
-      {/* Radar Sweep Effect */}
-      {showRadar && (
+      {/* Radar Effects (variant by type) */}
+      {showRadar && radarType === "standard" && (
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div
             ref={radarRef}
@@ -108,6 +146,38 @@ export const MapEffects = ({
               background: `conic-gradient(from 0deg, transparent 0%, ${accentColor} 5%, transparent 10%)`,
               transformOrigin: "center",
               transform: "translate(-50%, -50%)",
+            }}
+          />
+        </div>
+      )}
+
+      {showRadar && radarType === "sonar" && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {/* Concentric pulsing circles */}
+          <div
+            ref={sonarRef}
+            className="absolute top-1/2 left-1/2 w-[160%] h-[160%]"
+            style={{
+              transform: "translate(-50%, -50%)",
+              background:
+                "radial-gradient(circle at center, rgba(0,255,255,0.18) 0%, rgba(0,255,255,0.12) 20%, transparent 22%),\n                 radial-gradient(circle at center, rgba(0,255,255,0.14) 28%, transparent 30%),\n                 radial-gradient(circle at center, rgba(0,255,255,0.10) 36%, transparent 38%),\n                 radial-gradient(circle at center, rgba(0,255,255,0.08) 44%, transparent 46%)",
+              animation: "sonarPulse 2.5s ease-out infinite",
+            }}
+          />
+        </div>
+      )}
+
+      {showRadar && radarType === "aviation" && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {/* Scanning line with trailing fade */}
+          <div
+            ref={aviationRef}
+            className="absolute top-1/2 left-1/2 w-[200%] h-[200%]"
+            style={{
+              transformOrigin: "center",
+              transform: "translate(-50%, -50%)",
+              background:
+                "conic-gradient(from 0deg, rgba(0,255,0,0.0) 0deg, rgba(0,255,0,0.22) 2deg, rgba(0,255,0,0.12) 10deg, rgba(0,255,0,0.02) 25deg, transparent 40deg)",
             }}
           />
         </div>
@@ -184,6 +254,12 @@ export const MapEffects = ({
         @keyframes scanline {
           0% { transform: translateY(-100%); }
           100% { transform: translateY(100%); }
+        }
+
+        @keyframes sonarPulse {
+          0% { opacity: 0.2; filter: blur(0px); }
+          50% { opacity: 0.35; filter: blur(0.5px); }
+          100% { opacity: 0.2; filter: blur(0px); }
         }
       `}</style>
     </>
