@@ -330,14 +330,7 @@ const Index = () => {
       )}
       {activeModule === "estimate" && (
         <Suspense fallback={null}>
-<<<<<<< HEAD
           <EstimateCalculatorModal isOpen={true} onClose={() => setActiveModule(null)} />
-=======
-          {React.createElement(
-            lazy(() => import("@/components/estimate/EstimateCalculatorModal").then(m => ({ default: m.EstimateCalculatorModal }))),
-            { isOpen: true, onClose: () => setActiveModule(null) }
-          )}
->>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
         </Suspense>
       )}
       {activeModule === "route" && (

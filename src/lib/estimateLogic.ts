@@ -55,27 +55,6 @@ export function autoPopulateEstimate(params: AutoPopulateParams): AutoPopulateRe
 
   // Sealcoat calculation (concentrate + sand + water)
   if (params.services.sealcoat && params.areaSqFt) {
-<<<<<<< HEAD
-    const gallonsPerSqFt = 0.015; // Typical coverage rate
-    const gallons = params.areaSqFt * gallonsPerSqFt;
-    const costPerGallon = 2.5;
-    const materialCost = gallons * costPerGallon;
-
-    lineItems.push({
-      item_name: "Sealcoat Material",
-      item_code: "SEAL-MAT",
-      unit: "gallon",
-      unit_cost: costPerGallon,
-      quantity: Math.round(gallons * 100) / 100,
-      line_total: materialCost,
-      description: `Coverage for ${params.areaSqFt} sqft`,
-    });
-
-    // Labor for sealcoat
-    const hoursEstimate = (params.areaSqFt / 1000) * (params.crewSize || 2);
-    const laborCost = hoursEstimate * (params.hourlyRate || 20) * (params.crewSize || 2);
-
-=======
     const coverageSqFtPerMixedGallon = params.coverageSqFtPerMixedGallon ?? 75; // mixed sealer coverage
     const coats = params.coats ?? 1;
     const waterPercent = params.waterPercent ?? 20; // percent
@@ -163,22 +142,14 @@ export function autoPopulateEstimate(params: AutoPopulateParams): AutoPopulateRe
     const manHours = (params.areaSqFt / 1000) * coats; // heuristic
     const totalLaborHours = Math.round(manHours * crewSize * 100) / 100;
     const laborLineTotal = totalLaborHours * baseHourlyRate;
->>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
     lineItems.push({
       item_name: "Sealcoat Labor",
       item_code: "SEAL-LAB",
       unit: "hour",
-<<<<<<< HEAD
-      unit_cost: (params.hourlyRate || 20) * (params.crewSize || 2),
-      quantity: Math.round(hoursEstimate * 100) / 100,
-      line_total: laborCost,
-      description: `Crew of ${params.crewSize || 2}`,
-=======
       unit_cost: baseHourlyRate,
       quantity: totalLaborHours,
       line_total: laborLineTotal,
       description: `Crew ${crewSize} • ${coats} coat(s)`
->>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
     });
   }
 
@@ -229,13 +200,7 @@ export function autoPopulateEstimate(params: AutoPopulateParams): AutoPopulateRe
       line_total: materialCost,
       description: `Patching ~${Math.round(patchArea)} sqft`,
     });
-<<<<<<< HEAD
-
-    const hoursEstimate = (patchArea / 100) * (params.crewSize || 2);
-=======
-    
     const hoursEstimate = patchArea / 100; // heuristic
->>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
     const laborCost = hoursEstimate * (params.hourlyRate || 20) * (params.crewSize || 2);
 
     lineItems.push({

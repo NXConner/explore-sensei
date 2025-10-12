@@ -94,15 +94,10 @@ export const ClockInStatus = () => {
       <EODSummaryModal awarded={awardedPoints} onClose={() => setShowSummary(false)} />
     )}
     <Card
-<<<<<<< HEAD
-      className={`fixed right-[280px] top-20 z-[400] p-3 backdrop-blur-sm border-2 transition-colors ${
-        isClockedIn ? "bg-green-500/10 border-green-500" : "bg-red-500/10 border-red-500"
-=======
       className={`absolute right-16 top-16 z-[950] h-9 px-3 flex items-center backdrop-blur-sm border-2 transition-colors ${
         isClockedIn
           ? "bg-green-500/10 border-green-500"
           : "bg-red-500/10 border-red-500"
->>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
       }`}
     >
       <div className="flex items-center gap-3">

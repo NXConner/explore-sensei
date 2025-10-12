@@ -72,18 +72,6 @@ export const MapVisibilityControls = () => {
     });
   };
 
-<<<<<<< HEAD
-  if (!isOpen) {
-    return (
-      <div className="absolute left-80 top-20 z-[900]">
-        <Button onClick={() => setIsOpen(true)} size="sm" className="gap-2">
-          <Eye className="w-4 h-4" />
-          Enhance
-        </Button>
-      </div>
-    );
-  }
-=======
   // Apply computed CSS filter to the actual map container in real-time
   React.useEffect(() => {
     const mapEl = document.querySelector('.map-container') as HTMLElement | null;
@@ -115,7 +103,6 @@ export const MapVisibilityControls = () => {
   }, [isOpen]);
 
   if (!isOpen) return null;
->>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
 
   return (
     <div className="absolute left-80 top-20 z-[900] tactical-panel w-80 pointer-events-auto">

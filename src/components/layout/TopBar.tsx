@@ -1,36 +1,4 @@
-<<<<<<< HEAD
-import {
-  Activity,
-  Calendar,
-  Users,
-  Truck,
-  DollarSign,
-  User,
-  Briefcase,
-  Clock,
-  Camera,
-  HardHat,
-  FileText,
-  ClipboardList,
-  Shield,
-  Wallet,
-  BookOpen,
-  Calculator,
-  Route,
-  LogOut,
-  TrendingUp,
-  MessageSquare,
-  Zap,
-  FolderOpen,
-  Receipt,
-  Cloud,
-  MapPin,
-  Play,
-  Tv,
-} from "lucide-react";
-=======
 import { Activity, Calendar, Users, Truck, DollarSign, User, Briefcase, Clock, Camera, HardHat, FileText, ClipboardList, Shield, Wallet, BookOpen, Calculator, Route, LogOut, TrendingUp, MessageSquare, Zap, FolderOpen, Receipt, Cloud, MapPin, Play, Tv, Trophy } from "lucide-react";
->>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
 import { Button } from "@/components/ui/button";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { useNavigate } from "react-router-dom";

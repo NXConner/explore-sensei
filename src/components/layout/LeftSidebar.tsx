@@ -1,21 +1,5 @@
 import React, { useState } from "react";
-<<<<<<< HEAD
-import {
-  Crosshair,
-  Minus,
-  Circle,
-  Square,
-  Ruler,
-  Trash2,
-  Plus,
-  MapPin,
-  ChevronLeft,
-  ChevronRight,
-  Search,
-} from "lucide-react";
-=======
 import { Crosshair, Minus, Circle, Square, Ruler, Trash2, Plus, MapPin, ChevronLeft, ChevronRight, Search, Eye } from "lucide-react";
->>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
