@@ -29,8 +29,7 @@ import { ScaleBar } from "@/components/hud/ScaleBar";
 import { ZoomIndicator } from "@/components/hud/ZoomIndicator";
 // import { MiniMap } from "@/components/hud/MiniMap";
 
-const GOOGLE_MAPS_API_KEY = getGoogleMapsApiKey();
-const LOCAL_MAPBOX_TOKEN = getMapboxAccessToken();
+// API keys are read dynamically to allow runtime updates via Settings
 
 type MapTheme = "division" | "animus";
 
@@ -70,6 +69,7 @@ export const MapContainer = forwardRef<MapContainerRef, { initialMapTheme?: "div
   const [mapTheme, setMapTheme] = useState<MapTheme>(props.initialMapTheme || "division");
   const [mapsUnavailable, setMapsUnavailable] = useState(false);
   const [usingMapbox, setUsingMapbox] = useState(false);
+  const [configVersion, setConfigVersion] = useState(0);
   const { data: jobSites } = useJobSites();
   const { measurement, setDrawingMode, clearDrawings } = useMapDrawing(mapInstanceRef.current);
   const [activeMode, setActiveMode] = useState<DrawingMode>(null);
@@ -213,6 +213,8 @@ export const MapContainer = forwardRef<MapContainerRef, { initialMapTheme?: "div
         if (parsed.mapTheme && (parsed.mapTheme === "division" || parsed.mapTheme === "animus")) {
           setMapTheme(parsed.mapTheme);
         }
+        // If API keys changed, bump config version to retrigger loader
+        if (parsed.apiKeys) setConfigVersion((v) => v + 1);
       } catch (err) {
         console.warn("Failed to sync UI settings from storage event:", err);
       }
@@ -414,13 +416,14 @@ export const MapContainer = forwardRef<MapContainerRef, { initialMapTheme?: "div
 
   useEffect(() => {
     // If no Google Maps key, use Mapbox fallback
-    const noGoogleKey = !GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY === "undefined";
+    const currentGoogleKey = getGoogleMapsApiKey();
+    const noGoogleKey = !currentGoogleKey || currentGoogleKey === "undefined";
     const initializeMapboxFallback = async () => {
       setUsingMapbox(true);
       setMapsUnavailable(false);
       if (!mapRef.current || mapboxInstanceRef.current) return;
       try {
-        let token = LOCAL_MAPBOX_TOKEN;
+        let token = getMapboxAccessToken();
         if (!token) {
           const { data, error } = await supabase.functions.invoke("get-mapbox-token");
           if (error || !data?.token) throw new Error(error?.message || "No Mapbox token");
@@ -478,7 +481,7 @@ export const MapContainer = forwardRef<MapContainerRef, { initialMapTheme?: "div
         initMap();
         return;
       }
-      if (!GOOGLE_MAPS_API_KEY) {
+      if (!currentGoogleKey) {
         initializeMapboxFallback();
         return;
       }
@@ -536,7 +539,7 @@ export const MapContainer = forwardRef<MapContainerRef, { initialMapTheme?: "div
         // No explicit remove for Google Maps; allow GC
       }
     };
-  }, [mapTheme]);
+  }, [mapTheme, configVersion]);
 
   // Apply theme class to body for CSS variables
   useEffect(() => {
