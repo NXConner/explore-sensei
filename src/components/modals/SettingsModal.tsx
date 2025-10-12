@@ -51,23 +51,15 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
       | "tactical-dark"
       | "light"
       | "high-contrast"
-<<<<<<< HEAD
-      | "church-blue"
-=======
       | "industry-blue"
->>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
       | "safety-green"
       | "construction"
       | "landscaping"
       | "security"
-<<<<<<< HEAD
-      | "aviation",
-=======
       | "aviation"
       | "division-shd"
       | "dark-zone"
       | "black-tusk",
->>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
     mapTheme: "division" as "division" | "animus",
     wallpaperUrl: "",
     wallpaperOpacity: 60,
@@ -133,108 +125,9 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
 
   // Apply theme by setting CSS variables on :root and sync dark class based on darkMode
   useEffect(() => {
-<<<<<<< HEAD
-    const root = document.documentElement as HTMLElement;
-    const applyTheme = (theme: typeof settings.theme) => {
-      // default base from index.css. Override selectively.
-      const themes: Record<string, Record<string, string>> = {
-        "tactical-dark": {
-          "--primary": "30 100% 50%",
-          "--accent": "197 100% 50%",
-          "--background": "0 0% 4%",
-          "--foreground": "0 0% 88%",
-        },
-        light: {
-          "--background": "0 0% 98%",
-          "--foreground": "0 0% 10%",
-          "--card": "0 0% 100%",
-          "--card-foreground": "0 0% 10%",
-          "--primary": "220 90% 56%",
-          "--primary-foreground": "0 0% 100%",
-          "--accent": "260 90% 56%",
-          "--muted": "0 0% 92%",
-          "--muted-foreground": "0 0% 35%",
-        },
-        "high-contrast": {
-          "--background": "0 0% 0%",
-          "--foreground": "0 0% 100%",
-          "--card": "0 0% 0%",
-          "--card-foreground": "0 0% 100%",
-          "--primary": "40 100% 50%",
-          "--primary-foreground": "0 0% 0%",
-          "--accent": "200 100% 50%",
-          "--muted": "0 0% 12%",
-          "--muted-foreground": "0 0% 92%",
-        },
-        "church-blue": {
-          "--primary": "211 100% 45%",
-          "--primary-foreground": "0 0% 100%",
-          "--accent": "39 100% 50%",
-          "--background": "220 19% 10%",
-          "--foreground": "0 0% 96%",
-        },
-        "safety-green": {
-          "--primary": "130 100% 45%",
-          "--primary-foreground": "0 0% 10%",
-          "--accent": "30 100% 50%",
-          "--background": "140 10% 6%",
-          "--foreground": "0 0% 92%",
-        },
-        // Industry premium themes
-        construction: {
-          "--primary": "28 95% 52%", // orange
-          "--primary-foreground": "0 0% 10%",
-          "--accent": "210 80% 52%",
-          "--background": "215 22% 9%",
-          "--foreground": "0 0% 96%",
-        },
-        landscaping: {
-          "--primary": "133 70% 41%", // green
-          "--primary-foreground": "0 0% 98%",
-          "--accent": "43 93% 55%",
-          "--background": "100 15% 8%",
-          "--foreground": "0 0% 95%",
-        },
-        security: {
-          "--primary": "220 90% 56%", // blue
-          "--primary-foreground": "0 0% 100%",
-          "--accent": "0 0% 100%",
-          "--background": "220 15% 6%",
-          "--foreground": "0 0% 92%",
-        },
-        aviation: {
-          "--primary": "197 100% 50%", // cyan
-          "--primary-foreground": "0 0% 10%",
-          "--accent": "258 90% 64%",
-          "--background": "240 13% 10%",
-          "--foreground": "0 0% 94%",
-        },
-      };
-      const selected = themes[theme] || themes["tactical-dark"];
-      Object.entries(selected).forEach(([k, v]) => root.style.setProperty(k, v));
-    };
-
-    applyTheme(settings.theme);
-
-    // Apply wallpaper overlay via body background-image
-    const body = document.body as HTMLBodyElement;
-    if (settings.wallpaperUrl) {
-      body.style.backgroundImage = `url('${settings.wallpaperUrl}')`;
-      body.style.backgroundSize = "cover";
-      body.style.backgroundRepeat = "no-repeat";
-      body.style.backgroundAttachment = "fixed";
-      body.style.backgroundPosition = "center";
-      body.style.opacity = String(Math.max(0.3, Math.min(1, settings.wallpaperOpacity / 100)));
-    } else {
-      body.style.backgroundImage = "";
-      body.style.opacity = "1";
-    }
-  }, [settings.theme, settings.wallpaperUrl, settings.wallpaperOpacity]);
-=======
     applyThemeVariables(settings.theme as any, { highContrast: settings.highContrast, forceDark: settings.darkMode });
     applyWallpaper(settings.wallpaperUrl, settings.wallpaperOpacity);
   }, [settings.theme, settings.wallpaperUrl, settings.wallpaperOpacity, settings.highContrast, settings.darkMode]);
->>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/80 backdrop-blur-sm">
@@ -524,27 +417,6 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div>
                     <Label className="text-xs">Primary Hue</Label>
-<<<<<<< HEAD
-                    <input
-                      type="range"
-                      min={0}
-                      max={360}
-                      step={1}
-                      value={Number(
-                        getComputedStyle(document.documentElement)
-                          .getPropertyValue("--primary")
-                          .split(" ")[0] || 30,
-                      )}
-                      onChange={(e) => {
-                        const root = document.documentElement as HTMLElement;
-                        const current = getComputedStyle(root)
-                          .getPropertyValue("--primary")
-                          .trim()
-                          .split(" ");
-                        const sat = current[1] || "100%";
-                        const lum = current[2] || "50%";
-                        root.style.setProperty("--primary", `${e.target.value} ${sat} ${lum}`);
-=======
                     <input type="range" min={0} max={360} step={1}
                       value={(() => {
                         const raw = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
@@ -558,34 +430,12 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                         const sat = parts[1] || '100%';
                         const lum = parts[2] || '50%';
                         root.style.setProperty('--primary', `${e.target.value} ${sat} ${lum}`);
->>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
                       }}
                       className="w-full"
                     />
                   </div>
                   <div>
                     <Label className="text-xs">Accent Hue</Label>
-<<<<<<< HEAD
-                    <input
-                      type="range"
-                      min={0}
-                      max={360}
-                      step={1}
-                      value={Number(
-                        getComputedStyle(document.documentElement)
-                          .getPropertyValue("--accent")
-                          .split(" ")[0] || 197,
-                      )}
-                      onChange={(e) => {
-                        const root = document.documentElement as HTMLElement;
-                        const current = getComputedStyle(root)
-                          .getPropertyValue("--accent")
-                          .trim()
-                          .split(" ");
-                        const sat = current[1] || "100%";
-                        const lum = current[2] || "50%";
-                        root.style.setProperty("--accent", `${e.target.value} ${sat} ${lum}`);
-=======
                     <input type="range" min={0} max={360} step={1}
                       value={(() => {
                         const raw = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
@@ -599,36 +449,12 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                         const sat = parts[1] || '100%';
                         const lum = parts[2] || '50%';
                         root.style.setProperty('--accent', `${e.target.value} ${sat} ${lum}`);
->>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
                       }}
                       className="w-full"
                     />
                   </div>
                   <div>
                     <Label className="text-xs">Background Luminance</Label>
-<<<<<<< HEAD
-                    <input
-                      type="range"
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={Number(
-                        (
-                          getComputedStyle(document.documentElement)
-                            .getPropertyValue("--background")
-                            .split(" ")[2] || "4%"
-                        ).replace("%", ""),
-                      )}
-                      onChange={(e) => {
-                        const root = document.documentElement as HTMLElement;
-                        const current = getComputedStyle(root)
-                          .getPropertyValue("--background")
-                          .trim()
-                          .split(" ");
-                        const h = current[0] || "0";
-                        const s = current[1] || "0%";
-                        root.style.setProperty("--background", `${h} ${s} ${e.target.value}%`);
-=======
                     <input type="range" min={0} max={100} step={1}
                       value={(() => {
                         const raw = getComputedStyle(document.documentElement).getPropertyValue('--background').trim();
@@ -643,7 +469,6 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                         const h = parts[0] || '0';
                         const s = parts[1] || '0%';
                         root.style.setProperty('--background', `${h} ${s} ${e.target.value}%`);
->>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
                       }}
                       className="w-full"
                     />

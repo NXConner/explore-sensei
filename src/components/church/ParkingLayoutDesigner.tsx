@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { 
   Car, 
   Bus, 
-  Wheelchair, 
+  Accessibility as Wheelchair,
   ArrowRight, 
   ArrowDown, 
   RotateCcw, 

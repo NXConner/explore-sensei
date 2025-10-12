@@ -87,13 +87,8 @@ serve(async (req) => {
 
     if (!op) {
       return new Response(
-<<<<<<< HEAD
-        JSON.stringify({ error: "Missing op. Use ?op=geocode|reverseGeocode|directions" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-=======
         JSON.stringify({ error: "Missing op. Use geocode|reverseGeocode|directions" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
->>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
       );
     }
 
@@ -133,14 +128,10 @@ serve(async (req) => {
       return { status: res.ok ? 200 : 502, body: data } as const;
     };
 
-<<<<<<< HEAD
-    const search = url.searchParams;
-    let result: { status: number; body: unknown } | undefined;
-=======
     let result:
       | { status: number; body: unknown }
       | undefined;
->>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
+    
 
     if (op === "geocode") {
       result = await doGeocode({ address });

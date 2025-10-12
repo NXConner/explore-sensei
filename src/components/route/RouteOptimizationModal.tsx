@@ -432,6 +432,7 @@ export const RouteOptimizationModal: React.FC<RouteOptimizationModalProps> = ({ 
                     {isOptimizing ? 'Optimizing...' : 'Optimize Route'}
                   </Button>
                 </div>
+                </LoadingOverlay>
               </TabsContent>
 
               <TabsContent value="routes" className="space-y-6">

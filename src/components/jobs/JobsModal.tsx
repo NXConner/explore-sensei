@@ -74,7 +74,8 @@ export const JobsModal = ({ onClose }: JobsModalProps) => {
     setJobs(data || []);
   };
 
-  const filteredJobs = jobs.filter(
+  // base search filter (without status)
+  const filteredJobsBase = jobs.filter(
     (job) =>
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.clients?.name?.toLowerCase().includes(searchTerm.toLowerCase()),
@@ -111,11 +112,10 @@ export const JobsModal = ({ onClose }: JobsModalProps) => {
     setShowChurchTemplates(false);
   };
 
-  const filteredJobs = jobs.filter((job) => {
-    const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.clients?.name.toLowerCase().includes(searchTerm.toLowerCase());
+  // apply status filter on top of base search
+  const filteredJobs = filteredJobsBase.filter((job) => {
     const matchesFilter = filterStatus === "all" || job.status === filterStatus;
-    return matchesSearch && matchesFilter;
+    return matchesFilter;
   });
 
   const sortedJobs = [...filteredJobs].sort((a, b) => {
