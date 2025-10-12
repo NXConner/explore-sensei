@@ -9,6 +9,7 @@ const Profile = lazy(() => import("./pages/Profile").then(m => ({ default: m.Pro
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Auth = lazy(() => import("./pages/Auth"));
 import { initAnalytics, trackPageView } from "@/lib/analytics";
+import { GamificationProvider } from "@/context/GamificationContext";
 
 const queryClient = new QueryClient();
 
@@ -40,18 +41,20 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <AnalyticsListener />
-        <Suspense fallback={null}>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/auth" element={<Auth />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
+      <GamificationProvider>
+        <BrowserRouter>
+          <AnalyticsListener />
+          <Suspense fallback={null}>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/auth" element={<Auth />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </GamificationProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

@@ -4,12 +4,19 @@ import { Button } from "@/components/ui/button";
 import { Clock, LogIn, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useGamification } from "@/hooks/useGamification";
+import { EODSummaryModal } from "@/components/gamification/EODSummaryModal";
+import { useGamificationToggle } from "@/context/GamificationContext";
 
 export const ClockInStatus = () => {
   const [isClockedIn, setIsClockedIn] = useState(false);
   const [clockInTime, setClockInTime] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState("00:00:00");
   const { toast } = useToast();
+  const { emitEvent } = useGamification();
+  const { enabled: gamifyEnabled } = useGamificationToggle();
+  const [showSummary, setShowSummary] = useState(false);
+  const [awardedPoints, setAwardedPoints] = useState(0);
 
   useEffect(() => {
     // Check if user is clocked in from localStorage
@@ -49,11 +56,20 @@ export const ClockInStatus = () => {
       setClockInTime(now);
       localStorage.setItem("clock_status", JSON.stringify({ isClockedIn: true, clockInTime: now.toISOString() }));
       toast({ title: "Clocked In", description: `Started at ${now.toLocaleTimeString()}` });
+      if (gamifyEnabled) { try { await emitEvent({ event_type: "clock_in", metadata: { at: now.toISOString() } }); } catch {} }
     } else {
       setIsClockedIn(false);
       setClockInTime(null);
       localStorage.removeItem("clock_status");
       toast({ title: "Clocked Out", description: `Total time: ${elapsedTime}` });
+      if (gamifyEnabled) {
+        try {
+          const res = await emitEvent({ event_type: "clock_out", metadata: { at: now.toISOString(), elapsed: elapsedTime } });
+          const awarded = typeof res?.awarded_points === 'number' ? res.awarded_points : 0;
+          setAwardedPoints(awarded);
+          setShowSummary(true);
+        } catch {}
+      }
     }
 
     // Save to localStorage only for now
@@ -70,6 +86,10 @@ export const ClockInStatus = () => {
   };
 
   return (
+    <>
+    {showSummary && (
+      <EODSummaryModal awarded={awardedPoints} onClose={() => setShowSummary(false)} />
+    )}
     <Card
       className={`absolute right-16 top-16 z-[950] h-9 px-3 flex items-center backdrop-blur-sm border-2 transition-colors ${
         isClockedIn
@@ -101,5 +121,6 @@ export const ClockInStatus = () => {
         </Button>
       </div>
     </Card>
+    </>
   );
 };
