@@ -1,22 +1,22 @@
 /// <reference types="google.maps" />
-import React, { useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
+import React, { useEffect, useRef, useState, forwardRef, useImperativeHandle, lazy, Suspense } from "react";
 import mapboxgl from "mapbox-gl";
 import { loadGoogleMaps } from "@/lib/googleMapsLoader";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import { useJobSites } from "@/hooks/useJobSites";
 import { MeasurementDisplay } from "./MeasurementDisplay";
-import { MapToolbar } from "./MapToolbar";
 import { useMapDrawing, DrawingMode } from "@/hooks/useMapDrawing";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMapMeasurements } from "@/hooks/useMapMeasurements";
-import { AIAsphaltDetectionModal } from "@/components/ai/AIAsphaltDetectionModal";
+// Lazy-load AI modal to avoid bundling conflicts and reduce initial payload
+const AIAsphaltDetectionModalLazy = lazy(() =>
+  import("@/components/ai/AIAsphaltDetectionModal").then((m) => ({ default: m.AIAsphaltDetectionModal }))
+);
 import { MapVisibilityControls } from "./MapVisibilityControls";
 import { EmployeeTrackingLayer } from "./EmployeeTrackingLayer";
 import { MapEffects } from "./MapEffects";
 import { divisionMapStyle, animusMapStyle } from "./themes";
-import { Button } from "@/components/ui/button";
-import { Palette } from "lucide-react";
 import { WeatherRadarLayer } from "@/components/weather/WeatherRadarLayer";
 import { RainRadarOverlay } from "@/components/weather/RainRadarOverlay";
 import { MapContext } from "./MapContext";
@@ -55,7 +55,7 @@ export const MapContainer = forwardRef<MapContainerRef, { initialMapTheme?: "div
   const markersRef = useRef<google.maps.Marker[]>([]);
   const clustererRef = useRef<MarkerClusterer | null>(null);
   const trafficLayerRef = useRef<google.maps.TrafficLayer | null>(null);
-  const savedMeasurementsRef = useRef<google.maps.Polyline[]>([]);
+  const savedMeasurementsRef = useRef<Array<google.maps.Polyline | google.maps.Circle>>([]);
   const aiOverlayRef = useRef<google.maps.Circle | null>(null);
   const streetViewRef = useRef<google.maps.StreetViewPanorama | null>(null);
   const searchMarkerRef = useRef<google.maps.Marker | null>(null);
@@ -652,6 +652,9 @@ export const MapContainer = forwardRef<MapContainerRef, { initialMapTheme?: "div
         circle.addListener("click", () => {
           infoWindow.open(mapInstanceRef.current);
         });
+
+        // Track for later cleanup alongside polylines
+        savedMeasurementsRef.current.push(circle);
       }
     });
   }, [measurements]);
@@ -776,10 +779,12 @@ export const MapContainer = forwardRef<MapContainerRef, { initialMapTheme?: "div
         </div>
       )}
       {showAIDetection && (
-        <AIAsphaltDetectionModal
-          isOpen={showAIDetection}
-          onClose={() => setShowAIDetection(false)}
-        />
+        <Suspense fallback={null}>
+          <AIAsphaltDetectionModalLazy
+            isOpen={showAIDetection}
+            onClose={() => setShowAIDetection(false)}
+          />
+        </Suspense>
       )}
     </MapContext.Provider>
   );

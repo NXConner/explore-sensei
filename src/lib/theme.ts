@@ -169,6 +169,11 @@ export function applyThemeVariables(
   } else {
     root.classList.remove("dark");
   }
+
+  // Broadcast theme changes to any listeners (e.g., toasters)
+  try {
+    window.dispatchEvent(new Event("theme-updated"));
+  } catch {}
 }
 
 export function applyWallpaper(url?: string, opacityPercent?: number) {
@@ -180,10 +185,23 @@ export function applyWallpaper(url?: string, opacityPercent?: number) {
     body.style.backgroundAttachment = "fixed";
     body.style.backgroundPosition = "center";
     const op = Math.max(0.3, Math.min(1, (opacityPercent ?? 60) / 100));
-    body.style.opacity = String(op);
+    // Apply opacity via overlay instead of body opacity to prevent dimming toasts/portals
+    const overlayId = "wallpaper-opacity-overlay";
+    let overlay = document.getElementById(overlayId) as HTMLDivElement | null;
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.id = overlayId;
+      overlay.style.position = "fixed";
+      overlay.style.inset = "0";
+      overlay.style.pointerEvents = "none";
+      overlay.style.zIndex = "0";
+      document.body.prepend(overlay);
+    }
+    overlay.style.background = `rgba(0,0,0,${1 - op})`;
   } else {
     body.style.backgroundImage = "";
-    body.style.opacity = "1";
+    const overlay = document.getElementById("wallpaper-opacity-overlay");
+    if (overlay) overlay.remove();
   }
 }
 
