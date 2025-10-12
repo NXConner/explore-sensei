@@ -717,7 +717,7 @@ export const MapContainer = forwardRef<MapContainerRef, { initialMapTheme?: "div
         ref={mapRef}
         className="absolute inset-0 w-full h-full map-container"
         style={{
-          filter: mapTheme === "division" ? "brightness(0.8)" : "brightness(1.05) contrast(1.05)",
+          filter: mapTheme === "division" ? "brightness(0.7) contrast(1.3)" : "brightness(1.05) contrast(1.05)",
         }}
       />
       {usingMapbox && (

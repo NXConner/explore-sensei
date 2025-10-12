@@ -68,7 +68,7 @@ const Index = () => {
     activeMode: null as DrawingMode,
   });
 
-  // Load map theme from settings
+  // Load map theme from settings, default to division
   useEffect(() => {
     try {
       const raw = localStorage.getItem("aos_settings");
@@ -76,9 +76,17 @@ const Index = () => {
         const parsed = JSON.parse(raw);
         if (parsed.mapTheme) {
           setMapTheme(parsed.mapTheme);
+        } else {
+          // Set default to division
+          setMapTheme("division");
         }
+      } else {
+        // No settings found, default to division
+        setMapTheme("division");
       }
-    } catch {}
+    } catch {
+      setMapTheme("division");
+    }
   }, []);
 
   // Sync map state periodically

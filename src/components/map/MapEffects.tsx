@@ -138,7 +138,7 @@ export const MapEffects = ({
     <>
       {/* Radar Effects (variant by type) */}
       {showRadar && radarType === "standard" && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-[100]">
           <div
             ref={radarRef}
             className="absolute top-1/2 left-1/2 w-[200%] h-[200%]"
@@ -152,7 +152,7 @@ export const MapEffects = ({
       )}
 
       {showRadar && radarType === "sonar" && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-[100]">
           {/* Concentric pulsing circles */}
           <div
             ref={sonarRef}
@@ -168,7 +168,7 @@ export const MapEffects = ({
       )}
 
       {showRadar && radarType === "aviation" && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-[100]">
           {/* Scanning line with trailing fade */}
           <div
             ref={aviationRef}
@@ -187,7 +187,7 @@ export const MapEffects = ({
       {showGlitch && (
         <div
           ref={glitchRef}
-          className="absolute inset-0 pointer-events-none opacity-0 transition-opacity"
+          className="absolute inset-0 pointer-events-none opacity-0 transition-opacity z-[150]"
           style={{
             background: `
               repeating-linear-gradient(
@@ -208,7 +208,7 @@ export const MapEffects = ({
       {/* Scanline Effect */}
       {showScanline && (
         <div
-          className="absolute inset-0 pointer-events-none"
+          className="absolute inset-0 pointer-events-none z-[120]"
           style={{
             background: `repeating-linear-gradient(
               0deg,
@@ -223,7 +223,7 @@ export const MapEffects = ({
       {/* Grid Overlay */}
       {showGridOverlay && (
         <div
-          className="absolute inset-0 pointer-events-none"
+          className="absolute inset-0 pointer-events-none z-[110]"
           style={{
             background: `var(--grid-overlay)`,
           }}
@@ -233,7 +233,7 @@ export const MapEffects = ({
       {/* Vignette corners */}
       {vignetteEffect && (
         <div
-          className="absolute inset-0 pointer-events-none"
+          className="absolute inset-0 pointer-events-none z-[105]"
           style={{
             background:
               "radial-gradient(ellipse at center, rgba(0,0,0,0) 60%, rgba(0,0,0,0.35) 100%)",
