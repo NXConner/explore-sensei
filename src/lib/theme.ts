@@ -153,11 +153,22 @@ export const THEME_VARS: Record<ThemeId, CssVarMap> = {
   },
 };
 
-export function applyThemeVariables(theme: ThemeId, options?: { highContrast?: boolean }) {
+export function applyThemeVariables(
+  theme: ThemeId,
+  options?: { highContrast?: boolean; forceDark?: boolean },
+) {
   const root = document.documentElement as HTMLElement;
   const selected = { ...THEME_VARS["tactical-dark"], ...(THEME_VARS[theme] || {}) };
   const finalVars = options?.highContrast ? { ...selected, ...THEME_VARS["high-contrast"] } : selected;
   Object.entries(finalVars).forEach(([k, v]) => root.style.setProperty(k, v));
+
+  // Sync Tailwind dark mode class for components using `dark:` utilities
+  const wantsDark = options?.forceDark ?? theme !== "light";
+  if (wantsDark) {
+    root.classList.add("dark");
+  } else {
+    root.classList.remove("dark");
+  }
 }
 
 export function applyWallpaper(url?: string, opacityPercent?: number) {
@@ -184,7 +195,8 @@ export function applySavedThemeFromLocalStorage() {
     // Backward-compatible alias: map legacy 'church-blue' to 'industry-blue'
     const mappedTheme = (parsed.theme === "church-blue" ? "industry-blue" : parsed.theme) as ThemeId | undefined;
     const theme = mappedTheme || "tactical-dark";
-    applyThemeVariables(theme, { highContrast: !!parsed.highContrast });
+    const isDark = (parsed as any).darkMode ?? theme !== "light";
+    applyThemeVariables(theme, { highContrast: !!parsed.highContrast, forceDark: !!isDark });
     applyWallpaper(parsed.wallpaperUrl, parsed.wallpaperOpacity);
   } catch {}
 }

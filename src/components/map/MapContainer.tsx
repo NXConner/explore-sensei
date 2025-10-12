@@ -162,10 +162,10 @@ export const MapContainer = forwardRef<MapContainerRef, { initialMapTheme?: "div
   }, [toast]);
 
   useEffect(() => {
-    // Load persisted settings including map theme
-    try {
-      const raw = localStorage.getItem("aos_settings");
-      if (raw) {
+    const readFromLocalStorage = () => {
+      try {
+        const raw = localStorage.getItem("aos_settings");
+        if (!raw) return;
         const parsed = JSON.parse(raw);
         setUiSettings((prev) => ({
           ...prev,
@@ -181,46 +181,30 @@ export const MapContainer = forwardRef<MapContainerRef, { initialMapTheme?: "div
           radarAudioEnabled: parsed.radarAudioEnabled ?? prev.radarAudioEnabled,
           radarAudioVolume: parsed.radarAudioVolume ?? prev.radarAudioVolume,
         }));
-        // Update map theme from settings
         if (parsed.mapTheme && (parsed.mapTheme === "division" || parsed.mapTheme === "animus")) {
           setMapTheme(parsed.mapTheme);
         }
-      }
-    } catch (err) {
-      console.warn("Failed to load persisted UI settings:", err);
-    }
-
-    // Sync across tabs/windows and when settings modal updates
-    const onStorage = (e: StorageEvent) => {
-      if (e.key !== "aos_settings" || !e.newValue) return;
-      try {
-        const parsed = JSON.parse(e.newValue);
-        setUiSettings((prev) => ({
-          ...prev,
-          radarEffect: parsed.radarEffect ?? prev.radarEffect,
-          glitchEffect: parsed.glitchEffect ?? prev.glitchEffect,
-          scanlineEffect: parsed.scanlineEffect ?? prev.scanlineEffect,
-          gridOverlay: parsed.gridOverlay ?? prev.gridOverlay,
-          radarSpeed: parsed.radarSpeed ?? prev.radarSpeed,
-          glitchIntensity: parsed.glitchIntensity ?? prev.glitchIntensity,
-          glitchClickPreset: parsed.glitchClickPreset ?? prev.glitchClickPreset,
-          vignetteEffect: parsed.vignetteEffect ?? prev.vignetteEffect,
-          radarType: parsed.radarType ?? prev.radarType,
-          radarAudioEnabled: parsed.radarAudioEnabled ?? prev.radarAudioEnabled,
-          radarAudioVolume: parsed.radarAudioVolume ?? prev.radarAudioVolume,
-        }));
-        // Update map theme from settings
-        if (parsed.mapTheme && (parsed.mapTheme === "division" || parsed.mapTheme === "animus")) {
-          setMapTheme(parsed.mapTheme);
-        }
-        // If API keys changed, bump config version to retrigger loader
         if (parsed.apiKeys) setConfigVersion((v) => v + 1);
       } catch (err) {
-        console.warn("Failed to sync UI settings from storage event:", err);
+        console.warn("Failed to read UI settings:", err);
       }
     };
+
+    // Initial load
+    readFromLocalStorage();
+
+    // Sync across tabs/windows and within same tab via custom event
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== "aos_settings" || !e.newValue) return;
+      readFromLocalStorage();
+    };
+    const onCustom = () => readFromLocalStorage();
     window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    window.addEventListener("aos_settings_updated", onCustom as any);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("aos_settings_updated", onCustom as any);
+    };
   }, []);
 
   const handleModeChange = (mode: DrawingMode) => {
