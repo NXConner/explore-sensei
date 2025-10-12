@@ -130,7 +130,7 @@ serve(async (req) => {
 
     await supabase.from("game_profiles").upsert(upsertProfile, { onConflict: "user_id" });
 
-    // First event badge
+    // Badges and quest progress
     let newBadges: string[] = [];
     if (!profile) {
       const { error: badgeErr } = await supabase.from("game_badges").insert({
@@ -140,6 +140,19 @@ serve(async (req) => {
         description: "Completed your first action",
       });
       if (!badgeErr) newBadges.push("FIRST_EVENT");
+    }
+    if (eventType === "clock_in" && streakCurrent >= 7) {
+      const { error: b2 } = await supabase.from("game_badges").insert({
+        user_id: user.id,
+        badge_code: "STREAK_WEEK",
+        title: "On a Roll",
+        description: "Maintained a 7-day streak",
+      });
+      if (!b2) newBadges.push("STREAK_WEEK");
+    }
+    if (eventType === "photo_uploaded") {
+      // increment a generic quest counter if quest exists
+      await supabase.rpc("upsert_quest_progress", { p_user_id: user.id, p_code: "PHOTO_PRO", p_key: "count", p_inc: 1 });
     }
 
     return new Response(

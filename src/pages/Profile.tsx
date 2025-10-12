@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AchievementsPanel } from "@/components/gamification/AchievementsPanel";
 import { LeaderboardPanel } from "@/components/gamification/LeaderboardPanel";
+import { QuestCenter } from "@/components/gamification/QuestCenter";
 
 export const Profile = () => {
   return (
@@ -90,6 +91,7 @@ export const Profile = () => {
 
           <AchievementsPanel />
           <LeaderboardPanel />
+          <QuestCenter />
         </div>
       </div>
     </div>

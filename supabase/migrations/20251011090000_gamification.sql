@@ -99,3 +99,20 @@ create or replace view public.game_leaderboard as
   from public.game_profiles;
 
 grant select on public.game_leaderboard to anon, authenticated; -- view is derived and safe
+
+-- Helper RPC for quest progress (idempotent upsert and increment)
+create or replace function public.upsert_quest_progress(
+  p_user_id uuid,
+  p_code text,
+  p_key text,
+  p_inc integer
+) returns void language plpgsql as $$
+begin
+  insert into public.game_quests(user_id, quest_code, progress)
+  values (p_user_id, p_code, jsonb_build_object(p_key, p_inc))
+  on conflict (user_id, quest_code)
+  do update set progress = coalesce(public.game_quests.progress, '{}'::jsonb) || jsonb_build_object(
+    p_key,
+    coalesce( (public.game_quests.progress->>p_key)::int, 0 ) + p_inc
+  );
+end;$$;

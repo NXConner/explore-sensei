@@ -1,9 +1,10 @@
-import { Activity, Calendar, Users, Truck, DollarSign, User, Briefcase, Clock, Camera, HardHat, FileText, ClipboardList, Shield, Wallet, BookOpen, Calculator, Route, LogOut, TrendingUp, MessageSquare, Zap, FolderOpen, Receipt, Cloud, MapPin, Play, Tv } from "lucide-react";
+import { Activity, Calendar, Users, Truck, DollarSign, User, Briefcase, Clock, Camera, HardHat, FileText, ClipboardList, Shield, Wallet, BookOpen, Calculator, Route, LogOut, TrendingUp, MessageSquare, Zap, FolderOpen, Receipt, Cloud, MapPin, Play, Tv, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useGamificationToggle } from "@/context/GamificationContext";
 
 interface TopBarProps {
   onModuleClick: (module: string) => void;
@@ -17,6 +18,7 @@ export const TopBar = ({ onModuleClick, onShowAnalytics, onShowChat, onShowAutom
   const { user, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { enabled: gamifyEnabled, setEnabled: setGamifyEnabled } = useGamificationToggle();
 
   const handleSignOut = async () => {
     await signOut();
@@ -94,6 +96,16 @@ export const TopBar = ({ onModuleClick, onShowAnalytics, onShowChat, onShowAutom
 
         {/* User Profile - visible on desktop */}
         <div className="hidden md:flex items-center gap-2 flex-shrink-0">
+          <Button
+            variant={gamifyEnabled ? "default" : "outline"}
+            size="sm"
+            onClick={() => setGamifyEnabled(!gamifyEnabled)}
+            className="hover:bg-primary/20 px-2 gap-2"
+            title={gamifyEnabled ? "Gamification ON" : "Gamification OFF"}
+          >
+            <Trophy className="w-4 h-4" />
+            <span className="text-xs font-bold">GAMIFY</span>
+          </Button>
           {/* Premium Features */}
           <NotificationCenter />
           {onShowChat && (
