@@ -53,17 +53,21 @@ export const SafetyComplianceModal = ({ onClose }: SafetyComplianceModalProps) =
       const employeeIds = [...new Set(data.map((i: any) => i.employee_id).filter(Boolean))];
 
       const [jobsData, employeesData] = await Promise.all([
-        jobIds.length > 0 ? supabase.from("jobs").select("id, title").in("id", jobIds) : Promise.resolve({ data: [] }),
-        employeeIds.length > 0 ? supabase.from("employees").select("id, first_name, last_name").in("id", employeeIds) : Promise.resolve({ data: [] })
+        jobIds.length > 0
+          ? supabase.from("jobs").select("id, title").in("id", jobIds)
+          : Promise.resolve({ data: [] }),
+        employeeIds.length > 0
+          ? supabase.from("employees").select("id, first_name, last_name").in("id", employeeIds)
+          : Promise.resolve({ data: [] }),
       ]);
 
-      const jobsMap = new Map((jobsData.data || []).map(j => [j.id, j]));
-      const employeesMap = new Map((employeesData.data || []).map(e => [e.id, e]));
+      const jobsMap = new Map((jobsData.data || []).map((j) => [j.id, j]));
+      const employeesMap = new Map((employeesData.data || []).map((e) => [e.id, e]));
 
       const enrichedData = data.map((incident: any) => ({
         ...incident,
         jobs: incident.job_id ? jobsMap.get(incident.job_id) || null : null,
-        employees: incident.employee_id ? employeesMap.get(incident.employee_id) || null : null
+        employees: incident.employee_id ? employeesMap.get(incident.employee_id) || null : null,
       }));
 
       setIncidents(enrichedData as any);
@@ -83,21 +87,31 @@ export const SafetyComplianceModal = ({ onClose }: SafetyComplianceModalProps) =
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case "critical": return "bg-red-500/20 text-red-400";
-      case "high": return "bg-orange-500/20 text-orange-400";
-      case "medium": return "bg-yellow-500/20 text-yellow-400";
-      case "low": return "bg-green-500/20 text-green-400";
-      default: return "bg-gray-500/20 text-gray-400";
+      case "critical":
+        return "bg-red-500/20 text-red-400";
+      case "high":
+        return "bg-orange-500/20 text-orange-400";
+      case "medium":
+        return "bg-yellow-500/20 text-yellow-400";
+      case "low":
+        return "bg-green-500/20 text-green-400";
+      default:
+        return "bg-gray-500/20 text-gray-400";
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "closed": return "bg-green-500/20 text-green-400";
-      case "resolved": return "bg-blue-500/20 text-blue-400";
-      case "investigating": return "bg-yellow-500/20 text-yellow-400";
-      case "open": return "bg-red-500/20 text-red-400";
-      default: return "bg-gray-500/20 text-gray-400";
+      case "closed":
+        return "bg-green-500/20 text-green-400";
+      case "resolved":
+        return "bg-blue-500/20 text-blue-400";
+      case "investigating":
+        return "bg-yellow-500/20 text-yellow-400";
+      case "open":
+        return "bg-red-500/20 text-red-400";
+      default:
+        return "bg-gray-500/20 text-gray-400";
     }
   };
 
@@ -198,13 +212,13 @@ export const SafetyComplianceModal = ({ onClose }: SafetyComplianceModalProps) =
                   <Card className="hud-element border-primary/30 p-4">
                     <h3 className="text-sm font-medium text-muted-foreground">Open Cases</h3>
                     <p className="text-3xl font-bold text-red-400 mt-2">
-                      {incidents.filter(i => i.status === "open").length}
+                      {incidents.filter((i) => i.status === "open").length}
                     </p>
                   </Card>
                   <Card className="hud-element border-primary/30 p-4">
                     <h3 className="text-sm font-medium text-muted-foreground">Critical</h3>
                     <p className="text-3xl font-bold text-orange-400 mt-2">
-                      {incidents.filter(i => i.severity === "critical").length}
+                      {incidents.filter((i) => i.severity === "critical").length}
                     </p>
                   </Card>
                 </div>

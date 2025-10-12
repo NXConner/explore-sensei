@@ -13,4 +13,3 @@ describe("analytics", () => {
     expect(events[1].payload).toEqual({ pathname: "/home" });
   });
 });
-

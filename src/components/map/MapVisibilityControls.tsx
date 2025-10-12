@@ -19,15 +19,37 @@ export const MapVisibilityControls = () => {
   });
 
   const [presets, setPresets] = useState([
-    { name: "Default", values: { brightness: 100, contrast: 100, sharpness: 0, hdr: 0, gamma: 100, shadows: 0, highlights: 0 } },
-    { name: "High Contrast", values: { brightness: 110, contrast: 130, sharpness: 20, hdr: 0, gamma: 100, shadows: -10, highlights: 10 } },
+    {
+      name: "Default",
+      values: {
+        brightness: 100,
+        contrast: 100,
+        sharpness: 0,
+        hdr: 0,
+        gamma: 100,
+        shadows: 0,
+        highlights: 0,
+      },
+    },
+    {
+      name: "High Contrast",
+      values: {
+        brightness: 110,
+        contrast: 130,
+        sharpness: 20,
+        hdr: 0,
+        gamma: 100,
+        shadows: -10,
+        highlights: 10,
+      },
+    },
   ]);
 
   const handleControlChange = (key: keyof typeof controls, value: number) => {
     setControls((prev) => ({ ...prev, [key]: value }));
   };
 
-  const applyPreset = (preset: typeof presets[0]) => {
+  const applyPreset = (preset: (typeof presets)[0]) => {
     setControls(preset.values);
   };
 
@@ -53,11 +75,7 @@ export const MapVisibilityControls = () => {
   if (!isOpen) {
     return (
       <div className="absolute left-80 top-20 z-[900]">
-        <Button
-          onClick={() => setIsOpen(true)}
-          size="sm"
-          className="gap-2"
-        >
+        <Button onClick={() => setIsOpen(true)} size="sm" className="gap-2">
           <Eye className="w-4 h-4" />
           Enhance
         </Button>

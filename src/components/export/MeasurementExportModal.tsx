@@ -74,9 +74,7 @@ export const MeasurementExportModal = ({ isOpen, onClose }: MeasurementExportMod
       if (m.geojson && m.geojson.coordinates) {
         const coords = m.geojson.coordinates;
         if (m.type === "distance" && Array.isArray(coords)) {
-          const coordString = coords
-            .map((c: number[]) => `${c[0]},${c[1]},0`)
-            .join(" ");
+          const coordString = coords.map((c: number[]) => `${c[0]},${c[1]},0`).join(" ");
           kml += `    <Placemark>
       <name>Distance Measurement ${idx + 1}</name>
       <description>Distance: ${m.value.toFixed(2)}${m.unit}</description>
@@ -160,11 +158,7 @@ export const MeasurementExportModal = ({ isOpen, onClose }: MeasurementExportMod
           </p>
 
           <div className="space-y-2">
-            <Button
-              onClick={exportAsGeoJSON}
-              variant="outline"
-              className="w-full justify-start"
-            >
+            <Button onClick={exportAsGeoJSON} variant="outline" className="w-full justify-start">
               <FileJson className="w-4 h-4 mr-2" />
               Export as GeoJSON
               <span className="ml-auto text-xs text-muted-foreground">
@@ -172,11 +166,7 @@ export const MeasurementExportModal = ({ isOpen, onClose }: MeasurementExportMod
               </span>
             </Button>
 
-            <Button
-              onClick={exportAsKML}
-              variant="outline"
-              className="w-full justify-start"
-            >
+            <Button onClick={exportAsKML} variant="outline" className="w-full justify-start">
               <FileCode className="w-4 h-4 mr-2" />
               Export as KML (Google Earth)
               <span className="ml-auto text-xs text-muted-foreground">
@@ -184,11 +174,7 @@ export const MeasurementExportModal = ({ isOpen, onClose }: MeasurementExportMod
               </span>
             </Button>
 
-            <Button
-              onClick={exportAsCSV}
-              variant="outline"
-              className="w-full justify-start"
-            >
+            <Button onClick={exportAsCSV} variant="outline" className="w-full justify-start">
               <FileImage className="w-4 h-4 mr-2" />
               Export as CSV
               <span className="ml-auto text-xs text-muted-foreground">
@@ -198,10 +184,18 @@ export const MeasurementExportModal = ({ isOpen, onClose }: MeasurementExportMod
           </div>
 
           <div className="text-xs text-muted-foreground space-y-1 border-t pt-3">
-            <p><strong>Format Details:</strong></p>
-            <p>• <strong>GeoJSON:</strong> Standard format for GIS applications</p>
-            <p>• <strong>KML:</strong> Compatible with Google Earth and Maps</p>
-            <p>• <strong>CSV:</strong> Simple spreadsheet format</p>
+            <p>
+              <strong>Format Details:</strong>
+            </p>
+            <p>
+              • <strong>GeoJSON:</strong> Standard format for GIS applications
+            </p>
+            <p>
+              • <strong>KML:</strong> Compatible with Google Earth and Maps
+            </p>
+            <p>
+              • <strong>CSV:</strong> Simple spreadsheet format
+            </p>
           </div>
         </div>
       </DialogContent>

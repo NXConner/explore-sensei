@@ -73,7 +73,7 @@ export const MapEffects = ({
       if (!target) return;
       // Heuristic: trigger on common interactive elements
       const isInteractive = target.closest(
-        'button, [role="button"], [data-glitch], a, .nav, .navigation-menu, .menubar, .menu, .sidebar, [data-radix-collection-item]'
+        'button, [role="button"], [data-glitch], a, .nav, .navigation-menu, .menubar, .menu, .sidebar, [data-radix-collection-item]',
       );
       if (!isInteractive) return;
 

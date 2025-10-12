@@ -54,17 +54,17 @@ export const useEmployeeTracking = (date?: Date, options?: { subscribeRealtime?:
     let channel: ReturnType<typeof supabase.channel> | null = null;
     if (subscribeRealtime) {
       channel = supabase
-        .channel('employee-locations')
+        .channel("employee-locations")
         .on(
-          'postgres_changes',
+          "postgres_changes",
           {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'employee_locations'
+            event: "INSERT",
+            schema: "public",
+            table: "employee_locations",
           },
           () => {
             if (isActive) fetchEmployeeLocations();
-          }
+          },
         )
         .subscribe();
     }
@@ -83,9 +83,10 @@ export const useEmployeeTracking = (date?: Date, options?: { subscribeRealtime?:
         .order("timestamp", { ascending: false });
 
       if (date) {
-        const dateStr = date.toISOString().split('T')[0];
-        query = query.gte('timestamp', `${dateStr}T00:00:00`)
-                     .lte('timestamp', `${dateStr}T23:59:59`);
+        const dateStr = date.toISOString().split("T")[0];
+        query = query
+          .gte("timestamp", `${dateStr}T00:00:00`)
+          .lte("timestamp", `${dateStr}T23:59:59`);
       }
 
       const { data, error } = await query;
@@ -111,8 +112,8 @@ export const useEmployeeTracking = (date?: Date, options?: { subscribeRealtime?:
         .order("date", { ascending: false });
 
       if (date) {
-        const dateStr = date.toISOString().split('T')[0];
-        query = query.eq('date', dateStr);
+        const dateStr = date.toISOString().split("T")[0];
+        query = query.eq("date", dateStr);
       }
 
       const { data, error } = await query;
@@ -124,22 +125,23 @@ export const useEmployeeTracking = (date?: Date, options?: { subscribeRealtime?:
     }
   };
 
-  const trackLocation = async (employeeId: string, location: {
-    latitude: number;
-    longitude: number;
-    accuracy?: number;
-    speed?: number;
-    heading?: number;
-    activity_type?: string;
-    battery_level?: number;
-  }) => {
+  const trackLocation = async (
+    employeeId: string,
+    location: {
+      latitude: number;
+      longitude: number;
+      accuracy?: number;
+      speed?: number;
+      heading?: number;
+      activity_type?: string;
+      battery_level?: number;
+    },
+  ) => {
     try {
-      const { error } = await (supabase as any)
-        .from("employee_locations")
-        .insert({
-          employee_id: employeeId,
-          ...location,
-        });
+      const { error } = await (supabase as any).from("employee_locations").insert({
+        employee_id: employeeId,
+        ...location,
+      });
 
       if (error) throw error;
     } catch (error: any) {
@@ -153,19 +155,19 @@ export const useEmployeeTracking = (date?: Date, options?: { subscribeRealtime?:
 
   const generateDailySummary = async (employeeId: string, date: Date) => {
     try {
-      const dateStr = date.toISOString().split('T')[0];
-      const { error } = await (supabase as any).rpc('generate_daily_summary', {
+      const dateStr = date.toISOString().split("T")[0];
+      const { error } = await (supabase as any).rpc("generate_daily_summary", {
         p_employee_id: employeeId,
         p_date: dateStr,
       });
 
       if (error) throw error;
-      
+
       toast({
         title: "Success",
         description: "Daily summary generated",
       });
-      
+
       fetchDailySummaries();
     } catch (error: any) {
       toast({

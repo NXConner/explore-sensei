@@ -1,41 +1,41 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { imageData } = await req.json();
-    
+
     if (!imageData) {
-      throw new Error('No image data provided');
+      throw new Error("No image data provided");
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
+      throw new Error("LOVABLE_API_KEY not configured");
     }
 
-    console.log('Starting asphalt analysis...');
+    console.log("Starting asphalt analysis...");
 
     // Call Lovable AI with vision capabilities
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: "google/gemini-2.5-flash",
         messages: [
           {
-            role: 'system',
+            role: "system",
             content: `You are an expert asphalt surface analysis AI. Analyze images of asphalt surfaces and provide detailed assessments including:
 - Surface condition (Excellent, Good, Fair, Poor)
 - Detected issues (cracks, potholes, deterioration, etc.)
@@ -43,6 +43,7 @@ serve(async (req) => {
 - Confidence score (0-100)
 - Maintenance recommendations
 - Priority level (Low, Medium, High, Critical)
+- Asphalt area coordinates for visual overlay
 
 Return your analysis as a JSON object with this structure:
 {
@@ -60,48 +61,72 @@ Return your analysis as a JSON object with this structure:
   ],
   "priority": "Medium",
   "estimated_repair_cost": "$3,500 - $5,000",
-  "ai_notes": "Overall surface shows typical wear patterns for 5-7 year old asphalt. Proactive maintenance recommended."
-}`
+  "ai_notes": "Overall surface shows typical wear patterns for 5-7 year old asphalt. Proactive maintenance recommended.",
+  "asphalt_areas": [
+    {
+      "id": "area_1",
+      "coordinates": [
+        {"x": 100, "y": 150},
+        {"x": 400, "y": 150},
+        {"x": 400, "y": 350},
+        {"x": 100, "y": 350}
+      ],
+      "area_sqft": 2500,
+      "condition": "Good"
+    },
+    {
+      "id": "area_2", 
+      "coordinates": [
+        {"x": 450, "y": 200},
+        {"x": 700, "y": 200},
+        {"x": 700, "y": 400},
+        {"x": 450, "y": 400}
+      ],
+      "area_sqft": 2500,
+      "condition": "Fair"
+    }
+  ]
+}`,
           },
           {
-            role: 'user',
+            role: "user",
             content: [
               {
-                type: 'text',
-                text: 'Analyze this asphalt surface and provide a detailed condition assessment.'
+                type: "text",
+                text: "Analyze this asphalt surface and provide a detailed condition assessment.",
               },
               {
-                type: 'image_url',
+                type: "image_url",
                 image_url: {
-                  url: imageData
-                }
-              }
-            ]
-          }
+                  url: imageData,
+                },
+              },
+            ],
+          },
         ],
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('AI API error:', response.status, errorText);
-      
+      console.error("AI API error:", response.status, errorText);
+
       if (response.status === 429) {
-        throw new Error('Rate limit exceeded. Please try again in a moment.');
+        throw new Error("Rate limit exceeded. Please try again in a moment.");
       }
       if (response.status === 402) {
-        throw new Error('AI credits depleted. Please add credits to continue.');
+        throw new Error("AI credits depleted. Please add credits to continue.");
       }
-      
+
       throw new Error(`AI analysis failed: ${errorText}`);
     }
 
     const data = await response.json();
-    console.log('AI response received');
+    console.log("AI response received");
 
     const aiMessage = data.choices[0]?.message?.content;
     if (!aiMessage) {
-      throw new Error('No analysis result from AI');
+      throw new Error("No analysis result from AI");
     }
 
     // Parse JSON from AI response
@@ -114,59 +139,55 @@ Return your analysis as a JSON object with this structure:
       } else {
         // If no JSON found, create structured response from text
         analysis = {
-          condition: 'Good',
+          condition: "Good",
           confidence_score: 75,
           area_sqft: 0,
           area_sqm: 0,
           detected_issues: [],
           recommendations: [aiMessage],
-          priority: 'Medium',
-          estimated_repair_cost: 'Analysis pending',
-          ai_notes: aiMessage
+          priority: "Medium",
+          estimated_repair_cost: "Analysis pending",
+          ai_notes: aiMessage,
         };
       }
     } catch (parseError) {
-      console.error('Error parsing AI response:', parseError);
+      console.error("Error parsing AI response:", parseError);
       // Return raw response if parsing fails
       analysis = {
-        condition: 'Unknown',
+        condition: "Unknown",
         confidence_score: 0,
         area_sqft: 0,
         area_sqm: 0,
         detected_issues: [],
         recommendations: [aiMessage],
-        priority: 'Medium',
-        estimated_repair_cost: 'Analysis pending',
-        ai_notes: aiMessage
+        priority: "Medium",
+        estimated_repair_cost: "Analysis pending",
+        ai_notes: aiMessage,
       };
     }
 
-    console.log('Analysis complete:', analysis);
+    console.log("Analysis complete:", analysis);
 
-    return new Response(
-      JSON.stringify({ success: true, analysis }),
-      { 
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        } 
-      }
-    );
-
+    return new Response(JSON.stringify({ success: true, analysis }), {
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "application/json",
+      },
+    });
   } catch (error: any) {
-    console.error('Error in analyze-asphalt function:', error);
+    console.error("Error in analyze-asphalt function:", error);
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message || 'Analysis failed' 
+      JSON.stringify({
+        success: false,
+        error: error.message || "Analysis failed",
       }),
       {
         status: 500,
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
         },
-      }
+      },
     );
   }
 });

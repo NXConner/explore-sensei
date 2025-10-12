@@ -68,25 +68,37 @@ export const useWeatherRecommendations = (lat?: number, lng?: number) => {
       // Work suitability scoring (0-100)
       const calculateSuitability = (temp: number, humidity: number, precip: number) => {
         let score = 100;
-        
+
         // Temperature penalties
         if (temp < 50 || temp > 95) score -= 40;
         else if (temp < 55 || temp > 90) score -= 20;
-        
+
         // Humidity penalties
         if (humidity > 80) score -= 30;
         else if (humidity > 70) score -= 15;
-        
+
         // Precipitation penalties
         if (precip > 50) score -= 50;
         else if (precip > 20) score -= 25;
-        
+
         return Math.max(0, score);
       };
 
-      const sealcoatScore = calculateSuitability(currentConditions.temp, currentConditions.humidity, currentConditions.precipitation);
-      const crackRepairScore = calculateSuitability(currentConditions.temp, currentConditions.humidity, currentConditions.precipitation * 0.5);
-      const stripingScore = calculateSuitability(currentConditions.temp, currentConditions.humidity, currentConditions.precipitation);
+      const sealcoatScore = calculateSuitability(
+        currentConditions.temp,
+        currentConditions.humidity,
+        currentConditions.precipitation,
+      );
+      const crackRepairScore = calculateSuitability(
+        currentConditions.temp,
+        currentConditions.humidity,
+        currentConditions.precipitation * 0.5,
+      );
+      const stripingScore = calculateSuitability(
+        currentConditions.temp,
+        currentConditions.humidity,
+        currentConditions.precipitation,
+      );
 
       return {
         current: currentConditions,
@@ -95,35 +107,39 @@ export const useWeatherRecommendations = (lat?: number, lng?: number) => {
           sealcoating: {
             score: sealcoatScore,
             status: sealcoatScore > 70 ? "Optimal" : sealcoatScore > 50 ? "Fair" : "Poor",
-            reason: sealcoatScore > 70 
-              ? "Excellent conditions for sealcoating" 
-              : sealcoatScore > 50 
-              ? "Acceptable but not ideal conditions"
-              : "Conditions not suitable for sealcoating",
+            reason:
+              sealcoatScore > 70
+                ? "Excellent conditions for sealcoating"
+                : sealcoatScore > 50
+                  ? "Acceptable but not ideal conditions"
+                  : "Conditions not suitable for sealcoating",
             details: `Temp: ${currentConditions.temp}°F (ideal: 55-95°F), Humidity: ${currentConditions.humidity}% (ideal: <70%), No rain expected`,
           },
           crackRepair: {
             score: crackRepairScore,
             status: crackRepairScore > 70 ? "Optimal" : crackRepairScore > 50 ? "Fair" : "Poor",
-            reason: crackRepairScore > 70
-              ? "Great conditions for crack cleaning and repair"
-              : crackRepairScore > 50
-              ? "Workable conditions for crack repair"
-              : "Not ideal for crack repair",
+            reason:
+              crackRepairScore > 70
+                ? "Great conditions for crack cleaning and repair"
+                : crackRepairScore > 50
+                  ? "Workable conditions for crack repair"
+                  : "Not ideal for crack repair",
             details: `Temp: ${currentConditions.temp}°F, Light precipitation OK for cleaning`,
           },
           striping: {
             score: stripingScore,
             status: stripingScore > 70 ? "Optimal" : stripingScore > 50 ? "Fair" : "Poor",
-            reason: stripingScore > 70
-              ? "Perfect conditions for line striping"
-              : stripingScore > 50
-              ? "Acceptable for striping work"
-              : "Delay striping until conditions improve",
+            reason:
+              stripingScore > 70
+                ? "Perfect conditions for line striping"
+                : stripingScore > 50
+                  ? "Acceptable for striping work"
+                  : "Delay striping until conditions improve",
             details: `Dry surface required. Temp: ${currentConditions.temp}°F, No rain for 4+ hours recommended`,
           },
         },
-        bestWorkWindow: forecast24h.precipChance < 20 ? "Next 6-12 hours" : "Check forecast tomorrow",
+        bestWorkWindow:
+          forecast24h.precipChance < 20 ? "Next 6-12 hours" : "Check forecast tomorrow",
       };
     },
     enabled: !!lat && !!lng,

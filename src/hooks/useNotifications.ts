@@ -73,10 +73,7 @@ export const useNotifications = () => {
   // Delete notification mutation
   const deleteNotification = useMutation({
     mutationFn: async (notificationId: string) => {
-      const { error } = await supabase
-        .from("notifications")
-        .delete()
-        .eq("id", notificationId);
+      const { error } = await supabase.from("notifications").delete().eq("id", notificationId);
 
       if (error) throw error;
     },
@@ -98,14 +95,14 @@ export const useNotifications = () => {
         },
         (payload) => {
           queryClient.invalidateQueries({ queryKey: ["notifications"] });
-          
+
           const notification = payload.new as Notification;
           toast({
             title: notification.title,
             description: notification.message,
             variant: notification.type === "error" ? "destructive" : "default",
           });
-        }
+        },
       )
       .subscribe();
 

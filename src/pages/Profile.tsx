@@ -13,13 +13,15 @@ export const Profile = () => {
               <User className="w-12 h-12" />
             </div>
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-glow text-primary mb-2">
-                OPERATOR PROFILE
-              </h1>
+              <h1 className="text-3xl font-bold text-glow text-primary mb-2">OPERATOR PROFILE</h1>
               <p className="text-muted-foreground mb-4">Admin Account</p>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm">Edit Profile</Button>
-                <Button variant="outline" size="sm">Settings</Button>
+                <Button variant="outline" size="sm">
+                  Edit Profile
+                </Button>
+                <Button variant="outline" size="sm">
+                  Settings
+                </Button>
               </div>
             </div>
           </div>

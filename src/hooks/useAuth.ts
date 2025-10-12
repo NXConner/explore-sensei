@@ -15,7 +15,7 @@ export const useAuth = () => {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
         // Check if user is admin
         const { data } = await supabase
@@ -24,12 +24,12 @@ export const useAuth = () => {
           .eq("user_id", session.user.id)
           .in("role", ["Super Administrator", "Administrator"])
           .single();
-        
+
         setIsAdmin(!!data);
       } else {
         setIsAdmin(false);
       }
-      
+
       setLoading(false);
     });
 
@@ -37,7 +37,7 @@ export const useAuth = () => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
         const { data } = await supabase
           .from("user_roles")
@@ -45,10 +45,10 @@ export const useAuth = () => {
           .eq("user_id", session.user.id)
           .in("role", ["Super Administrator", "Administrator"])
           .single();
-        
+
         setIsAdmin(!!data);
       }
-      
+
       setLoading(false);
     });
 

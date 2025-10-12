@@ -1,4 +1,32 @@
-import { Activity, Calendar, Users, Truck, DollarSign, User, Briefcase, Clock, Camera, HardHat, FileText, ClipboardList, Shield, Wallet, BookOpen, Calculator, Route, LogOut, TrendingUp, MessageSquare, Zap, FolderOpen, Receipt, Cloud, MapPin, Play, Tv } from "lucide-react";
+import {
+  Activity,
+  Calendar,
+  Users,
+  Truck,
+  DollarSign,
+  User,
+  Briefcase,
+  Clock,
+  Camera,
+  HardHat,
+  FileText,
+  ClipboardList,
+  Shield,
+  Wallet,
+  BookOpen,
+  Calculator,
+  Route,
+  LogOut,
+  TrendingUp,
+  MessageSquare,
+  Zap,
+  FolderOpen,
+  Receipt,
+  Cloud,
+  MapPin,
+  Play,
+  Tv,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { useNavigate } from "react-router-dom";
@@ -13,7 +41,13 @@ interface TopBarProps {
   onShowBusinessHub?: () => void;
 }
 
-export const TopBar = ({ onModuleClick, onShowAnalytics, onShowChat, onShowAutomation, onShowBusinessHub }: TopBarProps) => {
+export const TopBar = ({
+  onModuleClick,
+  onShowAnalytics,
+  onShowChat,
+  onShowAutomation,
+  onShowBusinessHub,
+}: TopBarProps) => {
   const { user, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -64,12 +98,17 @@ export const TopBar = ({ onModuleClick, onShowAnalytics, onShowChat, onShowAutom
               <h1 className="text-xs md:text-sm font-bold text-glow text-primary tracking-wider">
                 ASPHALT OVERWATCH
               </h1>
-              <p className="text-[10px] md:text-xs text-muted-foreground">Tactical Operations System</p>
+              <p className="text-[10px] md:text-xs text-muted-foreground">
+                Tactical Operations System
+              </p>
             </div>
           </div>
 
           {/* User Profile - visible on mobile */}
-          <a href="/profile" className="flex md:hidden items-center gap-2 hover:opacity-80 transition-opacity">
+          <a
+            href="/profile"
+            className="flex md:hidden items-center gap-2 hover:opacity-80 transition-opacity"
+          >
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
               <User className="w-4 h-4" />
             </div>
@@ -137,10 +176,13 @@ export const TopBar = ({ onModuleClick, onShowAnalytics, onShowChat, onShowAutom
               <span className="text-xs font-bold">BUSINESS</span>
             </Button>
           )}
-          
+
           {user ? (
             <>
-              <a href="/profile" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <a
+                href="/profile"
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+              >
                 <div className="text-right">
                   <p className="text-xs font-bold">OPERATOR</p>
                   <p className="text-xs text-muted-foreground cursor-pointer hover:text-primary transition-colors">

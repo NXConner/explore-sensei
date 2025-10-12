@@ -3,7 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -43,11 +49,8 @@ export const SafetyIncidentForm = ({ onSave, onCancel }: SafetyIncidentFormProps
   }, []);
 
   const fetchJobs = async () => {
-    const { data } = await supabase
-      .from("jobs")
-      .select("id, title")
-      .order("title");
-    
+    const { data } = await supabase.from("jobs").select("id, title").order("title");
+
     if (data) setJobs(data);
   };
 
@@ -56,7 +59,7 @@ export const SafetyIncidentForm = ({ onSave, onCancel }: SafetyIncidentFormProps
       .from("employees")
       .select("id, first_name, last_name")
       .order("first_name");
-    
+
     if (data) setEmployees(data);
   };
 
@@ -72,9 +75,8 @@ export const SafetyIncidentForm = ({ onSave, onCancel }: SafetyIncidentFormProps
       return;
     }
 
-    const { error } = await supabase
-      .from("safety_incidents")
-      .insert([{
+    const { error } = await supabase.from("safety_incidents").insert([
+      {
         incident_date: incidentDate,
         job_id: jobId || null,
         employee_id: employeeId || null,
@@ -83,8 +85,9 @@ export const SafetyIncidentForm = ({ onSave, onCancel }: SafetyIncidentFormProps
         description,
         location: location || null,
         immediate_action: immediateAction || null,
-        status: "open"
-      } as any]);
+        status: "open",
+      } as any,
+    ]);
 
     if (error) {
       toast({

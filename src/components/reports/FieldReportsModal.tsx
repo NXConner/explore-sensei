@@ -54,17 +54,21 @@ export const FieldReportsModal = ({ onClose }: FieldReportsModalProps) => {
       const employeeIds = [...new Set(data.map((r: any) => r.employee_id).filter(Boolean))];
 
       const [jobsData, employeesData] = await Promise.all([
-        jobIds.length > 0 ? supabase.from("jobs").select("id, title").in("id", jobIds) : Promise.resolve({ data: [] }),
-        employeeIds.length > 0 ? supabase.from("employees").select("id, first_name, last_name").in("id", employeeIds) : Promise.resolve({ data: [] })
+        jobIds.length > 0
+          ? supabase.from("jobs").select("id, title").in("id", jobIds)
+          : Promise.resolve({ data: [] }),
+        employeeIds.length > 0
+          ? supabase.from("employees").select("id, first_name, last_name").in("id", employeeIds)
+          : Promise.resolve({ data: [] }),
       ]);
 
-      const jobsMap = new Map((jobsData.data || []).map(j => [j.id, j]));
-      const employeesMap = new Map((employeesData.data || []).map(e => [e.id, e]));
+      const jobsMap = new Map((jobsData.data || []).map((j) => [j.id, j]));
+      const employeesMap = new Map((employeesData.data || []).map((e) => [e.id, e]));
 
       const enrichedData = data.map((report: any) => ({
         ...report,
         jobs: report.job_id ? jobsMap.get(report.job_id) || null : null,
-        employees: report.employee_id ? employeesMap.get(report.employee_id) || null : null
+        employees: report.employee_id ? employeesMap.get(report.employee_id) || null : null,
       }));
 
       setReports(enrichedData as any);
@@ -82,9 +86,10 @@ export const FieldReportsModal = ({ onClose }: FieldReportsModalProps) => {
     });
   };
 
-  const filteredReports = reports.filter((report) =>
-    report.work_performed.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    report.jobs?.title?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredReports = reports.filter(
+    (report) =>
+      report.work_performed.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      report.jobs?.title?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -111,10 +116,7 @@ export const FieldReportsModal = ({ onClose }: FieldReportsModalProps) => {
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {showForm ? (
-            <FieldReportForm
-              onSave={handleReportCreated}
-              onCancel={() => setShowForm(false)}
-            />
+            <FieldReportForm onSave={handleReportCreated} onCancel={() => setShowForm(false)} />
           ) : (
             <>
               <div className="relative">
@@ -154,7 +156,8 @@ export const FieldReportsModal = ({ onClose }: FieldReportsModalProps) => {
                       <div className="grid grid-cols-3 gap-4 text-sm text-muted-foreground">
                         {report.weather_conditions && (
                           <p>
-                            <span className="font-medium">Weather:</span> {report.weather_conditions}
+                            <span className="font-medium">Weather:</span>{" "}
+                            {report.weather_conditions}
                           </p>
                         )}
                         {report.hours_worked && (
@@ -164,7 +167,8 @@ export const FieldReportsModal = ({ onClose }: FieldReportsModalProps) => {
                         )}
                         {report.employees && (
                           <p>
-                            <span className="font-medium">Lead:</span> {report.employees.first_name} {report.employees.last_name}
+                            <span className="font-medium">Lead:</span> {report.employees.first_name}{" "}
+                            {report.employees.last_name}
                           </p>
                         )}
                       </div>

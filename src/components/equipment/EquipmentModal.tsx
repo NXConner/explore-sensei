@@ -52,21 +52,25 @@ export const EquipmentModal = ({ onClose }: EquipmentModalProps) => {
 
     // Fetch related data manually
     if (data && data.length > 0) {
-      const jobIds = [...new Set(data.map(a => a.job_id).filter(Boolean))];
-      const employeeIds = [...new Set(data.map(a => a.assigned_to).filter(Boolean))];
+      const jobIds = [...new Set(data.map((a) => a.job_id).filter(Boolean))];
+      const employeeIds = [...new Set(data.map((a) => a.assigned_to).filter(Boolean))];
 
       const [jobsData, employeesData] = await Promise.all([
-        jobIds.length > 0 ? supabase.from("jobs").select("id, title").in("id", jobIds) : Promise.resolve({ data: [] }),
-        employeeIds.length > 0 ? supabase.from("employees").select("id, first_name, last_name").in("id", employeeIds) : Promise.resolve({ data: [] })
+        jobIds.length > 0
+          ? supabase.from("jobs").select("id, title").in("id", jobIds)
+          : Promise.resolve({ data: [] }),
+        employeeIds.length > 0
+          ? supabase.from("employees").select("id, first_name, last_name").in("id", employeeIds)
+          : Promise.resolve({ data: [] }),
       ]);
 
-      const jobsMap = new Map((jobsData.data || []).map(j => [j.id, j]));
-      const employeesMap = new Map((employeesData.data || []).map(e => [e.id, e]));
+      const jobsMap = new Map((jobsData.data || []).map((j) => [j.id, j]));
+      const employeesMap = new Map((employeesData.data || []).map((e) => [e.id, e]));
 
-      const enrichedData = data.map(assignment => ({
+      const enrichedData = data.map((assignment) => ({
         ...assignment,
         jobs: assignment.job_id ? jobsMap.get(assignment.job_id) || null : null,
-        employees: assignment.assigned_to ? employeesMap.get(assignment.assigned_to) || null : null
+        employees: assignment.assigned_to ? employeesMap.get(assignment.assigned_to) || null : null,
       }));
 
       setAssignments(enrichedData);
@@ -88,7 +92,9 @@ export const EquipmentModal = ({ onClose }: EquipmentModalProps) => {
     (assignment) =>
       assignment.asset_type.toLowerCase().includes(searchQuery.toLowerCase()) ||
       assignment.jobs?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      `${assignment.employees?.first_name} ${assignment.employees?.last_name}`.toLowerCase().includes(searchQuery.toLowerCase())
+      `${assignment.employees?.first_name} ${assignment.employees?.last_name}`
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -148,7 +154,7 @@ export const EquipmentModal = ({ onClose }: EquipmentModalProps) => {
                             {assignment.returned_at ? "Returned" : "Active"}
                           </Badge>
                         </div>
-                        
+
                         <div className="space-y-1 text-sm text-muted-foreground">
                           {assignment.employees && (
                             <p>
@@ -158,8 +164,7 @@ export const EquipmentModal = ({ onClose }: EquipmentModalProps) => {
                           )}
                           {assignment.jobs && (
                             <p>
-                              <span className="font-medium">Job:</span>{" "}
-                              {assignment.jobs.title}
+                              <span className="font-medium">Job:</span> {assignment.jobs.title}
                             </p>
                           )}
                           <p>
@@ -186,8 +191,7 @@ export const EquipmentModal = ({ onClose }: EquipmentModalProps) => {
                           )}
                           {assignment.notes && (
                             <p>
-                              <span className="font-medium">Notes:</span>{" "}
-                              {assignment.notes}
+                              <span className="font-medium">Notes:</span> {assignment.notes}
                             </p>
                           )}
                         </div>

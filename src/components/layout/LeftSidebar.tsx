@@ -1,5 +1,17 @@
 import React, { useState } from "react";
-import { Crosshair, Minus, Circle, Square, Ruler, Trash2, Plus, MapPin, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import {
+  Crosshair,
+  Minus,
+  Circle,
+  Square,
+  Ruler,
+  Trash2,
+  Plus,
+  MapPin,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -146,7 +158,9 @@ export const LeftSidebar = () => {
               >
                 <p className="text-xs font-bold">{job.name}</p>
                 <div className="flex items-center justify-between mt-1">
-                  <span className="text-xs text-muted-foreground">{job.client_name || "Client"}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {job.client_name || "Client"}
+                  </span>
                   <span className="text-xs text-primary">{job.progress}%</span>
                 </div>
               </div>

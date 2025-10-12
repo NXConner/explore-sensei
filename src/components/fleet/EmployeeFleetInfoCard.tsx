@@ -22,7 +22,8 @@ interface InfoCardProps {
 }
 
 export const EmployeeFleetInfoCard = ({ type, data, onCardClick }: InfoCardProps) => {
-  const hasWaste = (data.wastedTime && data.wastedTime > 0) || (data.wastedMoney && data.wastedMoney > 0);
+  const hasWaste =
+    (data.wastedTime && data.wastedTime > 0) || (data.wastedMoney && data.wastedMoney > 0);
 
   return (
     <Card
@@ -32,10 +33,7 @@ export const EmployeeFleetInfoCard = ({ type, data, onCardClick }: InfoCardProps
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="font-bold text-sm">{data.name}</h3>
-          <Badge
-            variant={data.status === "active" ? "default" : "secondary"}
-            className="text-xs"
-          >
+          <Badge variant={data.status === "active" ? "default" : "secondary"} className="text-xs">
             {data.status}
           </Badge>
         </div>
@@ -52,9 +50,7 @@ export const EmployeeFleetInfoCard = ({ type, data, onCardClick }: InfoCardProps
           <div className="flex items-center gap-2">
             <Navigation className="w-4 h-4 text-primary" />
             <div>
-              <div className="text-muted-foreground">
-                {data.isMoving ? "Moving" : "Stationary"}
-              </div>
+              <div className="text-muted-foreground">{data.isMoving ? "Moving" : "Stationary"}</div>
               <div className="font-semibold">{data.activity || "Unknown"}</div>
             </div>
           </div>

@@ -19,7 +19,7 @@ export interface InventoryItem {
 export interface InventoryTransaction {
   id: string;
   item_id: string;
-  transaction_type: 'in' | 'out' | 'adjustment' | 'return';
+  transaction_type: "in" | "out" | "adjustment" | "return";
   quantity: number;
   job_id?: string;
   employee_id?: string;
@@ -56,7 +56,7 @@ export const useInventory = () => {
   });
 
   const addItem = useMutation({
-    mutationFn: async (item: Omit<InventoryItem, 'id'>) => {
+    mutationFn: async (item: Omit<InventoryItem, "id">) => {
       const { data, error } = await (supabase as any)
         .from("inventory_items")
         .insert(item)
@@ -89,7 +89,7 @@ export const useInventory = () => {
   });
 
   const recordTransaction = useMutation({
-    mutationFn: async (transaction: Omit<InventoryTransaction, 'id' | 'created_at'>) => {
+    mutationFn: async (transaction: Omit<InventoryTransaction, "id" | "created_at">) => {
       const { data, error } = await (supabase as any)
         .from("inventory_transactions")
         .insert(transaction)
@@ -98,12 +98,13 @@ export const useInventory = () => {
       if (error) throw error;
 
       // Update item quantity
-      const item = items?.find(i => i.id === transaction.item_id);
+      const item = items?.find((i) => i.id === transaction.item_id);
       if (item) {
-        const newQuantity = transaction.transaction_type === 'in' 
-          ? item.quantity + transaction.quantity
-          : item.quantity - transaction.quantity;
-        
+        const newQuantity =
+          transaction.transaction_type === "in"
+            ? item.quantity + transaction.quantity
+            : item.quantity - transaction.quantity;
+
         await (supabase as any)
           .from("inventory_items")
           .update({ quantity: newQuantity })
@@ -119,7 +120,7 @@ export const useInventory = () => {
     },
   });
 
-  const lowStockItems = items?.filter(item => item.quantity <= item.reorder_level) || [];
+  const lowStockItems = items?.filter((item) => item.quantity <= item.reorder_level) || [];
 
   return {
     items: items || [],

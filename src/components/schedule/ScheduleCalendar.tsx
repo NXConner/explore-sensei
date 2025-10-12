@@ -4,7 +4,16 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from "date-fns";
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameMonth,
+  isSameDay,
+  addMonths,
+  subMonths,
+} from "date-fns";
 
 interface ScheduleItem {
   id: string;
@@ -41,7 +50,7 @@ export const ScheduleCalendar = () => {
           date: job.start_date,
           status: job.status,
           type: "job",
-        }))
+        })),
       );
     }
   };
@@ -137,7 +146,10 @@ export const ScheduleCalendar = () => {
           </h3>
           <div className="space-y-2">
             {getItemsForDate(selectedDate).map((item) => (
-              <div key={item.id} className="flex items-center justify-between p-2 border border-primary/20 rounded">
+              <div
+                key={item.id}
+                className="flex items-center justify-between p-2 border border-primary/20 rounded"
+              >
                 <span>{item.title}</span>
                 <Badge className={getStatusColor(item.status)}>{item.status}</Badge>
               </div>

@@ -6,9 +6,7 @@ export const useKPIData = () => {
     queryKey: ["kpi-data"],
     queryFn: async () => {
       // Fetch active jobs count
-      const { data: jobs } = await supabase
-        .from("jobs")
-        .select("id, status");
+      const { data: jobs } = await supabase.from("jobs").select("id, status");
 
       // Fetch employees count
       const { data: employees } = await supabase
@@ -16,10 +14,9 @@ export const useKPIData = () => {
         .select("id, status")
         .eq("status", "active");
 
-      const activeJobs = jobs?.filter((j) => 
-        j.status === "In Progress" || j.status === "Scheduled"
-      ).length || 0;
-      
+      const activeJobs =
+        jobs?.filter((j) => j.status === "In Progress" || j.status === "Scheduled").length || 0;
+
       const crewMembers = employees?.length || 0;
 
       // Mock data for now - will be connected to real data later

@@ -37,9 +37,7 @@ export const useAutomation = () => {
   // Create rule mutation
   const createRule = useMutation({
     mutationFn: async (rule: Partial<AutomationRule>) => {
-      const { error } = await supabase
-        .from("automation_rules" as any)
-        .insert(rule);
+      const { error } = await supabase.from("automation_rules" as any).insert(rule);
 
       if (error) throw error;
     },

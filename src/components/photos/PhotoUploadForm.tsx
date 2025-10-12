@@ -3,7 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -27,9 +33,9 @@ export const PhotoUploadForm = ({ jobs, onSave, onCancel }: PhotoUploadFormProps
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
-      
+
       // Validate file type
-      if (!selectedFile.type.startsWith('image/')) {
+      if (!selectedFile.type.startsWith("image/")) {
         toast({
           title: "Invalid File",
           description: "Please select an image file",
@@ -54,7 +60,7 @@ export const PhotoUploadForm = ({ jobs, onSave, onCancel }: PhotoUploadFormProps
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!file || !jobId) {
       toast({
         title: "Missing Information",
@@ -70,7 +76,7 @@ export const PhotoUploadForm = ({ jobs, onSave, onCancel }: PhotoUploadFormProps
       // Get location if requested
       let latitude = null;
       let longitude = null;
-      
+
       if (useLocation && navigator.geolocation) {
         try {
           const position = await new Promise<GeolocationPosition>((resolve, reject) => {
@@ -84,11 +90,11 @@ export const PhotoUploadForm = ({ jobs, onSave, onCancel }: PhotoUploadFormProps
       }
 
       // Upload file to storage
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split(".").pop();
       const fileName = `${jobId}/${Date.now()}.${fileExt}`;
-      
+
       const { error: uploadError } = await supabase.storage
-        .from('job-photos')
+        .from("job-photos")
         .upload(fileName, file);
 
       if (uploadError) throw uploadError;
@@ -96,25 +102,23 @@ export const PhotoUploadForm = ({ jobs, onSave, onCancel }: PhotoUploadFormProps
       // Get current employee ID (simplified - you may need to fetch this from your auth system)
       const { data: userData } = await supabase.auth.getUser();
       const { data: employeeData } = await supabase
-        .from('employees')
-        .select('id')
-        .eq('user_id', userData?.user?.id)
+        .from("employees")
+        .select("id")
+        .eq("user_id", userData?.user?.id)
         .single();
 
       // Create database record
-      const { error: dbError } = await supabase
-        .from('job_photos')
-        .insert({
-          job_id: jobId,
-          employee_id: employeeData?.id || null,
-          file_path: fileName,
-          file_name: file.name,
-          url: fileName, // Required field
-          description: description || null,
-          photo_type: photoType,
-          latitude,
-          longitude,
-        });
+      const { error: dbError } = await supabase.from("job_photos").insert({
+        job_id: jobId,
+        employee_id: employeeData?.id || null,
+        file_path: fileName,
+        file_name: file.name,
+        url: fileName, // Required field
+        description: description || null,
+        photo_type: photoType,
+        latitude,
+        longitude,
+      });
 
       if (dbError) throw dbError;
 

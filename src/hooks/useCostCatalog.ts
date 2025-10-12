@@ -48,7 +48,7 @@ export const useCostCatalog = () => {
             ...catalog,
             items: items || [],
           };
-        })
+        }),
       );
 
       return catalogsWithItems as CostCatalog[];
@@ -105,11 +105,7 @@ export const useCostCatalog = () => {
 
   const createItem = useMutation({
     mutationFn: async (item: CostItem & { catalog_id: string }) => {
-      const { data, error } = await supabase
-        .from("cost_items")
-        .insert([item])
-        .select()
-        .single();
+      const { data, error } = await supabase.from("cost_items").insert([item]).select().single();
 
       if (error) throw error;
       return data;

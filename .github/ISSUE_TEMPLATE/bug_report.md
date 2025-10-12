@@ -15,6 +15,7 @@ labels: bug
 ## Screenshots/Logs
 
 ## Environment
+
 - Browser/OS:
 - Version:
 

@@ -41,14 +41,15 @@ export const KPITicker = () => {
       <div className="flex animate-marquee">
         {/* Duplicate KPIs for continuous scroll */}
         {[...kpis, ...kpis].map((kpi, idx) => (
-          <div key={`${kpi.label}-${idx}`} className="flex items-center gap-3 px-8 py-2 flex-shrink-0">
+          <div
+            key={`${kpi.label}-${idx}`}
+            className="flex items-center gap-3 px-8 py-2 flex-shrink-0"
+          >
             <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center animate-pulse">
               <kpi.icon className="w-4 h-4 text-primary" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                {kpi.label}
-              </p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">{kpi.label}</p>
               <div className="flex items-center gap-2">
                 <span className="text-lg font-bold text-glow">{kpi.value}</span>
                 <span

@@ -12,11 +12,7 @@ export const BackToMapButton = ({ variant = "outline", className = "" }: BackToM
   const navigate = useNavigate();
 
   return (
-    <Button
-      variant={variant}
-      onClick={() => navigate("/")}
-      className={`gap-2 ${className}`}
-    >
+    <Button variant={variant} onClick={() => navigate("/")} className={`gap-2 ${className}`}>
       <ArrowLeft className="w-4 h-4" />
       <Map className="w-4 h-4" />
       Back to Map

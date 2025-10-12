@@ -3,7 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
@@ -18,8 +24,8 @@ export const JobForm = ({ job, onSave, onCancel }: JobFormProps) => {
   const [title, setTitle] = useState(job?.title || "");
   const [description, setDescription] = useState(job?.description || "");
   const [status, setStatus] = useState(job?.status || "pending");
-  const [startDate, setStartDate] = useState(job?.start_date?.split('T')[0] || "");
-  const [endDate, setEndDate] = useState(job?.end_date?.split('T')[0] || "");
+  const [startDate, setStartDate] = useState(job?.start_date?.split("T")[0] || "");
+  const [endDate, setEndDate] = useState(job?.end_date?.split("T")[0] || "");
   const [budget, setBudget] = useState(job?.budget?.toString() || "");
   const [location, setLocation] = useState(job?.location || "");
   const [clientId, setClientId] = useState(job?.client_id || "");
@@ -32,11 +38,8 @@ export const JobForm = ({ job, onSave, onCancel }: JobFormProps) => {
   }, []);
 
   const fetchClients = async () => {
-    const { data } = await supabase
-      .from("clients")
-      .select("id, name")
-      .order("name");
-    
+    const { data } = await supabase.from("clients").select("id, name").order("name");
+
     if (data) setClients(data);
   };
 

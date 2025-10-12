@@ -3,7 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -45,11 +51,8 @@ export const FieldReportForm = ({ onSave, onCancel }: FieldReportFormProps) => {
   }, []);
 
   const fetchJobs = async () => {
-    const { data } = await supabase
-      .from("jobs")
-      .select("id, title")
-      .order("title");
-    
+    const { data } = await supabase.from("jobs").select("id, title").order("title");
+
     if (data) setJobs(data);
   };
 
@@ -58,7 +61,7 @@ export const FieldReportForm = ({ onSave, onCancel }: FieldReportFormProps) => {
       .from("employees")
       .select("id, first_name, last_name")
       .order("first_name");
-    
+
     if (data) setEmployees(data);
   };
 
@@ -74,9 +77,8 @@ export const FieldReportForm = ({ onSave, onCancel }: FieldReportFormProps) => {
       return;
     }
 
-    const { error } = await supabase
-      .from("daily_field_reports")
-      .insert([{
+    const { error } = await supabase.from("daily_field_reports").insert([
+      {
         report_date: reportDate,
         job_id: jobId || null,
         employee_id: employeeId || null,
@@ -86,8 +88,9 @@ export const FieldReportForm = ({ onSave, onCancel }: FieldReportFormProps) => {
         hours_worked: hoursWorked ? parseFloat(hoursWorked) : null,
         progress_percentage: progressPercentage ? parseInt(progressPercentage) : null,
         issues_encountered: issuesEncountered || null,
-        safety_notes: safetyNotes || null
-      } as any]);
+        safety_notes: safetyNotes || null,
+      } as any,
+    ]);
 
     if (error) {
       toast({

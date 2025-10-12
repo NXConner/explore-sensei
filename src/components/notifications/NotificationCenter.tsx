@@ -1,11 +1,7 @@
 import React from "react";
 import { Bell, Check, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -47,12 +43,7 @@ export const NotificationCenter = () => {
         <div className="flex items-center justify-between p-4 border-b">
           <h3 className="font-semibold">Notifications</h3>
           {unreadCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => markAllAsRead()}
-              className="text-xs"
-            >
+            <Button variant="ghost" size="sm" onClick={() => markAllAsRead()} className="text-xs">
               <Check className="h-3 w-3 mr-1" />
               Mark all read
             </Button>
@@ -77,13 +68,14 @@ export const NotificationCenter = () => {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <h4 className="font-medium text-sm">{notification.title}</h4>
-                        <Badge variant={getPriorityColor(notification.priority)} className="text-xs">
+                        <Badge
+                          variant={getPriorityColor(notification.priority)}
+                          className="text-xs"
+                        >
                           {notification.priority}
                         </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        {notification.message}
-                      </p>
+                      <p className="text-sm text-muted-foreground mb-2">{notification.message}</p>
                       <p className="text-xs text-muted-foreground">
                         {formatDistanceToNow(new Date(notification.created_at), {
                           addSuffix: true,

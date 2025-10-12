@@ -1,8 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 const BUSINESS_KNOWLEDGE = `You are an AI assistant for Asphalt Overwatch, a tactical asphalt paving operations management system.
@@ -43,14 +43,14 @@ OPTIMAL WORK CONDITIONS:
 You should provide helpful, accurate information about operations, schedules, safety protocols, and company policies. Keep responses clear and professional.`;
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { messages } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    
+
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
@@ -65,10 +65,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: BUSINESS_KNOWLEDGE },
-          ...messages,
-        ],
+        messages: [{ role: "system", content: BUSINESS_KNOWLEDGE }, ...messages],
         temperature: 0.7,
       }),
     });
@@ -76,21 +73,21 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error("AI gateway error:", response.status, errorText);
-      
+
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
-      
+
       if (response.status === 402) {
         return new Response(
           JSON.stringify({ error: "AI credits depleted. Please contact administrator." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
-      
+
       throw new Error(`AI gateway error: ${response.status}`);
     }
 
@@ -104,7 +101,7 @@ serve(async (req) => {
     console.error("chat error:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });

@@ -8,4 +8,3 @@ describe("App import", () => {
     expect(typeof mod.default).toBe("function");
   });
 });
-

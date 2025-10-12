@@ -28,14 +28,23 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     radarSpeed: 3,
     glitchIntensity: 30,
     animationSpeed: 100,
-    glitchClickPreset: 'subtle' as 'barely' | 'subtle' | 'normal',
+    glitchClickPreset: "subtle" as "barely" | "subtle" | "normal",
     vignetteEffect: false,
     // Sounds
     uiSounds: false,
     alertSounds: true,
     soundVolume: 70,
     // Themes & Wallpapers
-    theme: "tactical-dark" as "tactical-dark" | "light" | "high-contrast" | "church-blue" | "safety-green" | "construction" | "landscaping" | "security" | "aviation",
+    theme: "tactical-dark" as
+      | "tactical-dark"
+      | "light"
+      | "high-contrast"
+      | "church-blue"
+      | "safety-green"
+      | "construction"
+      | "landscaping"
+      | "security"
+      | "aviation",
     mapTheme: "division" as "division" | "animus",
     wallpaperUrl: "",
     wallpaperOpacity: 60,
@@ -155,14 +164,14 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     const body = document.body as HTMLBodyElement;
     if (settings.wallpaperUrl) {
       body.style.backgroundImage = `url('${settings.wallpaperUrl}')`;
-      body.style.backgroundSize = 'cover';
-      body.style.backgroundRepeat = 'no-repeat';
-      body.style.backgroundAttachment = 'fixed';
-      body.style.backgroundPosition = 'center';
+      body.style.backgroundSize = "cover";
+      body.style.backgroundRepeat = "no-repeat";
+      body.style.backgroundAttachment = "fixed";
+      body.style.backgroundPosition = "center";
       body.style.opacity = String(Math.max(0.3, Math.min(1, settings.wallpaperOpacity / 100)));
     } else {
-      body.style.backgroundImage = '';
-      body.style.opacity = '1';
+      body.style.backgroundImage = "";
+      body.style.opacity = "1";
     }
   }, [settings.theme, settings.wallpaperUrl, settings.wallpaperOpacity]);
 
@@ -272,11 +281,11 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                         if (t.premium && !settings.premiumEnabled) return;
                         setSettings((p) => ({ ...p, theme: t.id as any }));
                       }}
-                      className={`justify-start ${t.premium && !settings.premiumEnabled ? 'opacity-60 cursor-not-allowed' : ''}`}
+                      className={`justify-start ${t.premium && !settings.premiumEnabled ? "opacity-60 cursor-not-allowed" : ""}`}
                     >
                       {t.label}
                     </Button>
-                   ))}
+                  ))}
                 </div>
               </div>
 
@@ -326,7 +335,9 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     <input
                       type="text"
                       value={settings.defaultMapAddress}
-                      onChange={(e) => setSettings((p) => ({ ...p, defaultMapAddress: e.target.value }))}
+                      onChange={(e) =>
+                        setSettings((p) => ({ ...p, defaultMapAddress: e.target.value }))
+                      }
                       placeholder="123 Main St, City, State"
                       className="w-full mt-1 px-3 py-2 bg-background border border-border rounded-md text-sm"
                       disabled={!settings.useDefaultLocation}
@@ -352,10 +363,14 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     className="w-full hud-element border-primary/30 rounded px-3 py-2 text-sm bg-transparent"
                   />
                   <div className="pl-1">
-                    <Label className="text-xs">Wallpaper Opacity: {settings.wallpaperOpacity}%</Label>
+                    <Label className="text-xs">
+                      Wallpaper Opacity: {settings.wallpaperOpacity}%
+                    </Label>
                     <Slider
                       value={[settings.wallpaperOpacity]}
-                      onValueChange={([val]) => setSettings((prev) => ({ ...prev, wallpaperOpacity: val }))}
+                      onValueChange={([val]) =>
+                        setSettings((prev) => ({ ...prev, wallpaperOpacity: val }))
+                      }
                       min={10}
                       max={100}
                       step={5}
@@ -373,42 +388,77 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div>
                     <Label className="text-xs">Primary Hue</Label>
-                    <input type="range" min={0} max={360} step={1}
-                      value={Number((getComputedStyle(document.documentElement).getPropertyValue('--primary').split(' ')[0]) || 30)}
+                    <input
+                      type="range"
+                      min={0}
+                      max={360}
+                      step={1}
+                      value={Number(
+                        getComputedStyle(document.documentElement)
+                          .getPropertyValue("--primary")
+                          .split(" ")[0] || 30,
+                      )}
                       onChange={(e) => {
                         const root = document.documentElement as HTMLElement;
-                        const current = getComputedStyle(root).getPropertyValue('--primary').trim().split(' ');
-                        const sat = current[1] || '100%';
-                        const lum = current[2] || '50%';
-                        root.style.setProperty('--primary', `${e.target.value} ${sat} ${lum}`);
+                        const current = getComputedStyle(root)
+                          .getPropertyValue("--primary")
+                          .trim()
+                          .split(" ");
+                        const sat = current[1] || "100%";
+                        const lum = current[2] || "50%";
+                        root.style.setProperty("--primary", `${e.target.value} ${sat} ${lum}`);
                       }}
                       className="w-full"
                     />
                   </div>
                   <div>
                     <Label className="text-xs">Accent Hue</Label>
-                    <input type="range" min={0} max={360} step={1}
-                      value={Number((getComputedStyle(document.documentElement).getPropertyValue('--accent').split(' ')[0]) || 197)}
+                    <input
+                      type="range"
+                      min={0}
+                      max={360}
+                      step={1}
+                      value={Number(
+                        getComputedStyle(document.documentElement)
+                          .getPropertyValue("--accent")
+                          .split(" ")[0] || 197,
+                      )}
                       onChange={(e) => {
                         const root = document.documentElement as HTMLElement;
-                        const current = getComputedStyle(root).getPropertyValue('--accent').trim().split(' ');
-                        const sat = current[1] || '100%';
-                        const lum = current[2] || '50%';
-                        root.style.setProperty('--accent', `${e.target.value} ${sat} ${lum}`);
+                        const current = getComputedStyle(root)
+                          .getPropertyValue("--accent")
+                          .trim()
+                          .split(" ");
+                        const sat = current[1] || "100%";
+                        const lum = current[2] || "50%";
+                        root.style.setProperty("--accent", `${e.target.value} ${sat} ${lum}`);
                       }}
                       className="w-full"
                     />
                   </div>
                   <div>
                     <Label className="text-xs">Background Luminance</Label>
-                    <input type="range" min={0} max={100} step={1}
-                      value={Number((getComputedStyle(document.documentElement).getPropertyValue('--background').split(' ')[2] || '4%').replace('%',''))}
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      step={1}
+                      value={Number(
+                        (
+                          getComputedStyle(document.documentElement)
+                            .getPropertyValue("--background")
+                            .split(" ")[2] || "4%"
+                        ).replace("%", ""),
+                      )}
                       onChange={(e) => {
                         const root = document.documentElement as HTMLElement;
-                        const current = getComputedStyle(root).getPropertyValue('--background').trim().split(' ');
-                        const h = current[0] || '0';
-                        const s = current[1] || '0%';
-                        root.style.setProperty('--background', `${h} ${s} ${e.target.value}%`);
+                        const current = getComputedStyle(root)
+                          .getPropertyValue("--background")
+                          .trim()
+                          .split(" ");
+                        const h = current[0] || "0";
+                        const s = current[1] || "0%";
+                        root.style.setProperty("--background", `${h} ${s} ${e.target.value}%`);
                       }}
                       className="w-full"
                     />
@@ -417,9 +467,21 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                 <div className="mt-2 p-3 border border-primary/30 rounded">
                   <div className="text-xs mb-2">Live Preview</div>
                   <div className="flex gap-2">
-                    <button className="px-3 py-2 rounded bg-primary text-primary-foreground">Primary</button>
-                    <button className="px-3 py-2 rounded bg-accent text-accent-foreground">Accent</button>
-                    <div className="px-3 py-2 rounded border" style={{ background: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}>Body</div>
+                    <button className="px-3 py-2 rounded bg-primary text-primary-foreground">
+                      Primary
+                    </button>
+                    <button className="px-3 py-2 rounded bg-accent text-accent-foreground">
+                      Accent
+                    </button>
+                    <div
+                      className="px-3 py-2 rounded border"
+                      style={{
+                        background: "hsl(var(--background))",
+                        color: "hsl(var(--foreground))",
+                      }}
+                    >
+                      Body
+                    </div>
                   </div>
                 </div>
               </div>
@@ -432,9 +494,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     <Bell className="w-5 h-5 text-primary" />
                     <div>
                       <Label>Enable Notifications</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Receive alerts and updates
-                      </p>
+                      <p className="text-sm text-muted-foreground">Receive alerts and updates</p>
                     </div>
                   </div>
                   <Switch
@@ -448,9 +508,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label>Sound Effects</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Play sounds for notifications
-                    </p>
+                    <p className="text-sm text-muted-foreground">Play sounds for notifications</p>
                   </div>
                   <Switch
                     checked={settings.soundEffects}
@@ -472,9 +530,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   <div className="flex items-center justify-between">
                     <div>
                       <Label>Radar Sweep Effect</Label>
-                      <p className="text-xs text-muted-foreground">
-                        Rotating radar sweep on map
-                      </p>
+                      <p className="text-xs text-muted-foreground">Rotating radar sweep on map</p>
                     </div>
                     <Switch
                       checked={settings.radarEffect}
@@ -503,9 +559,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   <div className="flex items-center justify-between">
                     <div>
                       <Label>Glitch Effect</Label>
-                      <p className="text-xs text-muted-foreground">
-                        Tactical glitch overlay
-                      </p>
+                      <p className="text-xs text-muted-foreground">Tactical glitch overlay</p>
                     </div>
                     <Switch
                       checked={settings.glitchEffect}
@@ -530,7 +584,9 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                         <select
                           className="hud-element border-primary/30 rounded px-2 py-1 text-xs bg-transparent"
                           value={settings.glitchClickPreset}
-                          onChange={(e) => setSettings((p) => ({ ...p, glitchClickPreset: e.target.value as any }))}
+                          onChange={(e) =>
+                            setSettings((p) => ({ ...p, glitchClickPreset: e.target.value as any }))
+                          }
                         >
                           <option value="barely">Barely</option>
                           <option value="subtle">Subtle</option>
@@ -545,9 +601,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label>Scanline Effect</Label>
-                    <p className="text-xs text-muted-foreground">
-                      CRT-style scanlines
-                    </p>
+                    <p className="text-xs text-muted-foreground">CRT-style scanlines</p>
                   </div>
                   <Switch
                     checked={settings.scanlineEffect}
@@ -559,9 +613,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label>Grid Overlay</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Tactical grid pattern
-                    </p>
+                    <p className="text-xs text-muted-foreground">Tactical grid pattern</p>
                   </div>
                   <Switch
                     checked={settings.gridOverlay}
@@ -573,9 +625,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label>Vignette Corners</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Subtle darkening near the edges
-                    </p>
+                    <p className="text-xs text-muted-foreground">Subtle darkening near the edges</p>
                   </div>
                   <Switch
                     checked={settings.vignetteEffect}
@@ -585,7 +635,9 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
 
                 {/* Animation Speed */}
                 <div>
-                  <Label className="text-xs">Global Animation Speed: {settings.animationSpeed}%</Label>
+                  <Label className="text-xs">
+                    Global Animation Speed: {settings.animationSpeed}%
+                  </Label>
                   <Slider
                     value={[settings.animationSpeed]}
                     onValueChange={([val]) =>
@@ -611,9 +663,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label>UI Sounds</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Button clicks and interactions
-                    </p>
+                    <p className="text-xs text-muted-foreground">Button clicks and interactions</p>
                   </div>
                   <Switch
                     checked={settings.uiSounds}
@@ -625,9 +675,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label>Alert Sounds</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Notification and warning sounds
-                    </p>
+                    <p className="text-xs text-muted-foreground">Notification and warning sounds</p>
                   </div>
                   <Switch
                     checked={settings.alertSounds}
@@ -657,9 +705,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <Label>Screensaver Mode</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Auto-start after idle time
-                    </p>
+                    <p className="text-sm text-muted-foreground">Auto-start after idle time</p>
                   </div>
                   <Switch
                     checked={settings.screensaver}

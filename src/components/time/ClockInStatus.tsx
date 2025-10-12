@@ -33,7 +33,7 @@ export const ClockInStatus = () => {
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
       setElapsedTime(
-        `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+        `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`,
       );
     }, 1000);
 
@@ -47,7 +47,10 @@ export const ClockInStatus = () => {
     if (newStatus) {
       setIsClockedIn(true);
       setClockInTime(now);
-      localStorage.setItem("clock_status", JSON.stringify({ isClockedIn: true, clockInTime: now.toISOString() }));
+      localStorage.setItem(
+        "clock_status",
+        JSON.stringify({ isClockedIn: true, clockInTime: now.toISOString() }),
+      );
       toast({ title: "Clocked In", description: `Started at ${now.toLocaleTimeString()}` });
     } else {
       setIsClockedIn(false);
@@ -72,9 +75,7 @@ export const ClockInStatus = () => {
   return (
     <Card
       className={`fixed right-[280px] top-20 z-[400] p-3 backdrop-blur-sm border-2 transition-colors ${
-        isClockedIn
-          ? "bg-green-500/10 border-green-500"
-          : "bg-red-500/10 border-red-500"
+        isClockedIn ? "bg-green-500/10 border-green-500" : "bg-red-500/10 border-red-500"
       }`}
     >
       <div className="flex items-center gap-3">

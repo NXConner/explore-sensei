@@ -4,14 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useChat } from "@/hooks/useChat";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
 export const TeamChat = () => {
   const [selectedRoom, setSelectedRoom] = useState<string>();
   const [newMessage, setNewMessage] = useState("");
   const [newRoomName, setNewRoomName] = useState("");
-  
+
   const { rooms, messages, createRoom, sendMessage } = useChat(selectedRoom);
 
   const handleSendMessage = () => {
@@ -79,18 +85,14 @@ export const TeamChat = () => {
         {selectedRoom ? (
           <>
             <div className="p-4 border-b">
-              <h3 className="font-semibold">
-                {rooms?.find((r) => r.id === selectedRoom)?.name}
-              </h3>
+              <h3 className="font-semibold">{rooms?.find((r) => r.id === selectedRoom)?.name}</h3>
             </div>
             <ScrollArea className="flex-1 p-4">
               <div className="space-y-4">
                 {messages?.map((message) => (
                   <div key={message.id} className="flex gap-3">
                     <div className="flex-1">
-                      <p className="text-sm bg-accent p-3 rounded-lg">
-                        {message.message}
-                      </p>
+                      <p className="text-sm bg-accent p-3 rounded-lg">{message.message}</p>
                       <p className="text-xs text-muted-foreground mt-1">
                         {new Date(message.created_at).toLocaleTimeString()}
                       </p>

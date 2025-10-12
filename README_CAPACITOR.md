@@ -5,6 +5,7 @@ This project is configured to run as a native Android mobile app using Capacitor
 ## Building Android APK
 
 ### Prerequisites
+
 - Node.js and npm installed
 - Android Studio installed
 - Java JDK 17 or higher
@@ -12,26 +13,31 @@ This project is configured to run as a native Android mobile app using Capacitor
 ### Step-by-Step Build Process
 
 1. **Install Dependencies**
+
    ```bash
    npm install
    ```
 
 2. **Build the Web Assets**
+
    ```bash
    npm run build
    ```
 
 3. **Add Android Platform** (if not already added)
+
    ```bash
    npx cap add android
    ```
 
 4. **Sync Capacitor**
+
    ```bash
    npx cap sync android
    ```
 
 5. **Open in Android Studio**
+
    ```bash
    npx cap open android
    ```
@@ -56,6 +62,7 @@ The APK will be at: `android/app/build/outputs/apk/debug/app-debug.apk`
 ### Building Release APK (Production)
 
 1. **Generate Signing Key**
+
    ```bash
    keytool -genkey -v -keystore asphalt-os-release.keystore -alias asphalt-os -keyalg RSA -keysize 2048 -validity 10000
    ```
@@ -73,6 +80,7 @@ The APK will be at: `android/app/build/outputs/apk/debug/app-debug.apk`
 ### Optimizations for Mobile
 
 The app includes mobile-specific optimizations:
+
 - Responsive layout for all screen sizes
 - Touch-optimized UI controls
 - Smooth animations and transitions
@@ -89,11 +97,13 @@ The app includes mobile-specific optimizations:
 ### Common Issues
 
 **Gradle Build Failed:**
+
 - Check Java version: `java -version` (should be 17+)
 - Update Android Studio to latest version
 - Sync Gradle files in Android Studio
 
 **App Crashes on Launch:**
+
 - Check Android logs: `npx cap run android --target=<device-id> --livereload`
 - Verify all dependencies are installed
 - Clear app data and reinstall
@@ -101,6 +111,7 @@ The app includes mobile-specific optimizations:
 ### Live Reload for Development
 
 For development with live reload:
+
 ```bash
 npx cap run android --livereload --external
 ```
@@ -110,12 +121,15 @@ This allows you to see changes instantly on your device without rebuilding.
 ## Development Workflow
 
 ### 1. Live Reload (Hot reload from sandbox)
+
 The app is configured to load from:
+
 ```
 https://85d40e13-6694-4afc-9e47-167e8bd1ac0b.lovableproject.com
 ```
 
 This means:
+
 - Changes you make in Lovable appear instantly on the Android app
 - No need to rebuild for every change
 - Perfect for rapid development
@@ -126,6 +140,7 @@ When ready to deploy:
 
 1. Update `capacitor.config.ts` and remove the `server` section
 2. Build and sync:
+
 ```bash
 npm run build
 npx cap sync android

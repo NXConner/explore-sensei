@@ -1,7 +1,10 @@
 import React, { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Scan, Upload, MapPin, AlertCircle } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Scan, Upload, MapPin, AlertCircle, Download, Share2, Camera, FileImage, Zap, TrendingUp, Shield, Clock, Edit3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,10 +12,51 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { exportAIReportToPDF } from "@/lib/pdfExport";
 import { getGoogleMapsApiKey } from "@/config/env";
 import { useMap } from "@/components/map/MapContext";
+import { LoadingSpinner, LoadingOverlay } from "@/components/ui/LoadingSpinner";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
+import { AnimatedDiv, HoverAnimation } from "@/components/ui/Animations";
+import { AsphaltOverlayViewer } from "./AsphaltOverlayViewer";
+import { AsphaltOverlayEditor } from "./AsphaltOverlayEditor";
 
 interface AIAsphaltDetectionModalProps {
   isOpen: boolean;
   onClose: () => void;
+}
+
+interface AsphaltArea {
+  id: string;
+  coordinates: Array<{ x: number; y: number }>;
+  area_sqft: number;
+  condition: string;
+}
+
+interface AnalysisResult {
+  id: string;
+  image: string;
+  condition_score: number;
+  detected_issues: string[];
+  recommendations: string[];
+  confidence_score: number;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  estimated_cost: number;
+  priority: number;
+  timestamp: string;
+  condition?: string;
+  area_sqft?: number;
+  area_sqm?: number;
+  estimated_repair_cost?: string;
+  ai_notes?: string;
+  asphalt_areas?: AsphaltArea[];
+}
+
+interface BatchAnalysis {
+  id: string;
+  name: string;
+  results: AnalysisResult[];
+  total_cost: number;
+  average_condition: number;
+  critical_issues: number;
+  created_at: string;
 }
 
 export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionModalProps) => {
@@ -20,9 +64,17 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [results, setResults] = useState<any>(null);
+  const [results, setResults] = useState<AnalysisResult | null>(null);
+  const [batchResults, setBatchResults] = useState<BatchAnalysis[]>([]);
+  const [selectedBatch, setSelectedBatch] = useState<BatchAnalysis | null>(null);
   const [error, setError] = useState<string>("");
   const [selectedImage, setSelectedImage] = useState<string>("");
+  const [uploadedImages, setUploadedImages] = useState<File[]>([]);
+  const [activeTab, setActiveTab] = useState<'single' | 'batch' | 'history'>('single');
+  const [analysisHistory, setAnalysisHistory] = useState<AnalysisResult[]>([]);
+  const [showOverlayViewer, setShowOverlayViewer] = useState(false);
+  const [showOverlayEditor, setShowOverlayEditor] = useState(false);
+  const [editedAreas, setEditedAreas] = useState<AsphaltArea[]>([]);
   const { map } = useMap();
 
   const analyzeImage = async (imageDataUrl: string) => {
@@ -32,10 +84,10 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
       setError("");
       setResults(null);
 
-      console.log('Calling AI analysis function...');
+      console.log("Calling AI analysis function...");
 
-      const { data, error: functionError } = await supabase.functions.invoke('analyze-asphalt', {
-        body: { imageData: imageDataUrl }
+      const { data, error: functionError } = await supabase.functions.invoke("analyze-asphalt", {
+        body: { imageData: imageDataUrl },
       });
 
       setProgress(90);
@@ -45,7 +97,7 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
       }
 
       if (!data?.success) {
-        throw new Error(data?.error || 'Analysis failed');
+        throw new Error(data?.error || "Analysis failed");
       }
 
       setProgress(100);
@@ -55,10 +107,9 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
         title: "Analysis Complete",
         description: `Surface condition: ${data.analysis.condition}. Confidence: ${data.analysis.confidence_score}%`,
       });
-
-    } catch (err: any) {
-      console.error('Analysis error:', err);
-      const errorMsg = err.message || 'Failed to analyze image';
+    } catch (err: unknown) {
+      console.error("Analysis error:", err);
+      const errorMsg = err instanceof Error ? err.message : "Failed to analyze image";
       setError(errorMsg);
       toast({
         title: "Analysis Failed",
@@ -76,7 +127,7 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
     if (!file) return;
 
     // Check file type
-    if (!file.type.startsWith('image/')) {
+    if (!file.type.startsWith("image/")) {
       toast({
         title: "Invalid File",
         description: "Please upload an image file (JPG, PNG, etc.)",
@@ -164,9 +215,13 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
 
       setSelectedImage(dataUrl);
       await analyzeImage(dataUrl);
-    } catch (e: any) {
-      setError(e?.message || "Failed to analyze current map view");
-      toast({ title: "Capture Failed", description: e?.message || "Could not capture map view.", variant: "destructive" });
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to analyze current map view");
+      toast({
+        title: "Capture Failed",
+        description: e instanceof Error ? e.message : "Could not capture map view.",
+        variant: "destructive",
+      });
     } finally {
       setIsAnalyzing(false);
       setProgress(0);
@@ -214,9 +269,9 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
 
           {selectedImage && (
             <div className="border rounded-lg p-2">
-              <img 
-                src={selectedImage} 
-                alt="Selected for analysis" 
+              <img
+                src={selectedImage}
+                alt="Selected for analysis"
                 className="w-full h-48 object-cover rounded"
               />
             </div>
@@ -246,13 +301,11 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
             <div className="space-y-4 animate-fade-in">
               <div className="border rounded-lg p-4 bg-accent/20">
                 <h3 className="font-semibold mb-3">AI Analysis Results</h3>
-                
+
                 <div className="grid grid-cols-3 gap-4 mb-4">
                   <div>
                     <div className="text-sm text-muted-foreground">Condition</div>
-                    <div className="text-xl font-bold text-primary">
-                      {results.condition}
-                    </div>
+                    <div className="text-xl font-bold text-primary">{results.condition}</div>
                   </div>
                   <div>
                     <div className="text-sm text-muted-foreground">Confidence</div>
@@ -262,9 +315,7 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
                   </div>
                   <div>
                     <div className="text-sm text-muted-foreground">Priority</div>
-                    <div className="text-xl font-bold text-primary">
-                      {results.priority}
-                    </div>
+                    <div className="text-xl font-bold text-primary">{results.priority}</div>
                   </div>
                 </div>
 
@@ -289,12 +340,13 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
                   <div className="mb-4">
                     <div className="text-sm font-semibold mb-2">Detected Issues</div>
                     <div className="space-y-2">
-                      {results.detected_issues.map((issue: any, idx: number) => (
+                      {results.detected_issues.map((issue: string, idx: number) => (
                         <div key={idx} className="border rounded p-2 bg-background text-sm">
-                          <span className="font-semibold capitalize">{issue.type.replace(/_/g, ' ')}</span>
-                          {' - '}
-                          <span className="text-muted-foreground">
-                            {issue.severity} ({issue.location})
+                          <span className="font-semibold capitalize">
+                            {issue.replace(/_/g, " ")}
+                          </span>
+                          <span className="text-muted-foreground ml-2">
+                            Issue detected
                           </span>
                         </div>
                       ))}
@@ -331,7 +383,7 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
                 )}
 
                 <div className="flex gap-2 mt-4">
-                  <Button 
+                  <Button
                     className="flex-1"
                     onClick={() => {
                       // TODO: Wire to estimate module with prefilled line items from results
@@ -343,8 +395,8 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
                   >
                     Generate Estimate
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="flex-1"
                     onClick={() => {
                       if (results) {
@@ -358,13 +410,38 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
                   >
                     Export Report
                   </Button>
+                  {results.asphalt_areas && results.asphalt_areas.length > 0 && (
+                    <>
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowOverlayViewer(true)}
+                        className="flex-1"
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        View Overlay
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setEditedAreas(results.asphalt_areas || []);
+                          setShowOverlayEditor(true);
+                        }}
+                        className="flex-1"
+                      >
+                        <Edit3 className="w-4 h-4 mr-2" />
+                        Manual Adjust
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
           )}
 
           <div className="text-xs text-muted-foreground space-y-1 border-t pt-4">
-            <p><strong>AI-Powered Analysis:</strong></p>
+            <p>
+              <strong>AI-Powered Analysis:</strong>
+            </p>
             <p>• Upload aerial or ground-level images of asphalt surfaces</p>
             <p>• AI analyzes condition, detects issues (cracks, potholes, wear)</p>
             <p>• Provides detailed recommendations and cost estimates</p>
@@ -375,6 +452,60 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
           </div>
         </div>
       </DialogContent>
+
+      {/* Overlay Viewer Modal */}
+      {showOverlayViewer && results && results.asphalt_areas && selectedImage && (
+        <Dialog open={showOverlayViewer} onOpenChange={setShowOverlayViewer}>
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Scan className="w-5 h-5 text-cyan-500" />
+                AI Asphalt Detection Overlay
+              </DialogTitle>
+            </DialogHeader>
+            <AsphaltOverlayViewer
+              originalImage={selectedImage}
+              asphaltAreas={results.asphalt_areas}
+              totalArea={results.area_sqft || 0}
+              onClose={() => setShowOverlayViewer(false)}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Overlay Editor Modal */}
+      {showOverlayEditor && results && selectedImage && (
+        <Dialog open={showOverlayEditor} onOpenChange={setShowOverlayEditor}>
+          <DialogContent className="max-w-7xl max-h-[95vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Edit3 className="w-5 h-5 text-cyan-500" />
+                Manual Asphalt Area Adjustment
+              </DialogTitle>
+            </DialogHeader>
+            <AsphaltOverlayEditor
+              originalImage={selectedImage}
+              asphaltAreas={editedAreas}
+              totalArea={results.area_sqft || 0}
+              onClose={() => setShowOverlayEditor(false)}
+              onSave={(areas, totalArea) => {
+                // Update the results with edited areas
+                setResults({
+                  ...results,
+                  asphalt_areas: areas,
+                  area_sqft: totalArea,
+                  area_sqm: totalArea * 0.092903
+                });
+                setShowOverlayEditor(false);
+                toast({
+                  title: "Areas Updated",
+                  description: `Manual adjustments saved. Total area: ${totalArea.toLocaleString()} ft²`
+                });
+              }}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </Dialog>
   );
 };

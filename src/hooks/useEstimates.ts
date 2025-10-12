@@ -25,7 +25,7 @@ export interface Estimate {
   tax_rate: number;
   tax_amount: number;
   total: number;
-  status: 'draft' | 'sent' | 'accepted' | 'rejected';
+  status: "draft" | "sent" | "accepted" | "rejected";
   notes?: string;
   valid_until?: string;
   line_items: EstimateLineItem[];
@@ -58,7 +58,7 @@ export const useEstimates = () => {
             ...estimate,
             line_items: lineItems || [],
           };
-        })
+        }),
       );
 
       return estimatesWithItems;

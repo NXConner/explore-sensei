@@ -4,7 +4,13 @@ import { Button } from "@/components/ui/button";
 import { BackToMapButton } from "@/components/common/BackToMapButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Calculator, Download, Save } from "lucide-react";
@@ -146,12 +152,12 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
     setLineItems(newLines);
   };
 
-  const useLatestMeasurement = (type: 'area' | 'distance') => {
+  const useLatestMeasurement = (type: "area" | "distance") => {
     if (!measurements || measurements.length === 0) return;
     const m = measurements.find((mm) => mm.type === type);
     if (!m) return;
-    if (type === 'area') setAreaSqFt(String(Math.round(m.value)));
-    if (type === 'distance') setLinearFeet(String(Math.round(m.value * 3.28084))); // meters to feet
+    if (type === "area") setAreaSqFt(String(Math.round(m.value)));
+    if (type === "distance") setLinearFeet(String(Math.round(m.value * 3.28084))); // meters to feet
   };
 
   const handleSaveEstimate = async () => {
@@ -174,8 +180,8 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
         tax_rate: taxRate,
         tax_amount: tax,
         total: grandTotal,
-        status: 'draft',
-        line_items: lineItems.map(item => ({
+        status: "draft",
+        line_items: lineItems.map((item) => ({
           cost_item_id: item.item_id,
           item_name: item.name,
           item_code: item.code,
@@ -211,7 +217,7 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
         <div className="flex-1 grid grid-cols-2 gap-4 overflow-hidden">
           <div className="border rounded-lg p-4 flex flex-col">
             <h3 className="font-semibold mb-3">Customer & Items</h3>
-            
+
             <div className="space-y-3 mb-4">
               <div>
                 <Label>Customer Name *</Label>
@@ -295,16 +301,16 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold">Estimate Summary</h3>
               <div className="flex gap-2">
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   onClick={handleSaveEstimate}
                   disabled={!customerName || lineItems.length === 0}
                 >
                   <Save className="w-4 h-4 mr-1" />
                   Save
                 </Button>
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   variant="outline"
                   onClick={() => {
                     if (savedEstimateId && customerName && lineItems.length > 0) {
@@ -312,7 +318,7 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
                         id: savedEstimateId,
                         customer_name: customerName,
                         total_cost: grandTotal,
-                        items: lineItems.map(item => ({
+                        items: lineItems.map((item) => ({
                           name: item.name,
                           quantity: item.quantity,
                           unit: item.unit,
@@ -368,13 +374,17 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
                           <Input
                             type="number"
                             value={String(line.quantity)}
-                            onChange={(e) => updateLineItem(index, { quantity: parseFloat(e.target.value) || 0 })}
+                            onChange={(e) =>
+                              updateLineItem(index, { quantity: parseFloat(e.target.value) || 0 })
+                            }
                             placeholder="Qty"
                           />
                           <Input
                             type="number"
                             value={String(line.unit_cost)}
-                            onChange={(e) => updateLineItem(index, { unit_cost: parseFloat(e.target.value) || 0 })}
+                            onChange={(e) =>
+                              updateLineItem(index, { unit_cost: parseFloat(e.target.value) || 0 })
+                            }
                             placeholder="Rate"
                           />
                         </div>
@@ -430,46 +440,126 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
             <div className="space-y-2">
               <Label>Services</Label>
               <div className="flex flex-col gap-2 text-sm">
-                <label className="flex items-center gap-2"><input type="checkbox" checked={svcSeal} onChange={(e) => setSvcSeal(e.target.checked)} /> Sealcoat</label>
-                <label className="flex items-center gap-2"><input type="checkbox" checked={svcCrack} onChange={(e) => setSvcCrack(e.target.checked)} /> Crackfill</label>
-                <label className="flex items-center gap-2"><input type="checkbox" checked={svcPatch} onChange={(e) => setSvcPatch(e.target.checked)} /> Patching</label>
-                <label className="flex items-center gap-2"><input type="checkbox" checked={svcStripe} onChange={(e) => setSvcStripe(e.target.checked)} /> Striping</label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={svcSeal}
+                    onChange={(e) => setSvcSeal(e.target.checked)}
+                  />{" "}
+                  Sealcoat
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={svcCrack}
+                    onChange={(e) => setSvcCrack(e.target.checked)}
+                  />{" "}
+                  Crackfill
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={svcPatch}
+                    onChange={(e) => setSvcPatch(e.target.checked)}
+                  />{" "}
+                  Patching
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={svcStripe}
+                    onChange={(e) => setSvcStripe(e.target.checked)}
+                  />{" "}
+                  Striping
+                </label>
               </div>
             </div>
             <div className="space-y-2">
               <Label>Area (sqft)</Label>
               <div className="flex gap-2">
-                <Input value={areaSqFt} onChange={(e) => setAreaSqFt(e.target.value)} placeholder="e.g., 12000" />
-                <Button type="button" variant="outline" onClick={() => useLatestMeasurement('area')}>Use Map</Button>
+                <Input
+                  value={areaSqFt}
+                  onChange={(e) => setAreaSqFt(e.target.value)}
+                  placeholder="e.g., 12000"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => useLatestMeasurement("area")}
+                >
+                  Use Map
+                </Button>
               </div>
               <Label>Cracks (LF)</Label>
               <div className="flex gap-2">
-                <Input value={linearFeet} onChange={(e) => setLinearFeet(e.target.value)} placeholder="e.g., 500" />
-                <Button type="button" variant="outline" onClick={() => useLatestMeasurement('distance')}>Use Map</Button>
+                <Input
+                  value={linearFeet}
+                  onChange={(e) => setLinearFeet(e.target.value)}
+                  placeholder="e.g., 500"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => useLatestMeasurement("distance")}
+                >
+                  Use Map
+                </Button>
               </div>
             </div>
             <div className="space-y-2">
               <Label>Stalls</Label>
-              <Input value={numStalls} onChange={(e) => setNumStalls(e.target.value)} placeholder="e.g., 40" />
+              <Input
+                value={numStalls}
+                onChange={(e) => setNumStalls(e.target.value)}
+                placeholder="e.g., 40"
+              />
               <Label>Distance (mi)</Label>
-              <Input value={distanceMiles} onChange={(e) => setDistanceMiles(e.target.value)} placeholder="job travel" />
+              <Input
+                value={distanceMiles}
+                onChange={(e) => setDistanceMiles(e.target.value)}
+                placeholder="job travel"
+              />
               <Label>Supplier Miles (mi)</Label>
-              <Input value={procureMiles} onChange={(e) => setProcureMiles(e.target.value)} placeholder="materials" />
+              <Input
+                value={procureMiles}
+                onChange={(e) => setProcureMiles(e.target.value)}
+                placeholder="materials"
+              />
             </div>
             <div className="space-y-2">
               <Label>Crew Size</Label>
-              <Input value={crewSize} onChange={(e) => setCrewSize(e.target.value)} placeholder="2" />
+              <Input
+                value={crewSize}
+                onChange={(e) => setCrewSize(e.target.value)}
+                placeholder="2"
+              />
               <Label>Hourly Rate (per person)</Label>
-              <Input value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} placeholder="20" />
+              <Input
+                value={hourlyRate}
+                onChange={(e) => setHourlyRate(e.target.value)}
+                placeholder="20"
+              />
               <Label>Overhead % / Profit %</Label>
               <div className="flex gap-2">
-                <Input className="w-20" type="number" value={String(overheadPct)} onChange={(e) => setOverheadPct(parseFloat(e.target.value) || 0)} />
-                <Input className="w-20" type="number" value={String(profitPct)} onChange={(e) => setProfitPct(parseFloat(e.target.value) || 0)} />
+                <Input
+                  className="w-20"
+                  type="number"
+                  value={String(overheadPct)}
+                  onChange={(e) => setOverheadPct(parseFloat(e.target.value) || 0)}
+                />
+                <Input
+                  className="w-20"
+                  type="number"
+                  value={String(profitPct)}
+                  onChange={(e) => setProfitPct(parseFloat(e.target.value) || 0)}
+                />
               </div>
             </div>
           </div>
           <div className="mt-3">
-            <Button type="button" onClick={handleAutoPopulate}>Generate Items</Button>
+            <Button type="button" onClick={handleAutoPopulate}>
+              Generate Items
+            </Button>
           </div>
         </div>
       </DialogContent>

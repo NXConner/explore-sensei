@@ -3,7 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -23,10 +29,7 @@ interface Employee {
   last_name: string;
 }
 
-export const EquipmentAssignmentForm = ({
-  onSave,
-  onCancel,
-}: EquipmentAssignmentFormProps) => {
+export const EquipmentAssignmentForm = ({ onSave, onCancel }: EquipmentAssignmentFormProps) => {
   const [assetType, setAssetType] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
   const [jobId, setJobId] = useState("");
@@ -42,11 +45,8 @@ export const EquipmentAssignmentForm = ({
   }, []);
 
   const fetchJobs = async () => {
-    const { data } = await supabase
-      .from("jobs")
-      .select("id, title")
-      .order("title");
-    
+    const { data } = await supabase.from("jobs").select("id, title").order("title");
+
     if (data) setJobs(data);
   };
 
@@ -55,7 +55,7 @@ export const EquipmentAssignmentForm = ({
       .from("employees")
       .select("id, first_name, last_name")
       .order("first_name");
-    
+
     if (data) setEmployees(data);
   };
 
@@ -168,11 +168,7 @@ export const EquipmentAssignmentForm = ({
       </div>
 
       <div className="flex gap-3 justify-end">
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={onCancel}
-        >
+        <Button type="button" variant="ghost" onClick={onCancel}>
           Cancel
         </Button>
         <Button

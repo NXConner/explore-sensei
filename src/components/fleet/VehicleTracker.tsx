@@ -36,7 +36,7 @@ export const VehicleTracker = ({ onVehicleSelect }: VehicleTrackerProps) => {
         },
         () => {
           fetchVehicles();
-        }
+        },
       )
       .subscribe();
 
@@ -46,10 +46,7 @@ export const VehicleTracker = ({ onVehicleSelect }: VehicleTrackerProps) => {
   }, []);
 
   const fetchVehicles = async () => {
-    const { data, error } = await supabase
-      .from("vehicles")
-      .select("*")
-      .order("name");
+    const { data, error } = await supabase.from("vehicles").select("*").order("name");
 
     if (!error && data) {
       setVehicles(data);

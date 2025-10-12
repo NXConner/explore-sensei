@@ -16,7 +16,7 @@ export const PayrollModal = ({ onClose }: PayrollModalProps) => {
       hours: 40,
       rate: 20,
       bonuses: 150,
-      status: "Active"
+      status: "Active",
     },
     {
       id: 2,
@@ -25,7 +25,7 @@ export const PayrollModal = ({ onClose }: PayrollModalProps) => {
       hours: 42,
       rate: 20,
       bonuses: 200,
-      status: "Active"
+      status: "Active",
     },
     {
       id: 3,
@@ -34,13 +34,11 @@ export const PayrollModal = ({ onClose }: PayrollModalProps) => {
       hours: 20,
       rate: 20,
       bonuses: 0,
-      status: "Active"
-    }
+      status: "Active",
+    },
   ];
 
-  const totalPayroll = employees.reduce((sum, emp) => 
-    sum + (emp.hours * emp.rate) + emp.bonuses, 0
-  );
+  const totalPayroll = employees.reduce((sum, emp) => sum + emp.hours * emp.rate + emp.bonuses, 0);
 
   return (
     <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/70 backdrop-blur-sm">
@@ -82,9 +80,7 @@ export const PayrollModal = ({ onClose }: PayrollModalProps) => {
                 <DollarSign className="w-8 h-8 text-green-500" />
               </div>
               <p className="text-sm text-muted-foreground mb-1">Total Payroll</p>
-              <p className="text-3xl font-bold text-green-500">
-                ${totalPayroll.toLocaleString()}
-              </p>
+              <p className="text-3xl font-bold text-green-500">${totalPayroll.toLocaleString()}</p>
             </div>
           </div>
 
@@ -121,9 +117,7 @@ export const PayrollModal = ({ onClose }: PayrollModalProps) => {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Bonuses</p>
-                    <p className="text-xl font-bold text-green-500">
-                      ${employee.bonuses}
-                    </p>
+                    <p className="text-xl font-bold text-green-500">${employee.bonuses}</p>
                   </div>
                 </div>
 
@@ -133,7 +127,7 @@ export const PayrollModal = ({ onClose }: PayrollModalProps) => {
                     <span className="text-sm">Total Compensation</span>
                   </div>
                   <p className="text-2xl font-bold text-primary">
-                    ${((employee.hours * employee.rate) + employee.bonuses).toLocaleString()}
+                    ${(employee.hours * employee.rate + employee.bonuses).toLocaleString()}
                   </p>
                 </div>
               </div>

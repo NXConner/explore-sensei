@@ -44,11 +44,7 @@ export default defineConfig(({ mode }) => ({
             "@radix-ui/react-toggle-group",
             "@radix-ui/react-tooltip",
           ],
-          vendor: [
-            "@tanstack/react-query",
-            "zod",
-            "react-hook-form",
-          ],
+          vendor: ["@tanstack/react-query", "zod", "react-hook-form"],
         },
       },
     },

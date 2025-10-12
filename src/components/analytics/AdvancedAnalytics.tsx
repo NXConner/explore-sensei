@@ -18,7 +18,12 @@ import {
 } from "recharts";
 import { TrendingUp, DollarSign, Users, MapPin } from "lucide-react";
 
-const COLORS = ["hsl(var(--primary))", "hsl(var(--secondary))", "hsl(var(--accent))", "hsl(var(--muted))"];
+const COLORS = [
+  "hsl(var(--primary))",
+  "hsl(var(--secondary))",
+  "hsl(var(--accent))",
+  "hsl(var(--muted))",
+];
 
 export const AdvancedAnalytics = () => {
   // Sample data - replace with real data from your hooks
@@ -154,9 +159,7 @@ export const AdvancedAnalytics = () => {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent }) =>
-                      `${name} ${(percent * 100).toFixed(0)}%`
-                    }
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                     outerRadius={120}
                     fill="hsl(var(--primary))"
                     dataKey="value"

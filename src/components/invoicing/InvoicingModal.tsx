@@ -55,17 +55,21 @@ export const InvoicingModal = ({ onClose }: InvoicingModalProps) => {
       const jobIds = [...new Set(data.map((inv: any) => inv.job_id).filter(Boolean))];
 
       const [customersData, jobsData] = await Promise.all([
-        customerIds.length > 0 ? supabase.from("customers").select("id, name").in("id", customerIds) : Promise.resolve({ data: [] }),
-        jobIds.length > 0 ? supabase.from("jobs").select("id, title").in("id", jobIds) : Promise.resolve({ data: [] })
+        customerIds.length > 0
+          ? supabase.from("customers").select("id, name").in("id", customerIds)
+          : Promise.resolve({ data: [] }),
+        jobIds.length > 0
+          ? supabase.from("jobs").select("id, title").in("id", jobIds)
+          : Promise.resolve({ data: [] }),
       ]);
 
-      const customersMap = new Map((customersData.data || []).map(c => [c.id, c]));
-      const jobsMap = new Map((jobsData.data || []).map(j => [j.id, j]));
+      const customersMap = new Map((customersData.data || []).map((c) => [c.id, c]));
+      const jobsMap = new Map((jobsData.data || []).map((j) => [j.id, j]));
 
       const enrichedData = data.map((invoice: any) => ({
         ...invoice,
         customers: invoice.customer_id ? customersMap.get(invoice.customer_id) || null : null,
-        jobs: invoice.job_id ? jobsMap.get(invoice.job_id) || null : null
+        jobs: invoice.job_id ? jobsMap.get(invoice.job_id) || null : null,
       }));
 
       setInvoices(enrichedData as any);
@@ -85,11 +89,16 @@ export const InvoicingModal = ({ onClose }: InvoicingModalProps) => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "paid": return "bg-green-500/20 text-green-400";
-      case "sent": return "bg-blue-500/20 text-blue-400";
-      case "overdue": return "bg-red-500/20 text-red-400";
-      case "draft": return "bg-gray-500/20 text-gray-400";
-      default: return "bg-gray-500/20 text-gray-400";
+      case "paid":
+        return "bg-green-500/20 text-green-400";
+      case "sent":
+        return "bg-blue-500/20 text-blue-400";
+      case "overdue":
+        return "bg-red-500/20 text-red-400";
+      case "draft":
+        return "bg-gray-500/20 text-gray-400";
+      default:
+        return "bg-gray-500/20 text-gray-400";
     }
   };
 
@@ -97,7 +106,7 @@ export const InvoicingModal = ({ onClose }: InvoicingModalProps) => {
     (invoice) =>
       invoice.invoice_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
       invoice.customers?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      invoice.jobs?.title?.toLowerCase().includes(searchQuery.toLowerCase())
+      invoice.jobs?.title?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -124,10 +133,7 @@ export const InvoicingModal = ({ onClose }: InvoicingModalProps) => {
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {showForm ? (
-            <InvoiceForm
-              onSave={handleInvoiceCreated}
-              onCancel={() => setShowForm(false)}
-            />
+            <InvoiceForm onSave={handleInvoiceCreated} onCancel={() => setShowForm(false)} />
           ) : (
             <>
               {/* Search Bar */}
@@ -154,11 +160,12 @@ export const InvoicingModal = ({ onClose }: InvoicingModalProps) => {
                             {invoice.status.toUpperCase()}
                           </Badge>
                         </div>
-                        
+
                         <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
                           {invoice.customers && (
                             <p>
-                              <span className="font-medium">Customer:</span> {invoice.customers.name}
+                              <span className="font-medium">Customer:</span>{" "}
+                              {invoice.customers.name}
                             </p>
                           )}
                           {invoice.jobs && (
@@ -175,12 +182,12 @@ export const InvoicingModal = ({ onClose }: InvoicingModalProps) => {
                             {format(new Date(invoice.due_date), "MMM dd, yyyy")}
                           </p>
                           <p>
-                            <span className="font-medium">Total:</span>{" "}
-                            ${invoice.total_amount.toFixed(2)}
+                            <span className="font-medium">Total:</span> $
+                            {invoice.total_amount.toFixed(2)}
                           </p>
                           <p>
-                            <span className="font-medium">Paid:</span>{" "}
-                            ${invoice.amount_paid.toFixed(2)}
+                            <span className="font-medium">Paid:</span> $
+                            {invoice.amount_paid.toFixed(2)}
                           </p>
                         </div>
                       </div>

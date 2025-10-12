@@ -31,4 +31,3 @@ export async function getDirections(options: DirectionsOptions) {
   if (!res.ok) throw new Error(`Directions failed: ${res.status}`);
   return res.json();
 }
-

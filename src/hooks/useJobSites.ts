@@ -19,7 +19,8 @@ export const useJobSites = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("jobs")
-        .select(`
+        .select(
+          `
           id,
           title,
           status,
@@ -32,7 +33,8 @@ export const useJobSites = () => {
           clients!client_id (
             name
           )
-        `)
+        `,
+        )
         .not("latitude", "is", null)
         .not("longitude", "is", null);
 

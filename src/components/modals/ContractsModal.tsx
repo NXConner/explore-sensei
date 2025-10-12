@@ -99,9 +99,7 @@ export const ContractsModal = ({ onClose }: ContractsModalProps) => {
                       <Badge variant="outline" className="text-xs">
                         {contract.jobId}
                       </Badge>
-                      <Badge className={getStatusColor(contract.status)}>
-                        {contract.status}
-                      </Badge>
+                      <Badge className={getStatusColor(contract.status)}>{contract.status}</Badge>
                     </div>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <span>Date: {contract.date}</span>

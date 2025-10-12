@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 const Index = lazy(() => import("./pages/Index"));
-const Profile = lazy(() => import("./pages/Profile").then(m => ({ default: m.Profile })));
+const Profile = lazy(() => import("./pages/Profile").then((m) => ({ default: m.Profile })));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Auth = lazy(() => import("./pages/Auth"));
 import { initAnalytics, trackPageView } from "@/lib/analytics";

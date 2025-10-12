@@ -8,7 +8,12 @@ interface WeatherRadarLayerProps {
   alertRadius: number;
 }
 
-export const WeatherRadarLayer = ({ map, opacity, showAlerts, alertRadius }: WeatherRadarLayerProps) => {
+export const WeatherRadarLayer = ({
+  map,
+  opacity,
+  showAlerts,
+  alertRadius,
+}: WeatherRadarLayerProps) => {
   const { data: alerts } = useWeatherAlerts();
   const [circles, setCircles] = useState<google.maps.Circle[]>([]);
   const [markers, setMarkers] = useState<google.maps.Marker[]>([]);

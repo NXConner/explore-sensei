@@ -50,9 +50,7 @@ export const VeteranSection = ({ onClose }: VeteranSectionProps) => {
         <Flag className="w-6 h-6 text-primary" />
         <div>
           <h2 className="text-xl font-bold">VETERAN PROGRAMS</h2>
-          <p className="text-sm text-muted-foreground">
-            Supporting those who served our country
-          </p>
+          <p className="text-sm text-muted-foreground">Supporting those who served our country</p>
         </div>
       </div>
 
@@ -71,9 +69,7 @@ export const VeteranSection = ({ onClose }: VeteranSectionProps) => {
                     {program.status}
                   </Badge>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {program.description}
-                </p>
+                <p className="text-xs text-muted-foreground">{program.description}</p>
               </div>
             </div>
           </Card>

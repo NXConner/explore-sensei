@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -52,8 +52,26 @@ All colors MUST be HSL.
     /* Tactical Shadows & Glows */
     --shadow-tactical: 0 4px 20px rgba(255, 140, 0, 0.2);
     --shadow-glow: 0 0 30px rgba(255, 140, 0, 0.3);
-    --scanline: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15) 1px, transparent 1px, transparent 2px);
-    --grid-overlay: repeating-linear-gradient(90deg, rgba(255, 140, 0, 0.03) 0px, transparent 1px, transparent 40px), repeating-linear-gradient(0deg, rgba(255, 140, 0, 0.03) 0px, transparent 1px, transparent 40px);
+    --scanline: repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.15),
+      rgba(0, 0, 0, 0.15) 1px,
+      transparent 1px,
+      transparent 2px
+    );
+    --grid-overlay:
+      repeating-linear-gradient(
+        90deg,
+        rgba(255, 140, 0, 0.03) 0px,
+        transparent 1px,
+        transparent 40px
+      ),
+      repeating-linear-gradient(
+        0deg,
+        rgba(255, 140, 0, 0.03) 0px,
+        transparent 1px,
+        transparent 40px
+      );
 
     --sidebar-background: 0 0% 5%;
     --sidebar-foreground: 0 0% 88%;
@@ -108,13 +126,13 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Orbitron', sans-serif;
+    font-family: "Orbitron", sans-serif;
     position: relative;
   }
 
   /* Tactical Grid Overlay */
   body::before {
-    content: '';
+    content: "";
     position: fixed;
     top: 0;
     left: 0;
@@ -128,7 +146,7 @@ All colors MUST be HSL.
 
   /* Scanline Effect */
   body::after {
-    content: '';
+    content: "";
     position: fixed;
     top: 0;
     left: 0;
@@ -141,8 +159,12 @@ All colors MUST be HSL.
   }
 
   @keyframes scanline {
-    0% { transform: translateY(0); }
-    100% { transform: translateY(100%); }
+    0% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(100%);
+    }
   }
 }
 
@@ -167,7 +189,7 @@ All colors MUST be HSL.
   }
 
   .tactical-panel::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
@@ -195,39 +217,43 @@ All colors MUST be HSL.
   }
   /* Hide scrollbar but keep functionality */
   .scrollbar-hide {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
   }
-  
+
   .scrollbar-hide::-webkit-scrollbar {
-    display: none;  /* Chrome, Safari and Opera */
+    display: none; /* Chrome, Safari and Opera */
   }
-  
+
   /* Custom Scrollbar Styles */
   .scrollbar-thin::-webkit-scrollbar {
     height: 6px;
     width: 6px;
   }
-  
+
   .scrollbar-thumb-primary\/30::-webkit-scrollbar-thumb {
     background-color: hsl(var(--primary) / 0.3);
     border-radius: 3px;
   }
-  
+
   .scrollbar-thumb-primary\/50:hover::-webkit-scrollbar-thumb:hover {
     background-color: hsl(var(--primary) / 0.5);
   }
-  
+
   .scrollbar-track-transparent::-webkit-scrollbar-track {
     background: transparent;
   }
-  
+
   /* Enhanced animations */
   @keyframes shimmer {
-    0% { background-position: -1000px 0; }
-    100% { background-position: 1000px 0; }
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
+    }
   }
-  
+
   .shimmer {
     background: linear-gradient(
       90deg,
@@ -238,28 +264,42 @@ All colors MUST be HSL.
     background-size: 1000px 100%;
     animation: shimmer 2s infinite;
   }
-  
+
   @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
   }
-  
+
   .float {
     animation: float 3s ease-in-out infinite;
   }
-  
+
   @keyframes glow-pulse {
-    0%, 100% { box-shadow: 0 0 20px hsl(var(--primary) / 0.3); }
-    50% { box-shadow: 0 0 40px hsl(var(--primary) / 0.6); }
+    0%,
+    100% {
+      box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+    }
+    50% {
+      box-shadow: 0 0 40px hsl(var(--primary) / 0.6);
+    }
   }
-  
+
   .glow-pulse {
     animation: glow-pulse 2s ease-in-out infinite;
   }
 
   @keyframes marquee {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
   }
 
   .animate-marquee {

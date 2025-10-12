@@ -43,7 +43,10 @@ export interface MapContainerRef {
   getActiveMode: () => DrawingMode;
 }
 
-export const MapContainer = forwardRef<MapContainerRef, { initialMapTheme?: "division" | "animus" }>((props, ref) => {
+export const MapContainer = forwardRef<
+  MapContainerRef,
+  { initialMapTheme?: "division" | "animus" }
+>((props, ref) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const mapboxInstanceRef = useRef<mapboxgl.Map | null>(null);
@@ -108,7 +111,7 @@ export const MapContainer = forwardRef<MapContainerRef, { initialMapTheme?: "div
             lat: position.coords.latitude,
             lng: position.coords.longitude,
           };
-          
+
           // Check if there's a default address in settings
           const savedSettings = localStorage.getItem("aos_settings");
           if (savedSettings) {
@@ -124,7 +127,7 @@ export const MapContainer = forwardRef<MapContainerRef, { initialMapTheme?: "div
           // Zoom to user location (all the way in = zoom 20)
           mapInstanceRef.current?.setCenter(userLocation);
           mapInstanceRef.current?.setZoom(20);
-          
+
           toast({
             title: "Location Found",
             description: "Centered map on your current location",
@@ -146,7 +149,7 @@ export const MapContainer = forwardRef<MapContainerRef, { initialMapTheme?: "div
               }
             } catch (e) {}
           }
-        }
+        },
       );
     }
   }, [toast]);

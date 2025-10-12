@@ -4,10 +4,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useAutomation } from "@/hooks/useAutomation";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 
 export const AutomationBuilder = () => {
@@ -76,9 +88,7 @@ export const AutomationBuilder = () => {
                   <Label>Trigger</Label>
                   <Select
                     value={newRule.trigger_type}
-                    onValueChange={(value) =>
-                      setNewRule({ ...newRule, trigger_type: value })
-                    }
+                    onValueChange={(value) => setNewRule({ ...newRule, trigger_type: value })}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -95,9 +105,7 @@ export const AutomationBuilder = () => {
                   <Label>Action</Label>
                   <Select
                     value={newRule.action_type}
-                    onValueChange={(value) =>
-                      setNewRule({ ...newRule, action_type: value })
-                    }
+                    onValueChange={(value) => setNewRule({ ...newRule, action_type: value })}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -139,24 +147,16 @@ export const AutomationBuilder = () => {
                   <div className="flex items-center gap-2">
                     <Switch
                       checked={rule.active}
-                      onCheckedChange={(checked) =>
-                        toggleRule({ id: rule.id, active: checked })
-                      }
+                      onCheckedChange={(checked) => toggleRule({ id: rule.id, active: checked })}
                     />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => deleteRule(rule.id)}
-                    >
+                    <Button variant="ghost" size="icon" onClick={() => deleteRule(rule.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {rule.description}
-                </p>
+                <p className="text-sm text-muted-foreground mb-4">{rule.description}</p>
                 <div className="flex items-center gap-4 text-sm">
                   <div>
                     <span className="text-muted-foreground">Trigger:</span>{" "}

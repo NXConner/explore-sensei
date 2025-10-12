@@ -30,11 +30,8 @@ export const useMapMeasurements = () => {
 
   const deleteMeasurement = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("Mapmeasurements")
-        .delete()
-        .eq("id", id);
-      
+      const { error } = await supabase.from("Mapmeasurements").delete().eq("id", id);
+
       if (error) throw error;
     },
     onSuccess: () => {

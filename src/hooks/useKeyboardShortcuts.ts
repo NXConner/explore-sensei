@@ -9,13 +9,13 @@ export interface Shortcut {
   is_custom: boolean;
 }
 
-const DEFAULT_SHORTCUTS: Omit<Shortcut, 'id' | 'is_custom'>[] = [
-  { action: 'open_command_palette', shortcut: 'Cmd+K' },
-  { action: 'new_job', shortcut: 'Cmd+N' },
-  { action: 'search', shortcut: 'Cmd+/' },
-  { action: 'toggle_sidebar', shortcut: 'Cmd+B' },
-  { action: 'save', shortcut: 'Cmd+S' },
-  { action: 'close_modal', shortcut: 'Escape' },
+const DEFAULT_SHORTCUTS: Omit<Shortcut, "id" | "is_custom">[] = [
+  { action: "open_command_palette", shortcut: "Cmd+K" },
+  { action: "new_job", shortcut: "Cmd+N" },
+  { action: "search", shortcut: "Cmd+/" },
+  { action: "toggle_sidebar", shortcut: "Cmd+B" },
+  { action: "save", shortcut: "Cmd+S" },
+  { action: "close_modal", shortcut: "Escape" },
 ];
 
 export const useKeyboardShortcuts = () => {
@@ -24,18 +24,16 @@ export const useKeyboardShortcuts = () => {
   const { data: shortcuts } = useQuery({
     queryKey: ["keyboard-shortcuts"],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from("user_shortcuts")
-        .select("*");
+      const { data, error } = await (supabase as any).from("user_shortcuts").select("*");
       if (error) throw error;
-      
+
       // Merge with defaults
       const customShortcuts = data as unknown as Shortcut[];
-      const allShortcuts = DEFAULT_SHORTCUTS.map(def => {
-        const custom = customShortcuts.find(c => c.action === def.action);
+      const allShortcuts = DEFAULT_SHORTCUTS.map((def) => {
+        const custom = customShortcuts.find((c) => c.action === def.action);
         return custom || { ...def, id: def.action, is_custom: false };
       });
-      
+
       return allShortcuts;
     },
   });
@@ -57,7 +55,7 @@ export const useKeyboardShortcuts = () => {
       const { error } = await (supabase as any)
         .from("user_shortcuts")
         .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+        .neq("id", "00000000-0000-0000-0000-000000000000"); // Delete all
       if (error) throw error;
     },
     onSuccess: () => {
@@ -67,20 +65,20 @@ export const useKeyboardShortcuts = () => {
 
   const registerShortcut = (action: string, handler: () => void) => {
     useEffect(() => {
-      const shortcut = shortcuts?.find(s => s.action === action);
+      const shortcut = shortcuts?.find((s) => s.action === action);
       if (!shortcut) return;
 
       const handleKeyPress = (e: KeyboardEvent) => {
-        const parts = shortcut.shortcut.split('+');
+        const parts = shortcut.shortcut.split("+");
         const key = parts[parts.length - 1];
-        const needsCmd = parts.includes('Cmd');
-        const needsCtrl = parts.includes('Ctrl');
-        const needsShift = parts.includes('Shift');
-        const needsAlt = parts.includes('Alt');
+        const needsCmd = parts.includes("Cmd");
+        const needsCtrl = parts.includes("Ctrl");
+        const needsShift = parts.includes("Shift");
+        const needsAlt = parts.includes("Alt");
 
         if (
           e.key === key &&
-          (!needsCmd || (e.metaKey || e.ctrlKey)) &&
+          (!needsCmd || e.metaKey || e.ctrlKey) &&
           (!needsCtrl || e.ctrlKey) &&
           (!needsShift || e.shiftKey) &&
           (!needsAlt || e.altKey)
@@ -90,8 +88,8 @@ export const useKeyboardShortcuts = () => {
         }
       };
 
-      document.addEventListener('keydown', handleKeyPress);
-      return () => document.removeEventListener('keydown', handleKeyPress);
+      document.addEventListener("keydown", handleKeyPress);
+      return () => document.removeEventListener("keydown", handleKeyPress);
     }, [shortcuts, action, handler]);
   };
 

@@ -11,7 +11,8 @@ export const useAIChat = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "ASPHALT OVERWATCH AI ONLINE. I have access to company handbooks, bonus programs, and operational procedures. How can I assist?",
+      content:
+        "ASPHALT OVERWATCH AI ONLINE. I have access to company handbooks, bonus programs, and operational procedures. How can I assist?",
     },
   ]);
   const [isLoading, setIsLoading] = useState(false);
@@ -34,37 +35,37 @@ export const useAIChat = () => {
       }
 
       const aiResponse = data?.choices?.[0]?.message?.content;
-      
+
       if (!aiResponse) {
         throw new Error("No response from AI");
       }
 
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: aiResponse },
-      ]);
-    } catch (error: any) {
+      setMessages((prev) => [...prev, { role: "assistant", content: aiResponse }]);
+    } catch (error: unknown) {
       console.error("AI Error:", error);
-      
+
       let errorMessage = "Failed to get AI response. Please try again.";
-      
-      if (error.message?.includes("Rate limit")) {
-        errorMessage = "AI is receiving too many requests. Please wait a moment and try again.";
-      } else if (error.message?.includes("credits")) {
-        errorMessage = "AI credits have been depleted. Please contact your administrator.";
+
+      if (error instanceof Error) {
+        if (error.message.includes("Rate limit")) {
+          errorMessage = "AI is receiving too many requests. Please wait a moment and try again.";
+        } else if (error.message.includes("credits")) {
+          errorMessage = "AI credits have been depleted. Please contact your administrator.";
+        }
       }
-      
+
       toast({
         title: "AI Error",
         description: errorMessage,
         variant: "destructive",
       });
-      
+
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: "I apologize, but I encountered an error processing your request. Please try again.",
+          content:
+            "I apologize, but I encountered an error processing your request. Please try again.",
         },
       ]);
     } finally {

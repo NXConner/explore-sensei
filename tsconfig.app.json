@@ -13,11 +13,7 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
-    "types": [
-      "vite/client",
-      "google.maps",
-      "react"
-    ],
+    "types": ["vite/client", "google.maps", "react"],
 
     /* Linting */
     "strict": false,

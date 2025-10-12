@@ -5,7 +5,7 @@ import { toast } from "sonner";
 export interface SafetyIncident {
   id: string;
   incident_type: string;
-  severity: 'minor' | 'moderate' | 'severe' | 'critical';
+  severity: "minor" | "moderate" | "severe" | "critical";
   description: string;
   location?: string;
   job_id?: string;
@@ -17,7 +17,7 @@ export interface SafetyIncident {
   property_damage: boolean;
   root_cause?: string;
   corrective_actions?: string;
-  status: 'open' | 'investigating' | 'resolved' | 'closed';
+  status: "open" | "investigating" | "resolved" | "closed";
   incident_date: string;
   reported_at: string;
 }
@@ -62,7 +62,7 @@ export const useSafety = () => {
   });
 
   const reportIncident = useMutation({
-    mutationFn: async (incident: Omit<SafetyIncident, 'id' | 'reported_at'>) => {
+    mutationFn: async (incident: Omit<SafetyIncident, "id" | "reported_at">) => {
       const { data, error } = await (supabase as any)
         .from("safety_incidents")
         .insert(incident)
@@ -95,7 +95,7 @@ export const useSafety = () => {
   });
 
   const addTraining = useMutation({
-    mutationFn: async (training: Omit<SafetyTraining, 'id'>) => {
+    mutationFn: async (training: Omit<SafetyTraining, "id">) => {
       const { data, error } = await (supabase as any)
         .from("safety_training")
         .insert(training)
@@ -110,13 +110,14 @@ export const useSafety = () => {
     },
   });
 
-  const expiringTrainings = trainings?.filter(t => {
-    if (!t.expiration_date) return false;
-    const daysUntilExpiry = Math.floor(
-      (new Date(t.expiration_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
-    );
-    return daysUntilExpiry <= 30 && daysUntilExpiry >= 0;
-  }) || [];
+  const expiringTrainings =
+    trainings?.filter((t) => {
+      if (!t.expiration_date) return false;
+      const daysUntilExpiry = Math.floor(
+        (new Date(t.expiration_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24),
+      );
+      return daysUntilExpiry <= 30 && daysUntilExpiry >= 0;
+    }) || [];
 
   return {
     incidents: incidents || [],

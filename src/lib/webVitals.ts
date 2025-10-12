@@ -16,4 +16,3 @@ export function initWebVitals() {
   onLCP(report);
   onTTFB(report);
 }
-

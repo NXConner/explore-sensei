@@ -28,15 +28,9 @@ export const MeasurementDisplay = ({ distance, area }: MeasurementDisplayProps) 
         <Ruler className="w-5 h-5 text-primary" />
         <div>
           {distance && (
-            <p className="text-sm font-bold text-glow">
-              Distance: {formatDistance(distance)}
-            </p>
+            <p className="text-sm font-bold text-glow">Distance: {formatDistance(distance)}</p>
           )}
-          {area && (
-            <p className="text-sm font-bold text-glow">
-              Area: {formatArea(area)}
-            </p>
-          )}
+          {area && <p className="text-sm font-bold text-glow">Area: {formatArea(area)}</p>}
         </div>
       </div>
     </div>

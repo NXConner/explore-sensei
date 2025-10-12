@@ -98,9 +98,7 @@ export const ReceiptsModal = ({ onClose }: ReceiptsModalProps) => {
                       <Badge variant="outline" className="text-xs">
                         {receipt.category}
                       </Badge>
-                      <Badge className={getStatusColor(receipt.status)}>
-                        {receipt.status}
-                      </Badge>
+                      <Badge className={getStatusColor(receipt.status)}>{receipt.status}</Badge>
                     </div>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <span>Date: {receipt.date}</span>
@@ -127,7 +125,8 @@ export const ReceiptsModal = ({ onClose }: ReceiptsModalProps) => {
         <div className="p-4 border-t border-primary/30">
           <div className="flex justify-between items-center">
             <p className="text-sm text-muted-foreground">
-              {receipts.length} receipts • {receipts.filter(r => r.status === "pending").length} pending review
+              {receipts.length} receipts • {receipts.filter((r) => r.status === "pending").length}{" "}
+              pending review
             </p>
             <p className="text-lg font-bold">
               Total: ${receipts.reduce((sum, r) => sum + r.total, 0).toFixed(2)}

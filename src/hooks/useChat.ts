@@ -45,7 +45,7 @@ export const useChat = (roomId?: string) => {
     enabled: !!roomId,
     queryFn: async () => {
       if (!roomId) return [];
-      
+
       const { data, error } = await supabase
         .from("chat_messages" as any)
         .select("*")
@@ -108,7 +108,7 @@ export const useChat = (roomId?: string) => {
         },
         () => {
           queryClient.invalidateQueries({ queryKey: ["chat-messages", roomId] });
-        }
+        },
       )
       .subscribe();
 

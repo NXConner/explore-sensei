@@ -53,9 +53,7 @@ export const AIAssistant = ({ onClose }: AIAssistantProps) => {
             {messages.map((msg, idx) => (
               <div
                 key={idx}
-                className={`flex gap-3 ${
-                  msg.role === "user" ? "justify-end" : "justify-start"
-                }`}
+                className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 {msg.role === "assistant" && (
                   <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center flex-shrink-0">
@@ -96,8 +94,8 @@ export const AIAssistant = ({ onClose }: AIAssistantProps) => {
               placeholder="Ask about operations, schedules, equipment..."
               className="flex-1 bg-input border-primary/30 focus:border-primary"
             />
-            <Button 
-              onClick={handleSend} 
+            <Button
+              onClick={handleSend}
               className="btn-tactical"
               disabled={isLoading || !input.trim()}
             >

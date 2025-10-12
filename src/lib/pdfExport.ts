@@ -72,21 +72,24 @@ export const exportEstimateToPDF = async (estimate: {
   pdf.save(`estimate-${estimate.customer_name}-${Date.now()}.pdf`);
 };
 
-export const exportAIReportToPDF = async (analysis: {
-  condition: string;
-  confidence_score: number;
-  area_sqft: number;
-  area_sqm: number;
-  detected_issues: Array<{
-    type: string;
-    severity: string;
-    location: string;
-  }>;
-  recommendations: string[];
-  priority: string;
-  estimated_repair_cost?: string;
-  ai_notes?: string;
-}, imageDataUrl?: string) => {
+export const exportAIReportToPDF = async (
+  analysis: {
+    condition: string;
+    confidence_score: number;
+    area_sqft: number;
+    area_sqm: number;
+    detected_issues: Array<{
+      type: string;
+      severity: string;
+      location: string;
+    }>;
+    recommendations: string[];
+    priority: string;
+    estimated_repair_cost?: string;
+    ai_notes?: string;
+  },
+  imageDataUrl?: string,
+) => {
   const pdf = new jsPDF();
   const pageWidth = pdf.internal.pageSize.getWidth();
   let yPos = 20;
@@ -116,7 +119,11 @@ export const exportAIReportToPDF = async (analysis: {
   pdf.text(`Priority: ${analysis.priority}`, 20, yPos);
   yPos += 6;
   if (analysis.area_sqft > 0) {
-    pdf.text(`Area: ${analysis.area_sqft.toLocaleString()} ft² (${analysis.area_sqm.toLocaleString()} m²)`, 20, yPos);
+    pdf.text(
+      `Area: ${analysis.area_sqft.toLocaleString()} ft² (${analysis.area_sqm.toLocaleString()} m²)`,
+      20,
+      yPos,
+    );
     yPos += 6;
   }
   if (analysis.estimated_repair_cost) {
@@ -160,7 +167,11 @@ export const exportAIReportToPDF = async (analysis: {
         pdf.addPage();
         yPos = 20;
       }
-      pdf.text(`• ${issue.type.replace(/_/g, " ")}: ${issue.severity} (${issue.location})`, 25, yPos);
+      pdf.text(
+        `• ${issue.type.replace(/_/g, " ")}: ${issue.severity} (${issue.location})`,
+        25,
+        yPos,
+      );
       yPos += 6;
     });
     yPos += 5;

@@ -1,13 +1,7 @@
 /// <reference types="@types/google.maps" />
 import { useRef, useCallback, useState } from "react";
 
-export type DrawingMode =
-  | "marker"
-  | "polyline"
-  | "circle"
-  | "rectangle"
-  | "measure"
-  | null;
+export type DrawingMode = "marker" | "polyline" | "circle" | "rectangle" | "measure" | null;
 
 export const useMapDrawing = (map: google.maps.Map | null) => {
   const drawingManagerRef = useRef<google.maps.drawing.DrawingManager | null>(null);
@@ -77,7 +71,7 @@ export const useMapDrawing = (map: google.maps.Map | null) => {
           const area = calculateArea(event.overlay as google.maps.Rectangle);
           setMeasurement({ area });
         }
-      }
+      },
     );
   }, [map]);
 
@@ -89,10 +83,7 @@ export const useMapDrawing = (map: google.maps.Map | null) => {
 
       if (!drawingManagerRef.current) return;
 
-      const modeMap: Record<
-        Exclude<DrawingMode, null>,
-        google.maps.drawing.OverlayType | null
-      > = {
+      const modeMap: Record<Exclude<DrawingMode, null>, google.maps.drawing.OverlayType | null> = {
         marker: google.maps.drawing.OverlayType.MARKER,
         polyline: google.maps.drawing.OverlayType.POLYLINE,
         circle: google.maps.drawing.OverlayType.CIRCLE,
@@ -100,16 +91,17 @@ export const useMapDrawing = (map: google.maps.Map | null) => {
         measure: google.maps.drawing.OverlayType.POLYLINE,
       };
 
-      drawingManagerRef.current.setDrawingMode(
-        mode ? modeMap[mode] : null
-      );
+      drawingManagerRef.current.setDrawingMode(mode ? modeMap[mode] : null);
     },
-    [initializeDrawingManager]
+    [initializeDrawingManager],
   );
 
   const clearDrawings = useCallback(() => {
     if (currentShapeRef.current) {
-      if ('setMap' in currentShapeRef.current && typeof currentShapeRef.current.setMap === 'function') {
+      if (
+        "setMap" in currentShapeRef.current &&
+        typeof currentShapeRef.current.setMap === "function"
+      ) {
         currentShapeRef.current.setMap(null);
       }
       currentShapeRef.current = null;
@@ -123,10 +115,7 @@ export const useMapDrawing = (map: google.maps.Map | null) => {
   const calculateDistance = useCallback((path: google.maps.LatLng[]) => {
     let totalDistance = 0;
     for (let i = 0; i < path.length - 1; i++) {
-      totalDistance += google.maps.geometry.spherical.computeDistanceBetween(
-        path[i],
-        path[i + 1]
-      );
+      totalDistance += google.maps.geometry.spherical.computeDistanceBetween(path[i], path[i + 1]);
     }
     return totalDistance;
   }, []);

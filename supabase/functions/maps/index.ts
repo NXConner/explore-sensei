@@ -30,10 +30,10 @@ serve(async (req) => {
   try {
     const apiKey = Deno.env.get("GOOGLE_MAPS_API_KEY");
     if (!apiKey) {
-      return new Response(
-        JSON.stringify({ error: "GOOGLE_MAPS_API_KEY not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "GOOGLE_MAPS_API_KEY not configured" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const url = new URL(req.url);
@@ -41,7 +41,7 @@ serve(async (req) => {
     if (!op) {
       return new Response(
         JSON.stringify({ error: "Missing op. Use ?op=geocode|reverseGeocode|directions" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -69,7 +69,8 @@ serve(async (req) => {
 
     const doDirections = async (params: DirectionsParams) => {
       const { origin, destination, mode } = params;
-      if (!origin || !destination) return { status: 400, body: { error: "origin and destination required" } };
+      if (!origin || !destination)
+        return { status: 400, body: { error: "origin and destination required" } };
       const endpoint = new URL("https://maps.googleapis.com/maps/api/directions/json");
       endpoint.searchParams.set("origin", origin);
       endpoint.searchParams.set("destination", destination);
@@ -81,9 +82,7 @@ serve(async (req) => {
     };
 
     const search = url.searchParams;
-    let result:
-      | { status: number; body: unknown }
-      | undefined;
+    let result: { status: number; body: unknown } | undefined;
 
     if (op === "geocode") {
       result = await doGeocode({ address: search.get("address") || undefined });
@@ -98,10 +97,10 @@ serve(async (req) => {
     }
 
     if (!result) {
-      return new Response(
-        JSON.stringify({ error: "Unsupported op" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Unsupported op" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     return new Response(JSON.stringify(result.body), {
@@ -110,10 +109,9 @@ serve(async (req) => {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
-    return new Response(
-      JSON.stringify({ error: message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
-

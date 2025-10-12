@@ -179,7 +179,10 @@ export const CostCatalogModal = ({ isOpen, onClose }: CostCatalogModalProps) => 
                   />
                 </div>
                 <div className="flex gap-2">
-                  <Button onClick={() => addItem.mutate()} disabled={!newItem.name || !newItem.code}>
+                  <Button
+                    onClick={() => addItem.mutate()}
+                    disabled={!newItem.name || !newItem.code}
+                  >
                     Save Item
                   </Button>
                   <Button variant="outline" onClick={() => setIsAddingItem(false)}>
@@ -203,11 +206,7 @@ export const CostCatalogModal = ({ isOpen, onClose }: CostCatalogModalProps) => 
                       </div>
                       {item.notes && <div className="text-xs mt-1">{item.notes}</div>}
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => deleteItem.mutate(item.id)}
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => deleteItem.mutate(item.id)}>
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>

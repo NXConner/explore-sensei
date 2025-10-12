@@ -1,4 +1,22 @@
-import { Bot, Bell, Settings, MessageSquare, Navigation, Car, Eye, Scan, Users, Cloud, Ruler, Circle, Square, MapPin, Trash2, Save, Download } from "lucide-react";
+import {
+  Bot,
+  Bell,
+  Settings,
+  MessageSquare,
+  Navigation,
+  Car,
+  Eye,
+  Scan,
+  Users,
+  Cloud,
+  Ruler,
+  Circle,
+  Square,
+  MapPin,
+  Trash2,
+  Save,
+  Download,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -23,8 +41,8 @@ interface RightSidebarProps {
   onExport?: () => void;
 }
 
-export const RightSidebar = ({ 
-  onAIClick, 
+export const RightSidebar = ({
+  onAIClick,
   onSettingsClick,
   onLocateMe,
   onToggleTraffic,
@@ -42,9 +60,24 @@ export const RightSidebar = ({
   onExport,
 }: RightSidebarProps) => {
   const tools = [
-    { mode: "measure" as DrawingMode, icon: Ruler, label: "Measure Distance", color: "text-primary" },
-    { mode: "circle" as DrawingMode, icon: Circle, label: "Measure Area (Circle)", color: "text-primary" },
-    { mode: "rectangle" as DrawingMode, icon: Square, label: "Measure Area (Rectangle)", color: "text-primary" },
+    {
+      mode: "measure" as DrawingMode,
+      icon: Ruler,
+      label: "Measure Distance",
+      color: "text-primary",
+    },
+    {
+      mode: "circle" as DrawingMode,
+      icon: Circle,
+      label: "Measure Area (Circle)",
+      color: "text-primary",
+    },
+    {
+      mode: "rectangle" as DrawingMode,
+      icon: Square,
+      label: "Measure Area (Rectangle)",
+      color: "text-primary",
+    },
     { mode: "marker" as DrawingMode, icon: MapPin, label: "Add Marker", color: "text-primary" },
   ];
 
@@ -62,7 +95,7 @@ export const RightSidebar = ({
           >
             <Bot className="w-5 h-5" />
           </Button>
-          
+
           <Button
             onClick={onSettingsClick}
             variant="ghost"
@@ -151,7 +184,7 @@ export const RightSidebar = ({
           {onModeChange && (
             <>
               <div className="h-px w-10 bg-primary/30 my-1" />
-              
+
               {/* Drawing Tools */}
               {tools.map((tool) => (
                 <Button
@@ -171,7 +204,7 @@ export const RightSidebar = ({
           {(onSave || onClear || onExport) && (
             <>
               <div className="h-px w-10 bg-primary/30 my-1" />
-              
+
               {onSave && (
                 <Button
                   variant="ghost"

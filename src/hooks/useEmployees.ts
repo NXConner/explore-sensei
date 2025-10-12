@@ -16,14 +16,18 @@ export interface Employee {
 }
 
 export const useEmployees = () => {
-  const { data: employees, isLoading, error } = useQuery({
+  const {
+    data: employees,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["employees"],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("employees")
         .select("*")
         .order("first_name", { ascending: true });
-      
+
       if (error) throw error;
       return (data || []) as Employee[];
     },

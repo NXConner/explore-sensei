@@ -1,6 +1,22 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Ruler, Circle, Square, MapPin, Trash2, Save, Navigation, Car, Eye, Scan, Download, Users, Cloud, Route, LocateFixed } from "lucide-react";
+import {
+  Ruler,
+  Circle,
+  Square,
+  MapPin,
+  Trash2,
+  Save,
+  Navigation,
+  Car,
+  Eye,
+  Scan,
+  Download,
+  Users,
+  Cloud,
+  Route,
+  LocateFixed,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { DrawingMode } from "@/hooks/useMapDrawing";
 import { MeasurementExportModal } from "@/components/export/MeasurementExportModal";
@@ -23,10 +39,10 @@ interface MapToolbarProps {
   onRoute?: (origin: string, destination: string) => void;
 }
 
-export const MapToolbar = ({ 
-  onModeChange, 
-  onClear, 
-  onSave, 
+export const MapToolbar = ({
+  onModeChange,
+  onClear,
+  onSave,
   activeMode,
   onLocateMe,
   onToggleTraffic,
@@ -44,7 +60,7 @@ export const MapToolbar = ({
   const [geoQuery, setGeoQuery] = useState("");
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
-  
+
   const tools = [
     { mode: "measure" as DrawingMode, icon: Ruler, label: "Measure Distance" },
     { mode: "circle" as DrawingMode, icon: Circle, label: "Measure Area (Circle)" },
@@ -65,7 +81,7 @@ export const MapToolbar = ({
           >
             <Navigation className="w-5 h-5 text-blue-500" />
           </Button>
-          
+
           {onToggleTraffic && (
             <Button
               variant={showTraffic ? "default" : "outline"}
@@ -125,11 +141,11 @@ export const MapToolbar = ({
               <Cloud className="w-5 h-5 text-sky-500" />
             </Button>
           )}
-          
+
           <div className="h-px bg-primary/30 my-2" />
         </>
       )}
-      
+
       {tools.map((tool) => (
         <Button
           key={tool.mode}
@@ -142,9 +158,9 @@ export const MapToolbar = ({
           <tool.icon className="w-5 h-5" />
         </Button>
       ))}
-      
+
       <div className="h-px bg-primary/30 my-2" />
-      
+
       {onSave && (
         <Button
           variant="outline"
@@ -156,7 +172,7 @@ export const MapToolbar = ({
           <Save className="w-5 h-5 text-green-500" />
         </Button>
       )}
-      
+
       <Button
         variant="outline"
         size="icon"
@@ -182,17 +198,39 @@ export const MapToolbar = ({
         <div className="tactical-panel mt-2 p-2 w-64 space-y-2">
           {onGeocode && (
             <div className="flex gap-2">
-              <Input placeholder="Search address" value={geoQuery} onChange={(e) => setGeoQuery(e.target.value)} />
-              <Button size="icon" variant="outline" onClick={() => geoQuery && onGeocode(geoQuery)} title="Geocode">
+              <Input
+                placeholder="Search address"
+                value={geoQuery}
+                onChange={(e) => setGeoQuery(e.target.value)}
+              />
+              <Button
+                size="icon"
+                variant="outline"
+                onClick={() => geoQuery && onGeocode(geoQuery)}
+                title="Geocode"
+              >
                 <LocateFixed className="w-4 h-4" />
               </Button>
             </div>
           )}
           {onRoute && (
             <div className="space-y-2">
-              <Input placeholder="Origin (addr or lat,lng)" value={origin} onChange={(e) => setOrigin(e.target.value)} />
-              <Input placeholder="Destination (addr or lat,lng)" value={destination} onChange={(e) => setDestination(e.target.value)} />
-              <Button className="w-full" variant="outline" onClick={() => origin && destination && onRoute(origin, destination)} title="Get Directions">
+              <Input
+                placeholder="Origin (addr or lat,lng)"
+                value={origin}
+                onChange={(e) => setOrigin(e.target.value)}
+              />
+              <Input
+                placeholder="Destination (addr or lat,lng)"
+                value={destination}
+                onChange={(e) => setDestination(e.target.value)}
+              />
+              <Button
+                className="w-full"
+                variant="outline"
+                onClick={() => origin && destination && onRoute(origin, destination)}
+                title="Get Directions"
+              >
                 <Route className="w-4 h-4 mr-2" /> Route
               </Button>
             </div>

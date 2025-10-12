@@ -1,5 +1,15 @@
 import React from "react";
-import { X, Building2, DollarSign, Users, Truck, Shield, FileText, TrendingUp, Flag } from "lucide-react";
+import {
+  X,
+  Building2,
+  DollarSign,
+  Users,
+  Truck,
+  Shield,
+  FileText,
+  TrendingUp,
+  Flag,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -111,7 +121,9 @@ export const BusinessManagementHub = ({ onClose, onNavigate }: BusinessManagemen
                     onClose();
                   }}
                 >
-                  <div className={`w-12 h-12 rounded-lg ${module.bgColor} flex items-center justify-center mb-4`}>
+                  <div
+                    className={`w-12 h-12 rounded-lg ${module.bgColor} flex items-center justify-center mb-4`}
+                  >
                     <Icon className={`w-6 h-6 ${module.color}`} />
                   </div>
                   <h3 className="text-lg font-bold mb-2">{module.title}</h3>
@@ -127,10 +139,22 @@ export const BusinessManagementHub = ({ onClose, onNavigate }: BusinessManagemen
               Business Information
             </h3>
             <div className="space-y-2 text-sm">
-              <p><span className="text-muted-foreground">Business Address:</span> 337 Ayers Orchard Road, Stuart, VA 24171</p>
-              <p><span className="text-muted-foreground">Employees:</span> 2 Full-time, 1 Part-time ($20/hr)</p>
-              <p><span className="text-muted-foreground">Material Supplier:</span> SealMaster, 703 West Decatur Street, Madison, NC 27025</p>
-              <p><span className="text-muted-foreground">Business Type:</span> Asphalt Maintenance & Sealcoating</p>
+              <p>
+                <span className="text-muted-foreground">Business Address:</span> 337 Ayers Orchard
+                Road, Stuart, VA 24171
+              </p>
+              <p>
+                <span className="text-muted-foreground">Employees:</span> 2 Full-time, 1 Part-time
+                ($20/hr)
+              </p>
+              <p>
+                <span className="text-muted-foreground">Material Supplier:</span> SealMaster, 703
+                West Decatur Street, Madison, NC 27025
+              </p>
+              <p>
+                <span className="text-muted-foreground">Business Type:</span> Asphalt Maintenance &
+                Sealcoating
+              </p>
             </div>
           </Card>
         </ScrollArea>

@@ -12,7 +12,7 @@ export const useAddressSearch = (map: google.maps.Map | null) => {
       geocoder.geocode({ address }, (results, status) => {
         if (status === "OK" && results && results[0]) {
           const location = results[0].geometry.location;
-          
+
           // Smooth fly-to animation
           map.panTo(location);
           setTimeout(() => {
@@ -36,7 +36,7 @@ export const useAddressSearch = (map: google.maps.Map | null) => {
         }
       });
     },
-    [map]
+    [map],
   );
 
   return {

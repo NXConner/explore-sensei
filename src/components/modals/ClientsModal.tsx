@@ -22,21 +22,22 @@ export const ClientsModal = ({ onClose }: ClientsModalProps) => {
         .from("clients")
         .select("*")
         .order("created_at", { ascending: false });
-      
+
       if (error) throw error;
       return data;
-    }
+    },
   });
 
-  const filteredClients = clients?.filter(client =>
-    client.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.contact?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredClients = clients?.filter(
+    (client) =>
+      client.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      client.contact?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const handleAddClient = () => {
     toast({
       title: "Add Client",
-      description: "Client creation form coming soon!"
+      description: "Client creation form coming soon!",
     });
   };
 
@@ -76,7 +77,7 @@ export const ClientsModal = ({ onClose }: ClientsModalProps) => {
             {filteredClients?.map((client) => (
               <div key={client.id} className="tactical-panel p-4">
                 <h3 className="font-bold text-lg mb-2">{client.name || "Unnamed Client"}</h3>
-                
+
                 <div className="space-y-2">
                   {client.contact && (
                     <div className="flex items-center gap-2 text-sm">
@@ -84,7 +85,7 @@ export const ClientsModal = ({ onClose }: ClientsModalProps) => {
                       <span>{client.contact}</span>
                     </div>
                   )}
-                  
+
                   {client.phone && (
                     <div className="flex items-center gap-2 text-sm">
                       <Phone className="w-4 h-4 text-muted-foreground" />

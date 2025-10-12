@@ -3,7 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,7 +47,7 @@ export const InvoiceForm = ({ onSave, onCancel }: InvoiceFormProps) => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [lineItems, setLineItems] = useState<LineItem[]>([
-    { description: "", quantity: 1, unit_price: 0 }
+    { description: "", quantity: 1, unit_price: 0 },
   ]);
   const { toast } = useToast();
 
@@ -51,20 +57,14 @@ export const InvoiceForm = ({ onSave, onCancel }: InvoiceFormProps) => {
   }, []);
 
   const fetchCustomers = async () => {
-    const { data } = await supabase
-      .from("customers")
-      .select("id, name")
-      .order("name");
-    
+    const { data } = await supabase.from("customers").select("id, name").order("name");
+
     if (data) setCustomers(data);
   };
 
   const fetchJobs = async () => {
-    const { data } = await supabase
-      .from("jobs")
-      .select("id, title")
-      .order("title");
-    
+    const { data } = await supabase.from("jobs").select("id, title").order("title");
+
     if (data) setJobs(data);
   };
 
@@ -83,7 +83,7 @@ export const InvoiceForm = ({ onSave, onCancel }: InvoiceFormProps) => {
   };
 
   const calculateSubtotal = () => {
-    return lineItems.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
+    return lineItems.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
   };
 
   const calculateTax = () => {
@@ -96,7 +96,11 @@ export const InvoiceForm = ({ onSave, onCancel }: InvoiceFormProps) => {
 
   const generateInvoiceNumber = () => {
     const date = new Date();
-    return `INV-${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+    return `INV-${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}-${Math.floor(
+      Math.random() * 1000,
+    )
+      .toString()
+      .padStart(3, "0")}`;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -118,21 +122,23 @@ export const InvoiceForm = ({ onSave, onCancel }: InvoiceFormProps) => {
 
     const { data: invoice, error: invoiceError } = await supabase
       .from("invoices")
-      .insert([{
-        invoice_number: generateInvoiceNumber(),
-        customer_id: customerId,
-        job_id: jobId || null,
-        issue_date: issueDate,
-        due_date: format(dueDate, "yyyy-MM-dd"),
-        subtotal,
-        tax_rate: taxRate,
-        tax_amount: taxAmount,
-        total_amount: totalAmount,
-        amount_paid: 0,
-        payment_terms: paymentTerms,
-        notes: notes || null,
-        status: "draft"
-      } as any])
+      .insert([
+        {
+          invoice_number: generateInvoiceNumber(),
+          customer_id: customerId,
+          job_id: jobId || null,
+          issue_date: issueDate,
+          due_date: format(dueDate, "yyyy-MM-dd"),
+          subtotal,
+          tax_rate: taxRate,
+          tax_amount: taxAmount,
+          total_amount: totalAmount,
+          amount_paid: 0,
+          payment_terms: paymentTerms,
+          notes: notes || null,
+          status: "draft",
+        } as any,
+      ])
       .select()
       .single();
 
@@ -145,17 +151,15 @@ export const InvoiceForm = ({ onSave, onCancel }: InvoiceFormProps) => {
       return;
     }
 
-    const items = lineItems.map(item => ({
+    const items = lineItems.map((item) => ({
       invoice_id: invoice.id,
       description: item.description,
       quantity: item.quantity,
       unit_price: item.unit_price,
-      amount: item.quantity * item.unit_price
+      amount: item.quantity * item.unit_price,
     }));
 
-    const { error: itemsError } = await supabase
-      .from("invoice_items")
-      .insert(items);
+    const { error: itemsError } = await supabase.from("invoice_items").insert(items);
 
     if (itemsError) {
       toast({

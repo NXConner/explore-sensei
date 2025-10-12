@@ -17,9 +17,9 @@ export const HRManagementModal = ({ onClose }: HRManagementModalProps) => {
   const { employees, isLoading: employeesLoading } = useEmployees();
   const { trainings, expiringTrainings, isLoading: safetyLoading } = useSafety();
 
-  const activeEmployees = employees.filter(e => e.status === 'active' || !e.status);
-  const onLeave = employees.filter(e => e.status === 'leave');
-  const terminated = employees.filter(e => e.status === 'terminated');
+  const activeEmployees = employees.filter((e) => e.status === "active" || !e.status);
+  const onLeave = employees.filter((e) => e.status === "leave");
+  const terminated = employees.filter((e) => e.status === "terminated");
 
   return (
     <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/70 backdrop-blur-sm">
@@ -86,13 +86,21 @@ export const HRManagementModal = ({ onClose }: HRManagementModalProps) => {
                   </h3>
                   <div className="space-y-2">
                     {expiringTrainings.map((training) => (
-                      <div key={training.id} className="flex justify-between items-center p-3 bg-background/50 rounded">
+                      <div
+                        key={training.id}
+                        className="flex justify-between items-center p-3 bg-background/50 rounded"
+                      >
                         <div>
                           <p className="font-medium">{training.training_name}</p>
-                          <p className="text-sm text-muted-foreground">Employee ID: {training.employee_id}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Employee ID: {training.employee_id}
+                          </p>
                         </div>
                         <Badge variant="destructive">
-                          Expires: {training.expiration_date ? format(new Date(training.expiration_date), 'MMM dd') : 'N/A'}
+                          Expires:{" "}
+                          {training.expiration_date
+                            ? format(new Date(training.expiration_date), "MMM dd")
+                            : "N/A"}
                         </Badge>
                       </div>
                     ))}
@@ -113,7 +121,9 @@ export const HRManagementModal = ({ onClose }: HRManagementModalProps) => {
                         <h3 className="text-lg font-bold">
                           {employee.first_name} {employee.last_name}
                         </h3>
-                        <p className="text-sm text-muted-foreground">{employee.role || 'Employee'}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {employee.role || "Employee"}
+                        </p>
                         <div className="flex gap-4 mt-2 text-xs">
                           {employee.email && <span>{employee.email}</span>}
                           {employee.phone && <span>{employee.phone}</span>}
@@ -122,11 +132,13 @@ export const HRManagementModal = ({ onClose }: HRManagementModalProps) => {
                     </div>
                     <div className="text-right">
                       {employee.hourly_rate && (
-                        <p className="text-lg font-bold text-green-500">${employee.hourly_rate}/hr</p>
+                        <p className="text-lg font-bold text-green-500">
+                          ${employee.hourly_rate}/hr
+                        </p>
                       )}
                       {employee.hire_date && (
                         <p className="text-xs text-muted-foreground mt-1">
-                          Since {format(new Date(employee.hire_date), 'MMM yyyy')}
+                          Since {format(new Date(employee.hire_date), "MMM yyyy")}
                         </p>
                       )}
                     </div>
@@ -145,20 +157,20 @@ export const HRManagementModal = ({ onClose }: HRManagementModalProps) => {
                         <h3 className="font-bold">{training.training_name}</h3>
                         <p className="text-sm text-muted-foreground">{training.training_type}</p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Completed: {format(new Date(training.completion_date), 'MMM dd, yyyy')}
+                          Completed: {format(new Date(training.completion_date), "MMM dd, yyyy")}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
                       {training.expiration_date && (
-                        <Badge 
+                        <Badge
                           variant={
-                            expiringTrainings.some(t => t.id === training.id) 
-                              ? "destructive" 
+                            expiringTrainings.some((t) => t.id === training.id)
+                              ? "destructive"
                               : "outline"
                           }
                         >
-                          Expires: {format(new Date(training.expiration_date), 'MMM dd, yyyy')}
+                          Expires: {format(new Date(training.expiration_date), "MMM dd, yyyy")}
                         </Badge>
                       )}
                     </div>
@@ -175,13 +187,17 @@ export const HRManagementModal = ({ onClose }: HRManagementModalProps) => {
 
             <TabsContent value="alerts" className="mt-6">
               <Card className="hud-element border-yellow-500/30 p-6">
-                <h3 className="font-bold text-lg mb-4 text-yellow-400">HR Alerts & Notifications</h3>
+                <h3 className="font-bold text-lg mb-4 text-yellow-400">
+                  HR Alerts & Notifications
+                </h3>
                 <div className="space-y-3">
                   {expiringTrainings.length > 0 && (
                     <div className="p-4 bg-red-500/10 border border-red-500/30 rounded">
                       <div className="flex items-center gap-2 mb-2">
                         <AlertCircle className="w-4 h-4 text-red-400" />
-                        <span className="font-medium text-red-400">Training Certifications Expiring</span>
+                        <span className="font-medium text-red-400">
+                          Training Certifications Expiring
+                        </span>
                       </div>
                       <p className="text-sm text-muted-foreground">
                         {expiringTrainings.length} certification(s) will expire within 30 days

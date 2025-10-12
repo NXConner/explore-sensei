@@ -18,12 +18,12 @@ export const IntelPOIModal = ({ onClose }: IntelPOIModalProps) => {
   });
 
   const hazards = [
-    { id: 1, name: "Construction Zone", type: "hazard", lat: 40.7128, lng: -74.0060 },
+    { id: 1, name: "Construction Zone", type: "hazard", lat: 40.7128, lng: -74.006 },
     { id: 2, name: "Road Closure", type: "hazard", lat: 40.7589, lng: -73.9851 },
   ];
 
   const vendors = [
-    { id: 3, name: "Home Depot", type: "vendor", lat: 40.7489, lng: -73.9680 },
+    { id: 3, name: "Home Depot", type: "vendor", lat: 40.7489, lng: -73.968 },
     { id: 4, name: "Ace Hardware", type: "vendor", lat: 40.7614, lng: -73.9776 },
   ];
 
@@ -180,9 +180,7 @@ export const IntelPOIModal = ({ onClose }: IntelPOIModalProps) => {
                           {item.lat.toFixed(4)}, {item.lng.toFixed(4)}
                         </p>
                       </div>
-                      <Badge className="bg-success/20 text-success border-success/30">
-                        Secure
-                      </Badge>
+                      <Badge className="bg-success/20 text-success border-success/30">Secure</Badge>
                     </div>
                   </div>
                 ))}

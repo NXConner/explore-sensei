@@ -12,32 +12,32 @@ export interface OnboardingStep {
 
 export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
-    id: 'welcome',
-    title: 'Welcome to the Platform',
-    description: 'Let\'s get you started with a quick tour of the main features.',
+    id: "welcome",
+    title: "Welcome to the Platform",
+    description: "Let's get you started with a quick tour of the main features.",
   },
   {
-    id: 'add_job',
-    title: 'Create Your First Job',
-    description: 'Click here to add a new job to your map.',
+    id: "add_job",
+    title: "Create Your First Job",
+    description: "Click here to add a new job to your map.",
     target: '[data-onboarding="add-job"]',
   },
   {
-    id: 'map_tools',
-    title: 'Map Drawing Tools',
-    description: 'Use these tools to measure areas and distances on the map.',
+    id: "map_tools",
+    title: "Map Drawing Tools",
+    description: "Use these tools to measure areas and distances on the map.",
     target: '[data-onboarding="map-toolbar"]',
   },
   {
-    id: 'schedule',
-    title: 'Schedule Jobs',
-    description: 'View and manage your job schedule here.',
+    id: "schedule",
+    title: "Schedule Jobs",
+    description: "View and manage your job schedule here.",
     target: '[data-onboarding="schedule"]',
   },
   {
-    id: 'reports',
-    title: 'Generate Reports',
-    description: 'Access analytics and generate custom reports.',
+    id: "reports",
+    title: "Generate Reports",
+    description: "Access analytics and generate custom reports.",
     target: '[data-onboarding="analytics"]',
   },
 ];
@@ -48,7 +48,9 @@ export const useOnboarding = () => {
   const { data: progress, isLoading } = useQuery({
     queryKey: ["onboarding-progress"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return null;
 
       const { data, error } = await (supabase as any)
@@ -57,34 +59,36 @@ export const useOnboarding = () => {
         .eq("user_id", user.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') throw error;
-      
-      return data || {
-        completed_steps: [],
-        current_step: ONBOARDING_STEPS[0].id,
-        is_completed: false,
-      };
+      if (error && error.code !== "PGRST116") throw error;
+
+      return (
+        data || {
+          completed_steps: [],
+          current_step: ONBOARDING_STEPS[0].id,
+          is_completed: false,
+        }
+      );
     },
   });
 
   const completeStep = useMutation({
     mutationFn: async (stepId: string) => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
       const completedSteps = [...(progress?.completed_steps || []), stepId];
-      const nextStepIndex = ONBOARDING_STEPS.findIndex(s => s.id === stepId) + 1;
+      const nextStepIndex = ONBOARDING_STEPS.findIndex((s) => s.id === stepId) + 1;
       const isCompleted = nextStepIndex >= ONBOARDING_STEPS.length;
 
-      const { error } = await (supabase as any)
-        .from("user_onboarding")
-        .upsert({
-          user_id: user.id,
-          completed_steps: completedSteps,
-          current_step: isCompleted ? null : ONBOARDING_STEPS[nextStepIndex]?.id,
-          is_completed: isCompleted,
-          completed_at: isCompleted ? new Date().toISOString() : null,
-        });
+      const { error } = await (supabase as any).from("user_onboarding").upsert({
+        user_id: user.id,
+        completed_steps: completedSteps,
+        current_step: isCompleted ? null : ONBOARDING_STEPS[nextStepIndex]?.id,
+        is_completed: isCompleted,
+        completed_at: isCompleted ? new Date().toISOString() : null,
+      });
 
       if (error) throw error;
     },
@@ -95,16 +99,16 @@ export const useOnboarding = () => {
 
   const skipOnboarding = useMutation({
     mutationFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { error } = await (supabase as any)
-        .from("user_onboarding")
-        .upsert({
-          user_id: user.id,
-          is_completed: true,
-          skipped_at: new Date().toISOString(),
-        });
+      const { error } = await (supabase as any).from("user_onboarding").upsert({
+        user_id: user.id,
+        is_completed: true,
+        skipped_at: new Date().toISOString(),
+      });
 
       if (error) throw error;
     },
@@ -116,10 +120,12 @@ export const useOnboarding = () => {
 
   const resetOnboarding = useMutation({
     mutationFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { error} = await (supabase as any)
+      const { error } = await (supabase as any)
         .from("user_onboarding")
         .update({
           completed_steps: [],
@@ -138,7 +144,7 @@ export const useOnboarding = () => {
     },
   });
 
-  const currentStep = ONBOARDING_STEPS.find(s => s.id === (progress as any)?.current_step);
+  const currentStep = ONBOARDING_STEPS.find((s) => s.id === (progress as any)?.current_step);
   const completedSteps = (progress as any)?.completed_steps || [];
   const isComplete = (progress as any)?.is_completed || false;
 

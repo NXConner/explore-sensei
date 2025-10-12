@@ -25,7 +25,7 @@ export default tseslint.config(
       // Enforce unused imports removal and consistent import order via TS plugin options
       "@typescript-eslint/no-unused-vars": [
         "warn",
-        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
       "no-console": ["warn", { allow: ["warn", "error"] }],
       // Minimal a11y ruleset

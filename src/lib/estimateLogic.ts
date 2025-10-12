@@ -44,7 +44,7 @@ export function autoPopulateEstimate(params: AutoPopulateParams): AutoPopulateRe
     const gallons = params.areaSqFt * gallonsPerSqFt;
     const costPerGallon = 2.5;
     const materialCost = gallons * costPerGallon;
-    
+
     lineItems.push({
       item_name: "Sealcoat Material",
       item_code: "SEAL-MAT",
@@ -52,13 +52,13 @@ export function autoPopulateEstimate(params: AutoPopulateParams): AutoPopulateRe
       unit_cost: costPerGallon,
       quantity: Math.round(gallons * 100) / 100,
       line_total: materialCost,
-      description: `Coverage for ${params.areaSqFt} sqft`
+      description: `Coverage for ${params.areaSqFt} sqft`,
     });
-    
+
     // Labor for sealcoat
     const hoursEstimate = (params.areaSqFt / 1000) * (params.crewSize || 2);
     const laborCost = hoursEstimate * (params.hourlyRate || 20) * (params.crewSize || 2);
-    
+
     lineItems.push({
       item_name: "Sealcoat Labor",
       item_code: "SEAL-LAB",
@@ -66,7 +66,7 @@ export function autoPopulateEstimate(params: AutoPopulateParams): AutoPopulateRe
       unit_cost: (params.hourlyRate || 20) * (params.crewSize || 2),
       quantity: Math.round(hoursEstimate * 100) / 100,
       line_total: laborCost,
-      description: `Crew of ${params.crewSize || 2}`
+      description: `Crew of ${params.crewSize || 2}`,
     });
   }
 
@@ -76,7 +76,7 @@ export function autoPopulateEstimate(params: AutoPopulateParams): AutoPopulateRe
     const pounds = params.linearFeetCracks * lbsPerFoot;
     const costPerLb = 1.2;
     const materialCost = pounds * costPerLb;
-    
+
     lineItems.push({
       item_name: "Crack Filler Material",
       item_code: "CRACK-MAT",
@@ -84,19 +84,19 @@ export function autoPopulateEstimate(params: AutoPopulateParams): AutoPopulateRe
       unit_cost: costPerLb,
       quantity: Math.round(pounds * 100) / 100,
       line_total: materialCost,
-      description: `${params.linearFeetCracks} linear feet`
+      description: `${params.linearFeetCracks} linear feet`,
     });
-    
+
     const hoursEstimate = (params.linearFeetCracks / 200) * (params.crewSize || 2);
     const laborCost = hoursEstimate * (params.hourlyRate || 20) * (params.crewSize || 2);
-    
+
     lineItems.push({
       item_name: "Crack Filling Labor",
       item_code: "CRACK-LAB",
       unit: "hour",
       unit_cost: (params.hourlyRate || 20) * (params.crewSize || 2),
       quantity: Math.round(hoursEstimate * 100) / 100,
-      line_total: laborCost
+      line_total: laborCost,
     });
   }
 
@@ -107,7 +107,7 @@ export function autoPopulateEstimate(params: AutoPopulateParams): AutoPopulateRe
     const tons = patchArea * tonsPerSqFt;
     const costPerTon = 120;
     const materialCost = tons * costPerTon;
-    
+
     lineItems.push({
       item_name: "Asphalt Patching Material",
       item_code: "PATCH-MAT",
@@ -115,19 +115,19 @@ export function autoPopulateEstimate(params: AutoPopulateParams): AutoPopulateRe
       unit_cost: costPerTon,
       quantity: Math.round(tons * 100) / 100,
       line_total: materialCost,
-      description: `Patching ~${Math.round(patchArea)} sqft`
+      description: `Patching ~${Math.round(patchArea)} sqft`,
     });
-    
+
     const hoursEstimate = (patchArea / 100) * (params.crewSize || 2);
     const laborCost = hoursEstimate * (params.hourlyRate || 20) * (params.crewSize || 2);
-    
+
     lineItems.push({
       item_name: "Patching Labor",
       item_code: "PATCH-LAB",
       unit: "hour",
       unit_cost: (params.hourlyRate || 20) * (params.crewSize || 2),
       quantity: Math.round(hoursEstimate * 100) / 100,
-      line_total: laborCost
+      line_total: laborCost,
     });
   }
 
@@ -135,7 +135,7 @@ export function autoPopulateEstimate(params: AutoPopulateParams): AutoPopulateRe
   if (params.services.striping && params.numStalls) {
     const costPerStall = 15;
     const stripingCost = params.numStalls * costPerStall;
-    
+
     lineItems.push({
       item_name: "Parking Stall Striping",
       item_code: "STRIPE-STALL",
@@ -143,7 +143,7 @@ export function autoPopulateEstimate(params: AutoPopulateParams): AutoPopulateRe
       unit_cost: costPerStall,
       quantity: params.numStalls,
       line_total: stripingCost,
-      description: `${params.numStalls} parking stalls`
+      description: `${params.numStalls} parking stalls`,
     });
   }
 
@@ -151,7 +151,7 @@ export function autoPopulateEstimate(params: AutoPopulateParams): AutoPopulateRe
   if (params.distanceMiles && params.distanceMiles > 0) {
     const costPerMile = 2.5;
     const travelCost = params.distanceMiles * costPerMile * 2; // Round trip
-    
+
     lineItems.push({
       item_name: "Travel/Mobilization",
       item_code: "TRAVEL",
@@ -159,7 +159,7 @@ export function autoPopulateEstimate(params: AutoPopulateParams): AutoPopulateRe
       unit_cost: costPerMile,
       quantity: params.distanceMiles * 2,
       line_total: travelCost,
-      description: "Round trip to job site"
+      description: "Round trip to job site",
     });
   }
 
@@ -167,7 +167,7 @@ export function autoPopulateEstimate(params: AutoPopulateParams): AutoPopulateRe
   if (params.procurementMiles && params.procurementMiles > 0) {
     const costPerMile = 2.5;
     const procureCost = params.procurementMiles * costPerMile * 2;
-    
+
     lineItems.push({
       item_name: "Material Procurement",
       item_code: "PROCURE",
@@ -175,7 +175,7 @@ export function autoPopulateEstimate(params: AutoPopulateParams): AutoPopulateRe
       unit_cost: costPerMile,
       quantity: params.procurementMiles * 2,
       line_total: procureCost,
-      description: "Material pickup/delivery"
+      description: "Material pickup/delivery",
     });
   }
 
@@ -191,7 +191,7 @@ export function autoPopulateEstimate(params: AutoPopulateParams): AutoPopulateRe
     unit_cost: params.overheadPercent,
     quantity: 1,
     line_total: overhead,
-    description: `${params.overheadPercent}% overhead`
+    description: `${params.overheadPercent}% overhead`,
   });
 
   subtotal += overhead;
@@ -205,7 +205,7 @@ export function autoPopulateEstimate(params: AutoPopulateParams): AutoPopulateRe
     unit_cost: params.profitPercent,
     quantity: 1,
     line_total: profit,
-    description: `${params.profitPercent}% profit`
+    description: `${params.profitPercent}% profit`,
   });
 
   subtotal += profit;
@@ -217,6 +217,6 @@ export function autoPopulateEstimate(params: AutoPopulateParams): AutoPopulateRe
     lineItems,
     subtotal,
     tax,
-    total
+    total,
   };
 }

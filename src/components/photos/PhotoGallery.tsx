@@ -42,10 +42,7 @@ export const PhotoGallery = ({ jobId, photoType }: PhotoGalleryProps) => {
   const fetchPhotos = async () => {
     setLoading(true);
 
-    let query = supabase
-      .from("job_photos")
-      .select("*")
-      .order("taken_at", { ascending: false });
+    let query = supabase.from("job_photos").select("*").order("taken_at", { ascending: false });
 
     if (jobId) {
       query = query.eq("job_id", jobId);
@@ -69,18 +66,22 @@ export const PhotoGallery = ({ jobId, photoType }: PhotoGalleryProps) => {
 
     // Fetch related data
     if (data && data.length > 0) {
-      const jobIds = [...new Set(data.filter(p => p.job_id).map(p => p.job_id))];
-      const employeeIds = [...new Set(data.filter(p => p.employee_id).map(p => p.employee_id))];
+      const jobIds = [...new Set(data.filter((p) => p.job_id).map((p) => p.job_id))];
+      const employeeIds = [...new Set(data.filter((p) => p.employee_id).map((p) => p.employee_id))];
 
       const [jobsData, employeesData] = await Promise.all([
-        jobIds.length > 0 ? supabase.from("jobs").select("id, title").in("id", jobIds) : Promise.resolve({ data: [] }),
-        employeeIds.length > 0 ? supabase.from("employees").select("id, first_name, last_name").in("id", employeeIds) : Promise.resolve({ data: [] })
+        jobIds.length > 0
+          ? supabase.from("jobs").select("id, title").in("id", jobIds)
+          : Promise.resolve({ data: [] }),
+        employeeIds.length > 0
+          ? supabase.from("employees").select("id, first_name, last_name").in("id", employeeIds)
+          : Promise.resolve({ data: [] }),
       ]);
 
-      const jobsMap = new Map((jobsData.data || []).map(j => [j.id, j]));
-      const employeesMap = new Map((employeesData.data || []).map(e => [e.id, e]));
+      const jobsMap = new Map((jobsData.data || []).map((j) => [j.id, j]));
+      const employeesMap = new Map((employeesData.data || []).map((e) => [e.id, e]));
 
-      const enrichedData = data.map(photo => ({
+      const enrichedData = data.map((photo) => ({
         ...photo,
         jobs: photo.job_id ? jobsMap.get(photo.job_id) : null,
         employees: photo.employee_id ? employeesMap.get(photo.employee_id) : null,
@@ -95,9 +96,7 @@ export const PhotoGallery = ({ jobId, photoType }: PhotoGalleryProps) => {
   };
 
   const getPhotoUrl = (filePath: string) => {
-    const { data } = supabase.storage
-      .from('job-photos')
-      .getPublicUrl(filePath);
+    const { data } = supabase.storage.from("job-photos").getPublicUrl(filePath);
     return data.publicUrl;
   };
 
@@ -119,11 +118,7 @@ export const PhotoGallery = ({ jobId, photoType }: PhotoGalleryProps) => {
   };
 
   if (loading) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        Loading photos...
-      </div>
-    );
+    return <div className="text-center py-12 text-muted-foreground">Loading photos...</div>;
   }
 
   if (photos.length === 0) {
@@ -154,13 +149,9 @@ export const PhotoGallery = ({ jobId, photoType }: PhotoGalleryProps) => {
               </Badge>
             </div>
             <div className="p-3 space-y-2">
-              {photo.jobs && (
-                <p className="font-bold text-sm truncate">{photo.jobs.title}</p>
-              )}
+              {photo.jobs && <p className="font-bold text-sm truncate">{photo.jobs.title}</p>}
               {photo.description && (
-                <p className="text-xs text-muted-foreground line-clamp-2">
-                  {photo.description}
-                </p>
+                <p className="text-xs text-muted-foreground line-clamp-2">{photo.description}</p>
               )}
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Calendar className="w-3 h-3" />

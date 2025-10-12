@@ -34,16 +34,25 @@ export const ScreensaverMode = ({ onClose }: ScreensaverModeProps) => {
     {
       title: "PROJECT STATUS",
       stats: [
-        { label: "Completed", value: jobSites?.filter(j => j.status.includes("Complete")).length || 0 },
-        { label: "In Progress", value: jobSites?.filter(j => j.status.includes("Progress")).length || 0 },
-        { label: "Scheduled", value: jobSites?.filter(j => j.status.includes("Scheduled")).length || 0 },
+        {
+          label: "Completed",
+          value: jobSites?.filter((j) => j.status.includes("Complete")).length || 0,
+        },
+        {
+          label: "In Progress",
+          value: jobSites?.filter((j) => j.status.includes("Progress")).length || 0,
+        },
+        {
+          label: "Scheduled",
+          value: jobSites?.filter((j) => j.status.includes("Scheduled")).length || 0,
+        },
       ],
     },
   ];
 
   useEffect(() => {
     if (isPaused) return;
-    
+
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
     }, 5000);
@@ -63,12 +72,7 @@ export const ScreensaverMode = ({ onClose }: ScreensaverModeProps) => {
         >
           {isPaused ? <Play className="h-6 w-6" /> : <Pause className="h-6 w-6" />}
         </Button>
-        <Button
-          onClick={onClose}
-          variant="ghost"
-          size="icon"
-          className="h-12 w-12"
-        >
+        <Button onClick={onClose} variant="ghost" size="icon" className="h-12 w-12">
           <X className="h-6 w-6" />
         </Button>
       </div>
@@ -110,15 +114,13 @@ export const ScreensaverMode = ({ onClose }: ScreensaverModeProps) => {
 
       {/* Footer Time */}
       <div className="absolute bottom-8 text-center">
-        <p className="text-4xl font-mono text-primary">
-          {new Date().toLocaleTimeString()}
-        </p>
+        <p className="text-4xl font-mono text-primary">{new Date().toLocaleTimeString()}</p>
         <p className="text-lg text-muted-foreground mt-2">
-          {new Date().toLocaleDateString("en-US", { 
-            weekday: "long", 
-            year: "numeric", 
-            month: "long", 
-            day: "numeric" 
+          {new Date().toLocaleDateString("en-US", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
           })}
         </p>
       </div>
