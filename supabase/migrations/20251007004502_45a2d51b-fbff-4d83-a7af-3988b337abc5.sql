@@ -183,4 +183,4 @@ BEGIN
     last_location_time = EXCLUDED.last_location_time,
     locations_count = EXCLUDED.locations_count;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '';
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;

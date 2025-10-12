@@ -44,6 +44,42 @@ serve(async (req) => {
 
     const { data: userRes } = await supabase.auth.getUser();
     const user = userRes?.user ?? null;
+    if (!user) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Per-user hourly rate limit
+    const limit = parseInt(Deno.env.get('AI_ANALYZE_HOURLY_LIMIT') ?? '15');
+    const now = new Date();
+    const hourStart = new Date(now);
+    hourStart.setMinutes(0, 0, 0);
+    const periodStartIso = hourStart.toISOString();
+
+    const { data: usageRow } = await supabase
+      .from('edge_function_usage')
+      .select('count')
+      .eq('user_id', user.id)
+      .eq('function_name', 'analyze-asphalt')
+      .eq('period_start', periodStartIso)
+      .maybeSingle();
+
+    const currentCount = usageRow?.count ?? 0;
+    if (currentCount >= limit) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Rate limit exceeded. Please try again later.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    await supabase.from('edge_function_usage').upsert({
+      user_id: user.id,
+      function_name: 'analyze-asphalt',
+      period_start: periodStartIso,
+      count: currentCount + 1,
+    }, { onConflict: 'user_id,function_name,period_start' });
 
     console.log('Starting asphalt analysis...');
 
@@ -162,7 +198,7 @@ Return your analysis as a JSON object with this structure:
 
     console.log('Analysis complete:', analysis);
 
-    // Persist result if authenticated
+    // Persist result for this user
     let detection_id: string | null = null;
     try {
       if (user?.id) {
