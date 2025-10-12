@@ -1,8 +1,8 @@
 import React from "react";
-import { useUserRole, UserRole } from "@/hooks/useUserRole";
+import { useUserRole, AppRole } from "@/hooks/useUserRole";
 
 interface ProtectedFeatureProps {
-  allowed: UserRole[];
+  allowed: AppRole[];
   fallback?: React.ReactNode;
   children: React.ReactNode;
 }

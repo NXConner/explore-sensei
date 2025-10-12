@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
+    passWithNoTests: true,
     deps: { inline: [/.*/] },
     exclude: [
       "e2e/**",

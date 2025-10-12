@@ -8,9 +8,11 @@ const Index = lazy(() => import("./pages/Index"));
 const Profile = lazy(() => import("./pages/Profile").then(m => ({ default: m.Profile })));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Auth = lazy(() => import("./pages/Auth"));
+const ClientAppLazy = lazy(() => import("./pages/client/ClientApp").then(m => ({ default: m.ClientApp })));
 import { initAnalytics, trackPageView } from "@/lib/analytics";
 import { GamificationProvider } from "@/context/GamificationContext";
 import { applySavedThemeFromLocalStorage, listenForThemeChanges } from "@/lib/theme";
+import { ProtectedFeature } from "@/components/ProtectedFeature";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +58,17 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/auth" element={<Auth />} />
+              {/* Client-facing app */}
+              <Route
+                path="/client/*"
+                element={
+                  <ProtectedFeature
+                    allowed={["Viewer","Operator","Manager","Administrator","Super Administrator"]}
+                  >
+                    <ClientAppLazy />
+                  </ProtectedFeature>
+                }
+              />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
