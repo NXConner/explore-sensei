@@ -49,7 +49,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
       | "tactical-dark"
       | "light"
       | "high-contrast"
-      | "church-blue"
+      | "industry-blue"
       | "safety-green"
       | "construction"
       | "landscaping"
@@ -254,7 +254,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     { id: "tactical-dark", label: "Tactical Dark", premium: false },
                     { id: "light", label: "Light", premium: false },
                     { id: "high-contrast", label: "High Contrast", premium: false },
-                    { id: "church-blue", label: "Church Blue", premium: false },
+                    { id: "industry-blue", label: "Industry Blue", premium: false },
                     { id: "safety-green", label: "Safety Green", premium: false },
                     // Division-inspired collection
                     { id: "division-shd", label: "Division: SHD", premium: false },

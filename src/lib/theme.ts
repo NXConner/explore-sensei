@@ -2,7 +2,7 @@ export type ThemeId =
   | "tactical-dark"
   | "light"
   | "high-contrast"
-  | "church-blue"
+  | "industry-blue"
   | "safety-green"
   | "construction"
   | "landscaping"
@@ -64,7 +64,7 @@ export const THEME_VARS: Record<ThemeId, CssVarMap> = {
     "--input": "0 0% 20%",
     "--ring": "40 100% 50%",
   },
-  "church-blue": {
+  "industry-blue": {
     "--primary": "211 100% 45%",
     "--primary-foreground": "0 0% 100%",
     "--accent": "39 100% 50%",
@@ -180,8 +180,10 @@ export function applySavedThemeFromLocalStorage() {
   try {
     const raw = localStorage.getItem("aos_settings");
     if (!raw) return;
-    const parsed = JSON.parse(raw) as { theme?: ThemeId; highContrast?: boolean; wallpaperUrl?: string; wallpaperOpacity?: number };
-    const theme = (parsed.theme as ThemeId) || "tactical-dark";
+    const parsed = JSON.parse(raw) as { theme?: ThemeId | "church-blue"; highContrast?: boolean; wallpaperUrl?: string; wallpaperOpacity?: number };
+    // Backward-compatible alias: map legacy 'church-blue' to 'industry-blue'
+    const mappedTheme = (parsed.theme === "church-blue" ? "industry-blue" : parsed.theme) as ThemeId | undefined;
+    const theme = mappedTheme || "tactical-dark";
     applyThemeVariables(theme, { highContrast: !!parsed.highContrast });
     applyWallpaper(parsed.wallpaperUrl, parsed.wallpaperOpacity);
   } catch {}
