@@ -9,6 +9,8 @@ import { useGamificationToggle } from "@/context/GamificationContext";
 import { Slider } from "@/components/ui/slider";
 import { WeatherAlertLocationsManager } from "./WeatherAlertLocationsManager";
 import { applyThemeVariables, applyWallpaper } from "@/lib/theme";
+import { Input } from "@/components/ui/input";
+import { detectExistingApiKeys } from "@/config/env";
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -66,6 +68,18 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     useDefaultLocation: false,
     // Premium gating
     premiumEnabled: false,
+    // API Keys (overrides env when provided)
+    apiKeys: {
+      googleMaps: "",
+      googleGeneric: "",
+      mapbox: "",
+      openWeather: "",
+    } as {
+      googleMaps?: string;
+      googleGeneric?: string;
+      mapbox?: string;
+      openWeather?: string;
+    },
   });
 
   // Persist settings in localStorage
@@ -76,6 +90,22 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
         const parsed = JSON.parse(raw);
         setSettings((prev) => ({ ...prev, ...parsed }));
       }
+    } catch {}
+  }, []);
+
+  // Prefill API keys from environment/config on first load if missing
+  useEffect(() => {
+    try {
+      const found = detectExistingApiKeys();
+      setSettings((prev) => {
+        const current = prev.apiKeys || {};
+        const merged = { ...current } as typeof current;
+        if (!merged.googleMaps && found.googleMaps) merged.googleMaps = found.googleMaps;
+        if (!merged.googleGeneric && found.googleGeneric) merged.googleGeneric = found.googleGeneric;
+        if (!merged.mapbox && found.mapbox) merged.mapbox = found.mapbox;
+        if (!merged.openWeather && found.openWeather) merged.openWeather = found.openWeather;
+        return { ...prev, apiKeys: merged };
+      });
     } catch {}
   }, []);
 
@@ -119,6 +149,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
             <TabsTrigger value="hud">HUD</TabsTrigger>
             <TabsTrigger value="sounds">Sounds</TabsTrigger>
             <TabsTrigger value="advanced">Advanced</TabsTrigger>
+            <TabsTrigger value="api-keys">API Keys</TabsTrigger>
           </TabsList>
             <TabsContent value="gamification" className="mt-0 space-y-6">
               <div className="tactical-panel p-4">
@@ -722,6 +753,82 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     />
                   </div>
                 )}
+              </div>
+            </TabsContent>
+
+            {/* API Keys Management */}
+            <TabsContent value="api-keys" className="mt-0 space-y-6">
+              <div className="tactical-panel p-4 space-y-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <Settings className="w-5 h-5 text-primary" />
+                  <Label>API Keys</Label>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Values entered here override environment variables on this device. Keys are stored locally in your browser storage.
+                </p>
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-xs">Google Maps API Key</Label>
+                    <Input
+                      type="password"
+                      placeholder="AIza..."
+                      value={settings.apiKeys?.googleMaps || ""}
+                      onChange={(e) =>
+                        setSettings((p) => ({
+                          ...p,
+                          apiKeys: { ...(p.apiKeys || {}), googleMaps: e.target.value },
+                        }))
+                      }
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Google API Key (generic fallback)</Label>
+                    <Input
+                      type="password"
+                      placeholder="AIza..."
+                      value={settings.apiKeys?.googleGeneric || ""
+                      }
+                      onChange={(e) =>
+                        setSettings((p) => ({
+                          ...p,
+                          apiKeys: { ...(p.apiKeys || {}), googleGeneric: e.target.value },
+                        }))
+                      }
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Mapbox Access Token</Label>
+                    <Input
+                      type="password"
+                      placeholder="pk.eyJ..."
+                      value={settings.apiKeys?.mapbox || ""}
+                      onChange={(e) =>
+                        setSettings((p) => ({
+                          ...p,
+                          apiKeys: { ...(p.apiKeys || {}), mapbox: e.target.value },
+                        }))
+                      }
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">OpenWeather API Key</Label>
+                    <Input
+                      type="password"
+                      placeholder="abc123..."
+                      value={settings.apiKeys?.openWeather || ""}
+                      onChange={(e) =>
+                        setSettings((p) => ({
+                          ...p,
+                          apiKeys: { ...(p.apiKeys || {}), openWeather: e.target.value },
+                        }))
+                      }
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
               </div>
             </TabsContent>
           </ScrollArea>
