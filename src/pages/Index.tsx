@@ -68,25 +68,23 @@ const Index = () => {
     activeMode: null as DrawingMode,
   });
 
-  // Load map theme from settings, default to division
+  // Load map theme from settings, default to division, and react to changes
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("aos_settings");
-      if (raw) {
+    const load = () => {
+      try {
+        const raw = localStorage.getItem("aos_settings");
+        if (!raw) { setMapTheme("division"); return; }
         const parsed = JSON.parse(raw);
-        if (parsed.mapTheme) {
-          setMapTheme(parsed.mapTheme);
-        } else {
-          // Set default to division
-          setMapTheme("division");
-        }
-      } else {
-        // No settings found, default to division
-        setMapTheme("division");
-      }
-    } catch {
-      setMapTheme("division");
-    }
+        setMapTheme(parsed.mapTheme === "animus" ? "animus" : "division");
+      } catch { setMapTheme("division"); }
+    };
+    load();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== "aos_settings") return;
+      load();
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
   }, []);
 
   // Sync map state periodically

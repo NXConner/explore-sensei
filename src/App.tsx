@@ -10,6 +10,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const Auth = lazy(() => import("./pages/Auth"));
 import { initAnalytics, trackPageView } from "@/lib/analytics";
 import { GamificationProvider } from "@/context/GamificationContext";
+import { applySavedThemeFromLocalStorage, listenForThemeChanges } from "@/lib/theme";
 
 const queryClient = new QueryClient();
 
@@ -23,13 +24,19 @@ const AnalyticsListener = () => {
   }, [location.pathname]);
   // HUD: route-change glitch effect based on settings
   useEffect(() => {
+    // Apply saved theme on first route event
+    applySavedThemeFromLocalStorage();
+    const stopListen = listenForThemeChanges();
     try {
       const raw = localStorage.getItem("aos_settings");
       const settings = raw ? JSON.parse(raw) : {};
       if (settings?.glitchEffect !== false && settings?.glitchOnPageTransition !== false) {
         document.body.classList.add("glitch-distortion");
         const t = setTimeout(() => document.body.classList.remove("glitch-distortion"), 220);
-        return () => clearTimeout(t);
+        return () => {
+          clearTimeout(t);
+          stopListen?.();
+        };
       }
     } catch {}
   }, [location.pathname]);
