@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -28,6 +29,28 @@ serve(async (req) => {
   }
 
   try {
+    // Enforce authenticated access
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) throw new Error("Supabase env not configured");
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: { user }, error: userErr } = await supabase.auth.getUser();
+    if (userErr || !user) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const apiKey = Deno.env.get("GOOGLE_MAPS_API_KEY");
     if (!apiKey) {
       return new Response(
@@ -36,11 +59,35 @@ serve(async (req) => {
       );
     }
 
-    const url = new URL(req.url);
-    const op = url.searchParams.get("op") as SupportedOperation | null;
+    // Support both GET with query params and POST with JSON body
+    let op: SupportedOperation | null = null;
+    let address: string | undefined;
+    let latlng: string | undefined;
+    let origin: string | undefined;
+    let destination: string | undefined;
+    let mode: DirectionsParams["mode"] | undefined;
+
+    if (req.method === "GET") {
+      const url = new URL(req.url);
+      op = url.searchParams.get("op") as SupportedOperation | null;
+      address = url.searchParams.get("address") || undefined;
+      latlng = url.searchParams.get("latlng") || undefined;
+      origin = url.searchParams.get("origin") || undefined;
+      destination = url.searchParams.get("destination") || undefined;
+      mode = (url.searchParams.get("mode") as DirectionsParams["mode"]) || undefined;
+    } else {
+      const body = await req.json().catch(() => ({} as any));
+      op = (body?.op as SupportedOperation) || null;
+      address = body?.address;
+      latlng = body?.latlng;
+      origin = body?.origin;
+      destination = body?.destination;
+      mode = body?.mode;
+    }
+
     if (!op) {
       return new Response(
-        JSON.stringify({ error: "Missing op. Use ?op=geocode|reverseGeocode|directions" }),
+        JSON.stringify({ error: "Missing op. Use geocode|reverseGeocode|directions" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -80,21 +127,16 @@ serve(async (req) => {
       return { status: res.ok ? 200 : 502, body: data } as const;
     };
 
-    const search = url.searchParams;
     let result:
       | { status: number; body: unknown }
       | undefined;
 
     if (op === "geocode") {
-      result = await doGeocode({ address: search.get("address") || undefined });
+      result = await doGeocode({ address });
     } else if (op === "reverseGeocode") {
-      result = await doReverse({ latlng: search.get("latlng") || undefined });
+      result = await doReverse({ latlng });
     } else if (op === "directions") {
-      result = await doDirections({
-        origin: search.get("origin") || undefined,
-        destination: search.get("destination") || undefined,
-        mode: (search.get("mode") as DirectionsParams["mode"]) || undefined,
-      });
+      result = await doDirections({ origin, destination, mode });
     }
 
     if (!result) {
