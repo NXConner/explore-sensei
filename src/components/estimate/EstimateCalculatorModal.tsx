@@ -58,6 +58,19 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
   const [procureMiles, setProcureMiles] = useState<string>("");
   const [crewSize, setCrewSize] = useState<string>("2");
   const [hourlyRate, setHourlyRate] = useState<string>("20");
+  // Mix & add-ons
+  const [coveragePerGal, setCoveragePerGal] = useState<string>("75");
+  const [coats, setCoats] = useState<string>("1");
+  const [waterPct, setWaterPct] = useState<string>("20");
+  const [sandBagsPer100, setSandBagsPer100] = useState<string>("6");
+  const [concCost, setConcCost] = useState<string>("3.65");
+  const [sandCost, setSandCost] = useState<string>("10");
+  const [waterCost, setWaterCost] = useState<string>("0");
+  const [fastDryGal, setFastDryGal] = useState<string>("0");
+  const [fastDryCost, setFastDryCost] = useState<string>("10");
+  const [primerBuckets, setPrimerBuckets] = useState<string>("0");
+  const [primerCost, setPrimerCost] = useState<string>("50");
+  const [patchArea, setPatchArea] = useState<string>("");
 
   const { measurements } = useMapMeasurements();
   // Listen for AI analysis prefill event and populate controls
@@ -70,18 +83,16 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
           setAreaSqFt(String(Math.round(analysis.area_sqft)));
           setSvcSeal(true);
         }
-        const crackIssue = (analysis.detected_issues || []).find((i: any) => String(i.type || '').includes('crack'));
-        if (crackIssue) {
-          // Heuristic: estimate LF from detections if available
-          const approxLF = Math.max(100, Math.round((analysis.area_sqft || 0) / 50));
-          setLinearFeet(String(approxLF));
-          setSvcCrack(true);
-        }
+        // Leave cracks, potholes, patching blank for manual entry per request
+        setSvcCrack(false);
+        setSvcPatch(false);
+        setLinearFeet("");
+        setPatchArea("");
         setProfitPct(20);
         setOverheadPct(12);
         setTaxRate(8);
         setAiPrefillApplied(true);
-        // Auto-generate items
+        // Auto-generate items for sealcoat only
         setTimeout(() => handleAutoPopulate(), 0);
       } catch {}
     };
@@ -161,6 +172,18 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
       overheadPercent: overheadPct,
       profitPercent: profitPct,
       taxRatePercent: taxRate,
+      coverageSqFtPerMixedGallon: parseFloat(coveragePerGal) || undefined,
+      coats: parseInt(coats) || undefined,
+      waterPercent: parseFloat(waterPct) || undefined,
+      sandBagsPer100Gal: parseFloat(sandBagsPer100) || undefined,
+      concentrateCostPerGallon: parseFloat(concCost) || undefined,
+      sandBagCost: parseFloat(sandCost) || undefined,
+      waterCostPerGallon: parseFloat(waterCost) || undefined,
+      fastDryGal: parseFloat(fastDryGal) || undefined,
+      fastDryCostPerGallon: parseFloat(fastDryCost) || undefined,
+      primerBuckets: parseFloat(primerBuckets) || undefined,
+      primerBucketCost: parseFloat(primerCost) || undefined,
+      patchAreaSqFt: parseFloat(patchArea) || undefined,
     });
 
     const newLines: EstimateLineItem[] = result.lineItems.map((li) => ({
@@ -501,6 +524,49 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
             <Button type="button" onClick={handleAutoPopulate}>Generate Items</Button>
           </div>
         </div>
+
+      {/* Sealcoat Mix & Add-ons */}
+      <div className="mt-4 border rounded-lg p-4">
+        <h4 className="font-semibold mb-3">Sealcoat Mix & Add‑ons</h4>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm">
+          <div>
+            <Label>Coverage (sqft/gal mixed)</Label>
+            <Input value={coveragePerGal} onChange={(e) => setCoveragePerGal(e.target.value)} />
+            <Label className="mt-2">Coats</Label>
+            <Input value={coats} onChange={(e) => setCoats(e.target.value)} />
+          </div>
+          <div>
+            <Label>Water %</Label>
+            <Input value={waterPct} onChange={(e) => setWaterPct(e.target.value)} />
+            <Label className="mt-2">Sand bags / 100 gal</Label>
+            <Input value={sandBagsPer100} onChange={(e) => setSandBagsPer100(e.target.value)} />
+          </div>
+          <div>
+            <Label>PMM $/gal</Label>
+            <Input value={concCost} onChange={(e) => setConcCost(e.target.value)} />
+            <Label className="mt-2">Sand $/bag</Label>
+            <Input value={sandCost} onChange={(e) => setSandCost(e.target.value)} />
+          </div>
+          <div>
+            <Label>Water $/gal</Label>
+            <Input value={waterCost} onChange={(e) => setWaterCost(e.target.value)} />
+            <Label className="mt-2">Fast‑Dry gal</Label>
+            <Input value={fastDryGal} onChange={(e) => setFastDryGal(e.target.value)} />
+          </div>
+          <div>
+            <Label>Fast‑Dry $/gal</Label>
+            <Input value={fastDryCost} onChange={(e) => setFastDryCost(e.target.value)} />
+            <Label className="mt-2">Primer buckets (5 gal)</Label>
+            <Input value={primerBuckets} onChange={(e) => setPrimerBuckets(e.target.value)} />
+          </div>
+          <div>
+            <Label>Primer $/bucket</Label>
+            <Input value={primerCost} onChange={(e) => setPrimerCost(e.target.value)} />
+            <Label className="mt-2">Patching Area (sqft)</Label>
+            <Input value={patchArea} onChange={(e) => setPatchArea(e.target.value)} />
+          </div>
+        </div>
+      </div>
       </DialogContent>
     </Dialog>
   );

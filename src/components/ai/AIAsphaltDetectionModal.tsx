@@ -57,7 +57,17 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
     };
   }, [map]);
 
-  const analyzeImage = async (imageDataUrl: string, options?: { source?: 'upload' | 'map_view'; roiNormalized?: [number, number, number, number]; imageMeta?: { width: number; height: number }; mapCenter?: { lat: number; lng: number }; mapZoom?: number; }) => {
+  const analyzeImage = async (
+    imageDataUrl: string,
+    options?: {
+      source?: 'upload' | 'map_view';
+      roiNormalized?: [number, number, number, number];
+      imageMeta?: { width: number; height: number };
+      mapCenter?: { lat: number; lng: number };
+      mapZoom?: number;
+      mapBounds?: { north: number; south: number; east: number; west: number };
+    }
+  ) => {
     try {
       setIsAnalyzing(true);
       setProgress(10);
@@ -89,6 +99,28 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
 
       setProgress(100);
       setResults({ ...data.analysis, _detection_id: data.detection_id, imageMeta: options?.imageMeta });
+
+      // Broadcast overlay event for map rendering when sourced from live map view
+      try {
+        if (
+          options?.source === 'map_view' &&
+          typeof data.analysis?.area_sqft === 'number' &&
+          data.analysis.area_sqft > 0 &&
+          options?.mapCenter &&
+          typeof options?.mapZoom === 'number'
+        ) {
+          const overlayEvt = new CustomEvent('ai-detection-overlay', {
+            detail: {
+              areaSqFt: data.analysis.area_sqft,
+              roiNormalized: options?.roiNormalized,
+              mapCenter: options.mapCenter,
+              mapZoom: options.mapZoom,
+              mapBounds: options?.mapBounds,
+            },
+          });
+          window.dispatchEvent(overlayEvt);
+        }
+      } catch {}
 
       toast({
         title: "Analysis Complete",
@@ -235,7 +267,30 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
       setSelectedImage(dataUrl);
       setLastImageMeta({ width: 1600, height: 1200 });
       setLastSource('map_view');
-      await analyzeImage(dataUrl, { source: 'map_view', imageMeta: { width: 1600, height: 1200 }, mapCenter: { lat, lng }, mapZoom: zoom });
+
+      // Capture current map bounds to enable ROI rectangle overlay alignment
+      let mapBounds: { north: number; south: number; east: number; west: number } | undefined = undefined;
+      try {
+        const bounds = map.getBounds?.();
+        if (bounds) {
+          const ne = bounds.getNorthEast();
+          const sw = bounds.getSouthWest();
+          mapBounds = {
+            north: ne.lat(),
+            south: sw.lat(),
+            east: ne.lng(),
+            west: sw.lng(),
+          };
+        }
+      } catch {}
+
+      await analyzeImage(dataUrl, {
+        source: 'map_view',
+        imageMeta: { width: 1600, height: 1200 },
+        mapCenter: { lat, lng },
+        mapZoom: zoom,
+        mapBounds,
+      });
     } catch (e: any) {
       setError(e?.message || "Failed to analyze current map view");
       toast({ title: "Capture Failed", description: e?.message || "Could not capture map view.", variant: "destructive" });

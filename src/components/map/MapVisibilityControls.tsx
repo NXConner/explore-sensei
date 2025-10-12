@@ -59,6 +59,21 @@ export const MapVisibilityControls = () => {
     mapEl.style.filter = filterString;
   }, [controls]);
 
+  // External control via global events from sidebar button
+  React.useEffect(() => {
+    const toggle = () => setIsOpen((v) => !v);
+    const open = () => setIsOpen(true);
+    const close = () => setIsOpen(false);
+    window.addEventListener("toggle-enhance-panel", toggle as any);
+    window.addEventListener("open-enhance-panel", open as any);
+    window.addEventListener("close-enhance-panel", close as any);
+    return () => {
+      window.removeEventListener("toggle-enhance-panel", toggle as any);
+      window.removeEventListener("open-enhance-panel", open as any);
+      window.removeEventListener("close-enhance-panel", close as any);
+    };
+  }, []);
+
   if (!isOpen) {
     return (
       <div className="absolute left-80 top-20 z-[900]">
