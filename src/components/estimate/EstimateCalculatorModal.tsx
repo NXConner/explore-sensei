@@ -44,6 +44,7 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
   const [taxRate, setTaxRate] = useState<number>(8.0);
   const [overheadPct, setOverheadPct] = useState<number>(12);
   const [profitPct, setProfitPct] = useState<number>(20);
+  const [aiPrefillApplied, setAiPrefillApplied] = useState(false);
 
   // Auto-populate controls
   const [svcSeal, setSvcSeal] = useState(true);
@@ -59,6 +60,34 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
   const [hourlyRate, setHourlyRate] = useState<string>("20");
 
   const { measurements } = useMapMeasurements();
+  // Listen for AI analysis prefill event and populate controls
+  React.useEffect(() => {
+    const handler = (e: any) => {
+      const analysis = e?.detail?.analysis;
+      if (!analysis || aiPrefillApplied) return;
+      try {
+        if (typeof analysis.area_sqft === 'number' && analysis.area_sqft > 0) {
+          setAreaSqFt(String(Math.round(analysis.area_sqft)));
+          setSvcSeal(true);
+        }
+        const crackIssue = (analysis.detected_issues || []).find((i: any) => String(i.type || '').includes('crack'));
+        if (crackIssue) {
+          // Heuristic: estimate LF from detections if available
+          const approxLF = Math.max(100, Math.round((analysis.area_sqft || 0) / 50));
+          setLinearFeet(String(approxLF));
+          setSvcCrack(true);
+        }
+        setProfitPct(20);
+        setOverheadPct(12);
+        setTaxRate(8);
+        setAiPrefillApplied(true);
+        // Auto-generate items
+        setTimeout(() => handleAutoPopulate(), 0);
+      } catch {}
+    };
+    window.addEventListener('ai-detection-estimate', handler as any);
+    return () => window.removeEventListener('ai-detection-estimate', handler as any);
+  }, [aiPrefillApplied]);
 
   const { data: catalogs } = useQuery({
     queryKey: ["cost-catalogs"],

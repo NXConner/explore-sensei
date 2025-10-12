@@ -59,6 +59,7 @@ const Index = () => {
   const [showWeatherRadar, setShowWeatherRadar] = useState(false);
   const [showVeteran, setShowVeteran] = useState(false);
   const [showExport, setShowExport] = useState(false);
+  const [pendingEstimateFromAI, setPendingEstimateFromAI] = useState<any | null>(null);
   const mapContainerRef = useRef<MapContainerRef>(null);
   const [mapTheme, setMapTheme] = useState<"division" | "animus">("division");
   const [mapState, setMapState] = useState({
@@ -101,6 +102,29 @@ const Index = () => {
     }, 500);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      const analysis = e?.detail?.analysis;
+      if (!analysis) return;
+      setPendingEstimateFromAI(analysis);
+      setActiveModule("estimate");
+    };
+    window.addEventListener('ai-detection-estimate', handler as any);
+    return () => window.removeEventListener('ai-detection-estimate', handler as any);
+  }, []);
+
+  useEffect(() => {
+    if (activeModule === 'estimate' && pendingEstimateFromAI) {
+      // ensure modal has mounted, then dispatch analysis payload
+      const t = setTimeout(() => {
+        const evt = new CustomEvent('ai-detection-estimate', { detail: { analysis: pendingEstimateFromAI } });
+        window.dispatchEvent(evt);
+        setPendingEstimateFromAI(null);
+      }, 50);
+      return () => clearTimeout(t);
+    }
+  }, [activeModule, pendingEstimateFromAI]);
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-background" data-testid="root-shell">
@@ -201,7 +225,12 @@ const Index = () => {
         <Suspense fallback={null}><CostCatalogModal isOpen={true} onClose={() => setActiveModule(null)} /></Suspense>
       )}
       {activeModule === "estimate" && (
-        <Suspense fallback={null}><EstimateCalculatorModal isOpen={true} onClose={() => setActiveModule(null)} /></Suspense>
+        <Suspense fallback={null}>
+          {React.createElement(
+            lazy(() => import("@/components/estimate/EstimateCalculatorModal").then(m => ({ default: m.EstimateCalculatorModal }))),
+            { isOpen: true, onClose: () => setActiveModule(null) }
+          )}
+        </Suspense>
       )}
       {activeModule === "route" && (
         <Suspense fallback={null}><RouteOptimizationModal isOpen={true} onClose={() => setActiveModule(null)} /></Suspense>
