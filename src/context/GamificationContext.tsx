@@ -8,7 +8,7 @@ interface GamificationState {
 const GamificationCtx = createContext<GamificationState | undefined>(undefined);
 
 export const GamificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [enabled, setEnabled] = useState<boolean>(true);
+  const [enabled, setEnabled] = useState<boolean>(false);
 
   useEffect(() => {
     try {
