@@ -114,6 +114,8 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
       localStorage.setItem("aos_settings", JSON.stringify(settings));
       // notify live listeners in same tab
       window.dispatchEvent(new Event("aos_settings_updated"));
+      // also notify theme consumers; Toaster listens for this
+      window.dispatchEvent(new Event("theme-updated"));
     } catch {}
   }, [settings]);
 
@@ -410,12 +412,17 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   <div>
                     <Label className="text-xs">Primary Hue</Label>
                     <input type="range" min={0} max={360} step={1}
-                      value={Number((getComputedStyle(document.documentElement).getPropertyValue('--primary').split(' ')[0]) || 30)}
+                      value={(() => {
+                        const raw = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+                        const [h] = raw ? raw.split(' ') : ['30'];
+                        return Number(h) || 30;
+                      })()}
                       onChange={(e) => {
                         const root = document.documentElement as HTMLElement;
-                        const current = getComputedStyle(root).getPropertyValue('--primary').trim().split(' ');
-                        const sat = current[1] || '100%';
-                        const lum = current[2] || '50%';
+                        const current = getComputedStyle(root).getPropertyValue('--primary').trim();
+                        const parts = current ? current.split(' ') : [];
+                        const sat = parts[1] || '100%';
+                        const lum = parts[2] || '50%';
                         root.style.setProperty('--primary', `${e.target.value} ${sat} ${lum}`);
                       }}
                       className="w-full"
@@ -424,12 +431,17 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   <div>
                     <Label className="text-xs">Accent Hue</Label>
                     <input type="range" min={0} max={360} step={1}
-                      value={Number((getComputedStyle(document.documentElement).getPropertyValue('--accent').split(' ')[0]) || 197)}
+                      value={(() => {
+                        const raw = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+                        const [h] = raw ? raw.split(' ') : ['197'];
+                        return Number(h) || 197;
+                      })()}
                       onChange={(e) => {
                         const root = document.documentElement as HTMLElement;
-                        const current = getComputedStyle(root).getPropertyValue('--accent').trim().split(' ');
-                        const sat = current[1] || '100%';
-                        const lum = current[2] || '50%';
+                        const current = getComputedStyle(root).getPropertyValue('--accent').trim();
+                        const parts = current ? current.split(' ') : [];
+                        const sat = parts[1] || '100%';
+                        const lum = parts[2] || '50%';
                         root.style.setProperty('--accent', `${e.target.value} ${sat} ${lum}`);
                       }}
                       className="w-full"
@@ -438,12 +450,18 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   <div>
                     <Label className="text-xs">Background Luminance</Label>
                     <input type="range" min={0} max={100} step={1}
-                      value={Number((getComputedStyle(document.documentElement).getPropertyValue('--background').split(' ')[2] || '4%').replace('%',''))}
+                      value={(() => {
+                        const raw = getComputedStyle(document.documentElement).getPropertyValue('--background').trim();
+                        const parts = raw ? raw.split(' ') : [];
+                        const lum = parts[2] || '4%';
+                        return Number(String(lum).replace('%','')) || 4;
+                      })()}
                       onChange={(e) => {
                         const root = document.documentElement as HTMLElement;
-                        const current = getComputedStyle(root).getPropertyValue('--background').trim().split(' ');
-                        const h = current[0] || '0';
-                        const s = current[1] || '0%';
+                        const current = getComputedStyle(root).getPropertyValue('--background').trim();
+                        const parts = current ? current.split(' ') : [];
+                        const h = parts[0] || '0';
+                        const s = parts[1] || '0%';
                         root.style.setProperty('--background', `${h} ${s} ${e.target.value}%`);
                       }}
                       className="w-full"
