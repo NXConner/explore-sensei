@@ -97,6 +97,55 @@ All colors MUST be HSL.
     --sidebar-border: 200 20% 88%;
     --sidebar-ring: 180 75% 40%;
   }
+
+  /* Division-inspired variants (UI variables only; map style handled separately) */
+  .theme-division-shd {
+    --primary: 30 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --accent: 197 100% 55%;
+    --accent-foreground: 0 0% 100%;
+    --background: 0 0% 3%;
+    --foreground: 0 0% 92%;
+    --card: 0 0% 6%;
+    --card-foreground: 0 0% 92%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 70%;
+    --border: 0 0% 14%;
+    --input: 0 0% 12%;
+    --ring: 30 100% 50%;
+  }
+
+  .theme-dark-zone {
+    --primary: 0 85% 55%;
+    --primary-foreground: 0 0% 100%;
+    --accent: 186 85% 45%;
+    --accent-foreground: 0 0% 100%;
+    --background: 0 0% 2%;
+    --foreground: 0 0% 95%;
+    --card: 0 0% 6%;
+    --card-foreground: 0 0% 95%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 70%;
+    --border: 0 0% 14%;
+    --input: 0 0% 12%;
+    --ring: 0 85% 55%;
+  }
+
+  .theme-black-tusk {
+    --primary: 135 95% 50%;
+    --primary-foreground: 0 0% 10%;
+    --accent: 220 15% 75%;
+    --accent-foreground: 0 0% 10%;
+    --background: 220 9% 6%;
+    --foreground: 0 0% 95%;
+    --card: 220 9% 8%;
+    --card-foreground: 0 0% 95%;
+    --muted: 220 8% 14%;
+    --muted-foreground: 0 0% 75%;
+    --border: 220 8% 16%;
+    --input: 220 8% 14%;
+    --ring: 135 95% 50%;
+  }
 }
 
 /* Tactical Font Import */
