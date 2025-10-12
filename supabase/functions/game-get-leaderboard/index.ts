@@ -23,9 +23,9 @@ serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    // Top 20 by points
+    // Top 20 by points from view
     const { data: rows } = await supabase
-      .from("game_profiles")
+      .from("game_leaderboard")
       .select("user_id, points, level, streak_current")
       .order("points", { ascending: false })
       .limit(20);

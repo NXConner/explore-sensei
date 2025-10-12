@@ -5,6 +5,7 @@ import { Clock, LogIn, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useGamification } from "@/hooks/useGamification";
+import { EODSummaryModal } from "@/components/gamification/EODSummaryModal";
 
 export const ClockInStatus = () => {
   const [isClockedIn, setIsClockedIn] = useState(false);
@@ -12,6 +13,8 @@ export const ClockInStatus = () => {
   const [elapsedTime, setElapsedTime] = useState("00:00:00");
   const { toast } = useToast();
   const { emitEvent } = useGamification();
+  const [showSummary, setShowSummary] = useState(false);
+  const [awardedPoints, setAwardedPoints] = useState(0);
 
   useEffect(() => {
     // Check if user is clocked in from localStorage
@@ -57,7 +60,12 @@ export const ClockInStatus = () => {
       setClockInTime(null);
       localStorage.removeItem("clock_status");
       toast({ title: "Clocked Out", description: `Total time: ${elapsedTime}` });
-      try { await emitEvent({ event_type: "clock_out", metadata: { at: now.toISOString(), elapsed: elapsedTime } }); } catch {}
+      try {
+        const res = await emitEvent({ event_type: "clock_out", metadata: { at: now.toISOString(), elapsed: elapsedTime } });
+        const awarded = typeof res?.awarded_points === 'number' ? res.awarded_points : 0;
+        setAwardedPoints(awarded);
+        setShowSummary(true);
+      } catch {}
     }
 
     // Save to localStorage only for now
@@ -74,6 +82,10 @@ export const ClockInStatus = () => {
   };
 
   return (
+    <>
+    {showSummary && (
+      <EODSummaryModal awarded={awardedPoints} onClose={() => setShowSummary(false)} />
+    )}
     <Card
       className={`fixed right-[280px] top-20 z-[400] p-3 backdrop-blur-sm border-2 transition-colors ${
         isClockedIn
@@ -105,5 +117,6 @@ export const ClockInStatus = () => {
         </Button>
       </div>
     </Card>
+    </>
   );
 };

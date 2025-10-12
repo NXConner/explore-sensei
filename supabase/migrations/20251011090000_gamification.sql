@@ -92,3 +92,10 @@ create policy if not exists "game_redemptions_insert_own" on public.game_redempt
 
 -- Helpful index
 create index if not exists idx_game_events_user_created on public.game_events (user_id, created_at desc);
+
+-- Leaderboard view and policy
+create or replace view public.game_leaderboard as
+  select user_id, points, xp, level, streak_current, streak_longest, updated_at
+  from public.game_profiles;
+
+grant select on public.game_leaderboard to anon, authenticated; -- view is derived and safe
