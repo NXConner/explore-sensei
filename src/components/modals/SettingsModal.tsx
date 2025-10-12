@@ -112,6 +112,8 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
   useEffect(() => {
     try {
       localStorage.setItem("aos_settings", JSON.stringify(settings));
+      // notify live listeners in same tab
+      window.dispatchEvent(new Event("aos_settings_updated"));
     } catch {}
   }, [settings]);
 
@@ -119,11 +121,11 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // Apply theme by setting CSS variables on :root
+  // Apply theme by setting CSS variables on :root and sync dark class based on darkMode
   useEffect(() => {
-    applyThemeVariables(settings.theme as any, { highContrast: settings.highContrast });
+    applyThemeVariables(settings.theme as any, { highContrast: settings.highContrast, forceDark: settings.darkMode });
     applyWallpaper(settings.wallpaperUrl, settings.wallpaperOpacity);
-  }, [settings.theme, settings.wallpaperUrl, settings.wallpaperOpacity, settings.highContrast]);
+  }, [settings.theme, settings.wallpaperUrl, settings.wallpaperOpacity, settings.highContrast, settings.darkMode]);
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/80 backdrop-blur-sm">
@@ -144,6 +146,8 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
           <TabsList className="mx-4 mt-4">
             <TabsTrigger value="appearance">Appearance</TabsTrigger>
             <TabsTrigger value="themes">Themes</TabsTrigger>
+            <TabsTrigger value="weather">Weather</TabsTrigger>
+            <TabsTrigger value="gamification">Gamification</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="animations">Animations</TabsTrigger>
             <TabsTrigger value="hud">HUD</TabsTrigger>
@@ -845,7 +849,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                 localStorage.setItem("aos_settings", JSON.stringify(settings));
               } catch {}
               // Re-apply in case toggles changed without theme change
-              applyThemeVariables(settings.theme as any, { highContrast: settings.highContrast });
+              applyThemeVariables(settings.theme as any, { highContrast: settings.highContrast, forceDark: settings.darkMode });
               applyWallpaper(settings.wallpaperUrl, settings.wallpaperOpacity);
               onClose();
             }}
