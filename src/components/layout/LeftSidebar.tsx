@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Crosshair, Minus, Circle, Square, Ruler, Trash2, Plus, MapPin, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { Crosshair, Minus, Circle, Square, Ruler, Trash2, Plus, MapPin, ChevronLeft, ChevronRight, Search, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ export const LeftSidebar = () => {
     darkZones: false,
     equipment: true,
   });
+  const [showEnhance, setShowEnhance] = useState(false);
 
   React.useEffect(() => {
     if (map) {
@@ -82,14 +83,26 @@ export const LeftSidebar = () => {
   return (
     <div className="absolute left-0 top-16 bottom-16 w-72 z-[900] hud-element border-r border-primary/30 flex flex-col">
       {/* Minimize Button */}
-      <div className="flex justify-end p-2 border-b border-primary/30 flex-shrink-0">
+      <div className="flex items-center justify-between p-2 border-b border-primary/30 flex-shrink-0">
         <Button
           onClick={() => setIsMinimized(true)}
           variant="ghost"
           size="sm"
           className="h-8 w-8 p-0"
+          title="Minimize"
         >
           <ChevronLeft className="w-4 h-4" />
+        </Button>
+        {/* Enhance button moved per HUD plan */}
+        <Button
+          onClick={() => setShowEnhance((v) => !v)}
+          variant={showEnhance ? "default" : "ghost"}
+          size="sm"
+          className="h-8 px-2 gap-1"
+          title="Visibility Controls"
+        >
+          <Eye className="w-4 h-4" />
+          <span className="text-xs">Enhance</span>
         </Button>
       </div>
 
@@ -110,6 +123,17 @@ export const LeftSidebar = () => {
             </Button>
           </form>
         </div>
+
+        {/* Visibility Controls Slideout */}
+        {showEnhance && (
+          <div className="tactical-panel m-2 p-4">
+            <h3 className="text-xs font-bold text-primary mb-3">VISIBILITY CONTROLS</h3>
+            <div className="space-y-3">
+              {/* Lightweight toggles redirecting to the floating panel trigger */}
+              <p className="text-[11px] text-muted-foreground">Use the floating Enhance panel for detailed adjustments.</p>
+            </div>
+          </div>
+        )}
 
         {/* Drawing Tools */}
         <div className="tactical-panel m-2 p-4">

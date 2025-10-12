@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Scan, Upload, MapPin, AlertCircle } from "lucide-react";
@@ -24,6 +24,31 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
   const [error, setError] = useState<string>("");
   const [selectedImage, setSelectedImage] = useState<string>("");
   const { map } = useMap();
+  const [mapReady, setMapReady] = useState(false);
+
+  // Map readiness check with retry mechanism
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | null = null;
+    if (!map) {
+      setMapReady(false);
+      return;
+    }
+    interval = setInterval(() => {
+      try {
+        const center = map.getCenter?.();
+        if (center && typeof center.lat === "function" && typeof center.lng === "function") {
+          setMapReady(true);
+          if (interval) clearInterval(interval);
+        }
+      } catch {
+        // ignore transient errors while map initializes
+      }
+    }, 100);
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [map]);
 
   const analyzeImage = async (imageDataUrl: string) => {
     try {
@@ -187,12 +212,15 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
           <div className="grid grid-cols-2 gap-4">
             <Button
               onClick={handleUseCurrentView}
-              disabled={isAnalyzing}
+              disabled={isAnalyzing || !mapReady}
               className="h-24 flex flex-col gap-2"
               variant="outline"
             >
               <MapPin className="w-6 h-6" />
               <span>Analyze Current View</span>
+              {!mapReady && (
+                <span className="text-[10px] text-muted-foreground">Initializing map view…</span>
+              )}
             </Button>
             <Button
               onClick={() => fileInputRef.current?.click()}
@@ -239,6 +267,12 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
               <p className="text-xs text-muted-foreground">
                 Using Gemini 2.5 Flash vision model for surface analysis
               </p>
+            </div>
+          )}
+
+          {!isAnalyzing && !results && !error && !mapReady && (
+            <div className="text-xs text-muted-foreground">
+              Initializing map view… please wait
             </div>
           )}
 

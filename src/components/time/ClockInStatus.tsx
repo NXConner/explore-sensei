@@ -91,7 +91,7 @@ export const ClockInStatus = () => {
       <EODSummaryModal awarded={awardedPoints} onClose={() => setShowSummary(false)} />
     )}
     <Card
-      className={`fixed right-[280px] top-20 z-[400] p-3 backdrop-blur-sm border-2 transition-colors ${
+      className={`absolute right-16 top-16 z-[950] h-9 px-3 flex items-center backdrop-blur-sm border-2 transition-colors ${
         isClockedIn
           ? "bg-green-500/10 border-green-500"
           : "bg-red-500/10 border-red-500"
@@ -103,21 +103,21 @@ export const ClockInStatus = () => {
             isClockedIn ? "bg-green-500 animate-pulse" : "bg-red-500"
           }`}
         />
-        <div className="text-sm">
-          <div className="font-bold text-foreground">
+        <div className="text-xs">
+          <div className="font-bold text-foreground leading-none">
             {isClockedIn ? "CLOCKED IN" : "CLOCKED OUT"}
           </div>
           {isClockedIn && (
-            <div className="text-xs text-muted-foreground font-mono">{elapsedTime}</div>
+            <div className="text-[10px] text-muted-foreground font-mono">{elapsedTime}</div>
           )}
         </div>
         <Button
-          size="sm"
+          size="icon"
           variant={isClockedIn ? "destructive" : "default"}
           onClick={handleClockToggle}
-          className="ml-2"
+          className="ml-2 h-6 w-6"
         >
-          {isClockedIn ? <LogOut className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
+          {isClockedIn ? <LogOut className="w-3 h-3" /> : <LogIn className="w-3 h-3" />}
         </Button>
       </div>
     </Card>

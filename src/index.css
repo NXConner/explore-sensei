@@ -269,4 +269,16 @@ All colors MUST be HSL.
   .animate-marquee:hover {
     animation-play-state: paused;
   }
+
+  /* Glitch distortion filter for route transitions / clicks */
+  .glitch-distortion {
+    filter: blur(2px) hue-rotate(10deg) contrast(1.2) saturate(1.05);
+    animation: chromaticAberration 0.2s ease-out;
+  }
+
+  @keyframes chromaticAberration {
+    0% { text-shadow: -2px 0 red, 2px 0 cyan; }
+    50% { text-shadow: 2px 0 red, -2px 0 cyan; }
+    100% { text-shadow: 0 0 transparent; }
+  }
 }

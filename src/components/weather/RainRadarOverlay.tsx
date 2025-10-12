@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { getOpenWeatherApiKey } from "@/config/env";
 import { useQuery } from "@tanstack/react-query";
 
 interface RainRadarOverlayProps {
@@ -18,10 +19,12 @@ export const RainRadarOverlay = ({ map, opacity }: RainRadarOverlayProps) => {
       map.overlayMapTypes.clear();
     }
 
-    // OpenWeatherMap precipitation layer (free, no API key needed for tiles)
+    const apiKey = getOpenWeatherApiKey();
+    if (!apiKey) return;
+    // OpenWeatherMap precipitation layer
     const rainLayer = new google.maps.ImageMapType({
       getTileUrl: (coord, zoom) => {
-        return `https://tile.openweathermap.org/map/precipitation_new/${zoom}/${coord.x}/${coord.y}.png?appid=YOUR_API_KEY`;
+        return `https://tile.openweathermap.org/map/precipitation_new/${zoom}/${coord.x}/${coord.y}.png?appid=${apiKey}`;
       },
       tileSize: new google.maps.Size(256, 256),
       name: "Rain",
