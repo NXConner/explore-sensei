@@ -23,8 +23,15 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
   const [results, setResults] = useState<any>(null);
   const [error, setError] = useState<string>("");
   const [selectedImage, setSelectedImage] = useState<string>("");
+  const [lastImageMeta, setLastImageMeta] = useState<{ width: number; height: number } | null>(null);
+  const [lastSource, setLastSource] = useState<'upload' | 'map_view'>('upload');
   const { map } = useMap();
   const [mapReady, setMapReady] = useState(false);
+  const [showBoxes, setShowBoxes] = useState(true);
+  const [roi, setRoi] = useState<[number, number, number, number] | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isSelecting, setIsSelecting] = useState(false);
+  const [roiRectPx, setRoiRectPx] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
 
   // Map readiness check with retry mechanism
   useEffect(() => {
@@ -50,7 +57,7 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
     };
   }, [map]);
 
-  const analyzeImage = async (imageDataUrl: string) => {
+  const analyzeImage = async (imageDataUrl: string, options?: { source?: 'upload' | 'map_view'; roiNormalized?: [number, number, number, number]; imageMeta?: { width: number; height: number }; mapCenter?: { lat: number; lng: number }; mapZoom?: number; }) => {
     try {
       setIsAnalyzing(true);
       setProgress(10);
@@ -60,7 +67,14 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
       console.log('Calling AI analysis function...');
 
       const { data, error: functionError } = await supabase.functions.invoke('analyze-asphalt', {
-        body: { imageData: imageDataUrl }
+        body: {
+          imageData: imageDataUrl,
+          source: options?.source ?? 'upload',
+          roiNormalized: options?.roiNormalized,
+          imageMeta: options?.imageMeta,
+          mapCenter: options?.mapCenter,
+          mapZoom: options?.mapZoom,
+        }
       });
 
       setProgress(90);
@@ -74,7 +88,7 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
       }
 
       setProgress(100);
-      setResults(data.analysis);
+      setResults({ ...data.analysis, _detection_id: data.detection_id, imageMeta: options?.imageMeta });
 
       toast({
         title: "Analysis Complete",
@@ -125,14 +139,45 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
       description: "Converting image for AI analysis...",
     });
 
-    // Convert to base64
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const dataUrl = e.target?.result as string;
-      setSelectedImage(dataUrl);
-      await analyzeImage(dataUrl);
-    };
-    reader.readAsDataURL(file);
+    // Read and compress to max 1600px on the longest side
+    const originalDataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+    const img = new Image();
+    await new Promise<void>((resolve) => {
+      img.onload = () => resolve();
+      img.src = originalDataUrl;
+    });
+    const maxDim = 1600;
+    let targetW = img.width;
+    let targetH = img.height;
+    if (Math.max(img.width, img.height) > maxDim) {
+      if (img.width >= img.height) {
+        targetW = maxDim;
+        targetH = Math.round((img.height / img.width) * maxDim);
+      } else {
+        targetH = maxDim;
+        targetW = Math.round((img.width / img.height) * maxDim);
+      }
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = targetW;
+    canvas.height = targetH;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(img, 0, 0, targetW, targetH);
+    }
+    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    const meta = { width: targetW, height: targetH };
+
+    setSelectedImage(compressedDataUrl);
+    setLastImageMeta(meta);
+    setLastSource('upload');
+    await analyzeImage(compressedDataUrl, { source: 'upload', imageMeta: meta });
   };
 
   const handleUseCurrentView = async () => {
@@ -188,7 +233,9 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
       });
 
       setSelectedImage(dataUrl);
-      await analyzeImage(dataUrl);
+      setLastImageMeta({ width: 1600, height: 1200 });
+      setLastSource('map_view');
+      await analyzeImage(dataUrl, { source: 'map_view', imageMeta: { width: 1600, height: 1200 }, mapCenter: { lat, lng }, mapZoom: zoom });
     } catch (e: any) {
       setError(e?.message || "Failed to analyze current map view");
       toast({ title: "Capture Failed", description: e?.message || "Could not capture map view.", variant: "destructive" });
@@ -241,12 +288,77 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
           </div>
 
           {selectedImage && (
-            <div className="border rounded-lg p-2">
-              <img 
-                src={selectedImage} 
-                alt="Selected for analysis" 
-                className="w-full h-48 object-cover rounded"
-              />
+            <div className="border rounded-lg p-2" ref={containerRef}
+              onMouseDown={(e) => {
+                if (!containerRef.current) return;
+                setIsSelecting(true);
+                const rect = containerRef.current.getBoundingClientRect();
+                const startX = e.clientX - rect.left;
+                const startY = e.clientY - rect.top;
+                setRoiRectPx({ x: startX, y: startY, w: 0, h: 0 });
+              }}
+              onMouseMove={(e) => {
+                if (!isSelecting || !containerRef.current || !roiRectPx) return;
+                const rect = containerRef.current.getBoundingClientRect();
+                const curX = e.clientX - rect.left;
+                const curY = e.clientY - rect.top;
+                setRoiRectPx({ x: roiRectPx.x, y: roiRectPx.y, w: Math.max(0, curX - roiRectPx.x), h: Math.max(0, curY - roiRectPx.y) });
+              }}
+              onMouseUp={() => {
+                setIsSelecting(false);
+                if (!containerRef.current || !roiRectPx) return;
+                const rect = containerRef.current.getBoundingClientRect();
+                const nx = Math.max(0, Math.min(1, roiRectPx.x / rect.width));
+                const ny = Math.max(0, Math.min(1, roiRectPx.y / rect.height));
+                const nw = Math.max(0, Math.min(1, roiRectPx.w / rect.width));
+                const nh = Math.max(0, Math.min(1, roiRectPx.h / rect.height));
+                setRoi([nx, ny, nw, nh]);
+                setRoiRectPx(null);
+              }}
+            >
+              <div className="relative w-full h-48 overflow-hidden rounded select-none">
+                <img 
+                  src={selectedImage} 
+                  alt="Selected for analysis" 
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+                {showBoxes && results?.detections?.length > 0 && results?.imageMeta && (
+                  results.detections.map((d: any, i: number) => {
+                    const [x, y, w, h] = d.bbox_normalized || [];
+                    if ([x,y,w,h].some((v) => typeof v !== 'number')) return null;
+                    return (
+                      <div
+                        key={i}
+                        className="absolute border-2 border-cyan-400/90 bg-cyan-400/10"
+                        style={{ left: `${x * 100}%`, top: `${y * 100}%`, width: `${w * 100}%`, height: `${h * 100}%` }}
+                        title={`${d.label || 'issue'} ${Math.round((d.confidence || 0)*100)}%`}
+                      />
+                    );
+                  })
+                )}
+                {roiRectPx && (
+                  <div className="absolute border-2 border-amber-400 bg-amber-300/10"
+                    style={{ left: roiRectPx.x, top: roiRectPx.y, width: roiRectPx.w, height: roiRectPx.h }}
+                  />
+                )}
+              </div>
+              <div className="mt-2 flex items-center gap-3 text-xs">
+                <label className="flex items-center gap-1">
+                  <input type="checkbox" checked={showBoxes} onChange={(e) => setShowBoxes(e.target.checked)} />
+                  Show detections
+                </label>
+                <Button size="sm" variant="outline" disabled={!selectedImage || isAnalyzing}
+                  onClick={() => {
+                    if (!selectedImage) return;
+                    const imageMeta = results?.imageMeta || lastImageMeta || undefined;
+                    analyzeImage(selectedImage, {
+                      source: lastSource,
+                      imageMeta,
+                      roiNormalized: roi || undefined,
+                    });
+                  }}
+                >Re-run on ROI</Button>
+              </div>
             </div>
           )}
 
@@ -368,11 +480,9 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
                   <Button 
                     className="flex-1"
                     onClick={() => {
-                      // TODO: Wire to estimate module with prefilled line items from results
-                      toast({
-                        title: "Estimate Generation",
-                        description: "Prefill coming from AI results is in progress.",
-                      });
+                      const evt = new CustomEvent('ai-detection-estimate', { detail: { analysis: results } });
+                      window.dispatchEvent(evt);
+                      toast({ title: 'Opening Estimate', description: 'Prefilling items from AI analysis' });
                     }}
                   >
                     Generate Estimate

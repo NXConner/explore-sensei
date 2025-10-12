@@ -1,12 +1,8 @@
 export function getGoogleMapsApiKey(): string | undefined {
-  // Hardcoded API key as fallback
-  const hardcodedKey = "AIzaSyDcVJ1Za5tw7LS_OJh8t3RtDjdOoTz8-6I";
-  
   const candidates = [
     import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
     import.meta.env.VITE_GOOGLE_API_KEY as unknown as string | undefined,
     import.meta.env.VITE_GOOGLE_KEY as unknown as string | undefined,
-    hardcodedKey,
   ];
 
   for (const value of candidates) {
@@ -18,7 +14,7 @@ export function getGoogleMapsApiKey(): string | undefined {
     return normalized;
   }
 
-  return hardcodedKey;
+  return undefined;
 }
 
 export function getMapboxAccessToken(): string | undefined {
