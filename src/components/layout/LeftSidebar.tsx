@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Crosshair, Minus, Circle, Square, Ruler, Trash2, Plus, MapPin, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { Crosshair, Minus, Circle, Square, Ruler, Trash2, Plus, MapPin, ChevronLeft, ChevronRight, Search, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -22,7 +22,13 @@ export const LeftSidebar = () => {
     darkZones: false,
     equipment: true,
   });
-  
+  const [enhanceOpen, setEnhanceOpen] = useState(false);
+
+  React.useEffect(() => {
+    const handler = (e: any) => setEnhanceOpen(!!e?.detail?.open);
+    window.addEventListener('enhance-panel-state', handler as any);
+    return () => window.removeEventListener('enhance-panel-state', handler as any);
+  }, []);
 
   React.useEffect(() => {
     if (map) {
@@ -93,7 +99,20 @@ export const LeftSidebar = () => {
         >
           <ChevronLeft className="w-4 h-4" />
         </Button>
-        {/* Enhance button moved onto map as floating control */}
+        {/* Enhance button placed in sidebar */}
+        <Button
+          onClick={() => {
+            const evt = new Event('toggle-enhance-panel');
+            window.dispatchEvent(evt);
+          }}
+          variant={enhanceOpen ? "default" : "ghost"}
+          size="sm"
+          className="h-8 px-2 gap-1"
+          title="Visibility Controls"
+        >
+          <Eye className="w-4 h-4" />
+          <span className="text-xs">Enhance</span>
+        </Button>
       </div>
 
       <ScrollArea className="flex-1 h-full">
