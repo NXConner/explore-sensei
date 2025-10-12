@@ -57,6 +57,7 @@ export const MapContainer = forwardRef<MapContainerRef, { initialMapTheme?: "div
   const clustererRef = useRef<MarkerClusterer | null>(null);
   const trafficLayerRef = useRef<google.maps.TrafficLayer | null>(null);
   const savedMeasurementsRef = useRef<google.maps.Polyline[]>([]);
+  const aiOverlayRef = useRef<google.maps.Circle | null>(null);
   const streetViewRef = useRef<google.maps.StreetViewPanorama | null>(null);
   const searchMarkerRef = useRef<google.maps.Marker | null>(null);
   const routePolylineRef = useRef<google.maps.Polyline | null>(null);
@@ -667,6 +668,55 @@ export const MapContainer = forwardRef<MapContainerRef, { initialMapTheme?: "div
       }
     });
   }, [measurements]);
+
+  // AI detection overlay: highlight asphalt area and display area label
+  useEffect(() => {
+    if (!mapInstanceRef.current || usingMapbox) return;
+    const handler = (e: any) => {
+      try {
+        const detail = e?.detail || {};
+        const areaSqFt = Number(detail.areaSqFt || 0);
+        if (!areaSqFt || areaSqFt <= 0) return;
+
+        // Clear previous overlay
+        if (aiOverlayRef.current) {
+          aiOverlayRef.current.setMap(null);
+          aiOverlayRef.current = null;
+        }
+
+        // Convert sqft to m², then compute equivalent radius in meters
+        const areaSqM = areaSqFt * 0.092903;
+        const radiusMeters = Math.sqrt(areaSqM / Math.PI);
+
+        const center = mapInstanceRef.current.getCenter?.();
+        if (!center) return;
+
+        const circle = new google.maps.Circle({
+          center,
+          radius: radiusMeters,
+          strokeColor: "#00D1FF",
+          strokeOpacity: 0.9,
+          strokeWeight: 2,
+          fillColor: "#00D1FF",
+          fillOpacity: 0.18,
+          map: mapInstanceRef.current,
+        });
+
+        const info = new google.maps.InfoWindow({
+          content: `<div style="color:#0a0a0a"><strong>Asphalt Area:</strong> ${Math.round(areaSqFt).toLocaleString()} ft²</div>`,
+          position: center,
+        });
+        circle.addListener("click", () => info.open({ map: mapInstanceRef.current!, position: center }));
+        info.open({ map: mapInstanceRef.current!, position: center });
+
+        aiOverlayRef.current = circle;
+      } catch (err) {
+        console.warn("Failed to render AI overlay", err);
+      }
+    };
+    window.addEventListener("ai-detection-overlay", handler as any);
+    return () => window.removeEventListener("ai-detection-overlay", handler as any);
+  }, [usingMapbox]);
 
   return (
     <MapContext.Provider value={{ map: mapInstanceRef.current }}>

@@ -22,7 +22,13 @@ export const LeftSidebar = () => {
     darkZones: false,
     equipment: true,
   });
-  const [showEnhance, setShowEnhance] = useState(false);
+  const [enhanceOpen, setEnhanceOpen] = useState(false);
+
+  React.useEffect(() => {
+    const handler = (e: any) => setEnhanceOpen(!!e?.detail?.open);
+    window.addEventListener('enhance-panel-state', handler as any);
+    return () => window.removeEventListener('enhance-panel-state', handler as any);
+  }, []);
 
   React.useEffect(() => {
     if (map) {
@@ -93,10 +99,13 @@ export const LeftSidebar = () => {
         >
           <ChevronLeft className="w-4 h-4" />
         </Button>
-        {/* Enhance button moved per HUD plan */}
+        {/* Enhance button placed in sidebar */}
         <Button
-          onClick={() => setShowEnhance((v) => !v)}
-          variant={showEnhance ? "default" : "ghost"}
+          onClick={() => {
+            const evt = new Event('toggle-enhance-panel');
+            window.dispatchEvent(evt);
+          }}
+          variant={enhanceOpen ? "default" : "ghost"}
           size="sm"
           className="h-8 px-2 gap-1"
           title="Visibility Controls"
@@ -124,16 +133,7 @@ export const LeftSidebar = () => {
           </form>
         </div>
 
-        {/* Visibility Controls Slideout */}
-        {showEnhance && (
-          <div className="tactical-panel m-2 p-4">
-            <h3 className="text-xs font-bold text-primary mb-3">VISIBILITY CONTROLS</h3>
-            <div className="space-y-3">
-              {/* Lightweight toggles redirecting to the floating panel trigger */}
-              <p className="text-[11px] text-muted-foreground">Use the floating Enhance panel for detailed adjustments.</p>
-            </div>
-          </div>
-        )}
+        
 
         {/* Drawing Tools */}
         <div className="tactical-panel m-2 p-4">

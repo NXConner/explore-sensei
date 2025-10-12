@@ -59,23 +59,31 @@ export const MapVisibilityControls = () => {
     mapEl.style.filter = filterString;
   }, [controls]);
 
-  if (!isOpen) {
-    return (
-      <div className="absolute left-80 top-20 z-[900]">
-        <Button
-          onClick={() => setIsOpen(true)}
-          size="sm"
-          className="gap-2"
-        >
-          <Eye className="w-4 h-4" />
-          Enhance
-        </Button>
-      </div>
-    );
-  }
+  // External control via global events from sidebar button
+  React.useEffect(() => {
+    const toggle = () => setIsOpen((v) => !v);
+    const open = () => setIsOpen(true);
+    const close = () => setIsOpen(false);
+    window.addEventListener("toggle-enhance-panel", toggle as any);
+    window.addEventListener("open-enhance-panel", open as any);
+    window.addEventListener("close-enhance-panel", close as any);
+    return () => {
+      window.removeEventListener("toggle-enhance-panel", toggle as any);
+      window.removeEventListener("open-enhance-panel", open as any);
+      window.removeEventListener("close-enhance-panel", close as any);
+    };
+  }, []);
+
+  // Broadcast state so sidebar can reflect button active state
+  React.useEffect(() => {
+    const evt = new CustomEvent('enhance-panel-state', { detail: { open: isOpen } });
+    window.dispatchEvent(evt);
+  }, [isOpen]);
+
+  if (!isOpen) return null;
 
   return (
-    <div className="absolute left-80 top-20 z-[900] tactical-panel w-80">
+    <div className="absolute left-80 top-20 z-[900] tactical-panel w-80 pointer-events-auto">
       {/* Header */}
       <div className="flex items-center justify-between p-3 border-b border-primary/30">
         <div className="flex items-center gap-2">
