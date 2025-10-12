@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
 import { X, Cloud, Sun, CloudRain, Snow, Wind, AlertTriangle, MapPin, Clock, Thermometer, Droplets, Eye, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -66,11 +67,24 @@ interface JobSiteWeather {
   recommendations: string[];
   risk_level: 'low' | 'medium' | 'high' | 'critical';
 }
+=======
+import React, { useState } from "react";
+import { X, Cloud, Play, Pause, SkipBack, SkipForward, AlertTriangle, Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { useWeatherAlerts } from "@/hooks/useWeatherAlerts";
+import { useGamification } from "@/hooks/useGamification";
+import { useGamificationToggle } from "@/context/GamificationContext";
+>>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
 
 interface WeatherRadarModalProps {
   onClose: () => void;
 }
 
+<<<<<<< HEAD
 export const WeatherRadarModal: React.FC<WeatherRadarModalProps> = ({ onClose }) => {
   const [weatherData, setWeatherData] = useState<JobSiteWeather[]>([]);
   const [alerts, setAlerts] = useState<WeatherAlert[]>([]);
@@ -86,6 +100,17 @@ export const WeatherRadarModal: React.FC<WeatherRadarModalProps> = ({ onClose })
   const [activeTab, setActiveTab] = useState<'radar' | 'alerts' | 'forecast' | 'settings'>('radar');
   
   const { toast } = useToast();
+=======
+export const WeatherRadarModal = ({ onClose }: WeatherRadarModalProps) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [timeIndex, setTimeIndex] = useState(0);
+  const [opacity, setOpacity] = useState(70);
+  const [showAlerts, setShowAlerts] = useState(true);
+  const [alertRadius, setAlertRadius] = useState(15);
+  const { data: alerts } = useWeatherAlerts();
+  const { emitEvent } = useGamification();
+  const { enabled: gamifyEnabled } = useGamificationToggle();
+>>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
 
   useEffect(() => {
     fetchWeatherData();
@@ -288,6 +313,7 @@ export const WeatherRadarModal: React.FC<WeatherRadarModalProps> = ({ onClose })
                 <TabsTrigger value="settings">Settings</TabsTrigger>
               </TabsList>
 
+<<<<<<< HEAD
               <TabsContent value="radar" className="space-y-6">
                 <LoadingOverlay isLoading={isLoading}>
                   <div className="grid gap-4">
@@ -351,6 +377,49 @@ export const WeatherRadarModal: React.FC<WeatherRadarModalProps> = ({ onClose })
                         </Card>
                       </HoverAnimation>
                     ))}
+=======
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Show Alerts</Label>
+                <Switch checked={showAlerts} onCheckedChange={setShowAlerts} />
+              </div>
+              
+              {showAlerts && (
+                <div>
+                  <p className="text-xs mb-2">Alert Radius: {alertRadius} miles</p>
+                  <Slider
+                    value={[alertRadius]}
+                    onValueChange={([val]) => {
+                      setAlertRadius(val);
+                      if (gamifyEnabled) { try { emitEvent({ event_type: "weather_alert_configured", metadata: { radius_miles: val } }); } catch {} }
+                    }}
+                    min={5}
+                    max={50}
+                    step={5}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Active Alerts */}
+          {showAlerts && alerts && alerts.length > 0 && (
+            <div className="absolute bottom-4 left-4 tactical-panel p-3 max-w-sm space-y-2">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertTriangle className="w-4 h-4 text-destructive" />
+                <span className="text-xs font-bold">ACTIVE ALERTS</span>
+              </div>
+              {alerts.map((alert) => (
+                <div key={alert.id} className="text-xs space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant={alert.severity === "high" || alert.severity === "extreme" ? "destructive" : "secondary"}
+                      className="text-[10px]"
+                    >
+                      {alert.severity.toUpperCase()}
+                    </Badge>
+                    <span className="font-bold">{alert.type.toUpperCase()}</span>
+>>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
                   </div>
                 </LoadingOverlay>
               </TabsContent>

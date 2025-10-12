@@ -135,6 +135,7 @@ const Index = () => {
   const [showWeatherRadar, setShowWeatherRadar] = useState(false);
   const [showVeteran, setShowVeteran] = useState(false);
   const [showExport, setShowExport] = useState(false);
+  const [pendingEstimateFromAI, setPendingEstimateFromAI] = useState<any | null>(null);
   const mapContainerRef = useRef<MapContainerRef>(null);
   const [mapTheme, setMapTheme] = useState<"division" | "animus">("division");
   const [mapState, setMapState] = useState({
@@ -144,17 +145,23 @@ const Index = () => {
     activeMode: null as DrawingMode,
   });
 
-  // Load map theme from settings
+  // Load map theme from settings, default to division, and react to changes
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("aos_settings");
-      if (raw) {
+    const load = () => {
+      try {
+        const raw = localStorage.getItem("aos_settings");
+        if (!raw) { setMapTheme("division"); return; }
         const parsed = JSON.parse(raw);
-        if (parsed.mapTheme) {
-          setMapTheme(parsed.mapTheme);
-        }
-      }
-    } catch {}
+        setMapTheme(parsed.mapTheme === "animus" ? "animus" : "division");
+      } catch { setMapTheme("division"); }
+    };
+    load();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== "aos_settings") return;
+      load();
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
   }, []);
 
   // Sync map state periodically
@@ -171,6 +178,29 @@ const Index = () => {
     }, 500);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      const analysis = e?.detail?.analysis;
+      if (!analysis) return;
+      setPendingEstimateFromAI(analysis);
+      setActiveModule("estimate");
+    };
+    window.addEventListener('ai-detection-estimate', handler as any);
+    return () => window.removeEventListener('ai-detection-estimate', handler as any);
+  }, []);
+
+  useEffect(() => {
+    if (activeModule === 'estimate' && pendingEstimateFromAI) {
+      // ensure modal has mounted, then dispatch analysis payload
+      const t = setTimeout(() => {
+        const evt = new CustomEvent('ai-detection-estimate', { detail: { analysis: pendingEstimateFromAI } });
+        window.dispatchEvent(evt);
+        setPendingEstimateFromAI(null);
+      }, 50);
+      return () => clearTimeout(t);
+    }
+  }, [activeModule, pendingEstimateFromAI]);
 
   return (
     <div
@@ -300,7 +330,14 @@ const Index = () => {
       )}
       {activeModule === "estimate" && (
         <Suspense fallback={null}>
+<<<<<<< HEAD
           <EstimateCalculatorModal isOpen={true} onClose={() => setActiveModule(null)} />
+=======
+          {React.createElement(
+            lazy(() => import("@/components/estimate/EstimateCalculatorModal").then(m => ({ default: m.EstimateCalculatorModal }))),
+            { isOpen: true, onClose: () => setActiveModule(null) }
+          )}
+>>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
         </Suspense>
       )}
       {activeModule === "route" && (

@@ -1,30 +1,35 @@
 /// <reference types="google.maps" />
-import React, { useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
+import React, { useEffect, useRef, useState, forwardRef, useImperativeHandle, lazy, Suspense } from "react";
 import mapboxgl from "mapbox-gl";
 import { loadGoogleMaps } from "@/lib/googleMapsLoader";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import { useJobSites } from "@/hooks/useJobSites";
 import { MeasurementDisplay } from "./MeasurementDisplay";
-import { MapToolbar } from "./MapToolbar";
 import { useMapDrawing, DrawingMode } from "@/hooks/useMapDrawing";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMapMeasurements } from "@/hooks/useMapMeasurements";
-import { AIAsphaltDetectionModal } from "@/components/ai/AIAsphaltDetectionModal";
+// Lazy-load AI modal to avoid bundling conflicts and reduce initial payload
+const AIAsphaltDetectionModalLazy = lazy(() =>
+  import("@/components/ai/AIAsphaltDetectionModal").then((m) => ({ default: m.AIAsphaltDetectionModal }))
+);
 import { MapVisibilityControls } from "./MapVisibilityControls";
 import { EmployeeTrackingLayer } from "./EmployeeTrackingLayer";
 import { MapEffects } from "./MapEffects";
 import { divisionMapStyle, animusMapStyle } from "./themes";
-import { Button } from "@/components/ui/button";
-import { Palette } from "lucide-react";
 import { WeatherRadarLayer } from "@/components/weather/WeatherRadarLayer";
 import { RainRadarOverlay } from "@/components/weather/RainRadarOverlay";
 import { MapContext } from "./MapContext";
 import { getGoogleMapsApiKey, getMapboxAccessToken } from "@/config/env";
 import { geocodeAddress, getDirections } from "@/lib/mapsClient";
+import { CornerBrackets } from "@/components/hud/CornerBrackets";
+import { CompassRose } from "@/components/hud/CompassRose";
+import { CoordinateDisplay } from "@/components/hud/CoordinateDisplay";
+import { ScaleBar } from "@/components/hud/ScaleBar";
+import { ZoomIndicator } from "@/components/hud/ZoomIndicator";
+// import { MiniMap } from "@/components/hud/MiniMap";
 
-const GOOGLE_MAPS_API_KEY = getGoogleMapsApiKey();
-const LOCAL_MAPBOX_TOKEN = getMapboxAccessToken();
+// API keys are read dynamically to allow runtime updates via Settings
 
 type MapTheme = "division" | "animus";
 
@@ -53,7 +58,8 @@ export const MapContainer = forwardRef<
   const markersRef = useRef<google.maps.Marker[]>([]);
   const clustererRef = useRef<MarkerClusterer | null>(null);
   const trafficLayerRef = useRef<google.maps.TrafficLayer | null>(null);
-  const savedMeasurementsRef = useRef<google.maps.Polyline[]>([]);
+  const savedMeasurementsRef = useRef<Array<google.maps.Polyline | google.maps.Circle>>([]);
+  const aiOverlayRef = useRef<google.maps.Circle | null>(null);
   const streetViewRef = useRef<google.maps.StreetViewPanorama | null>(null);
   const searchMarkerRef = useRef<google.maps.Marker | null>(null);
   const routePolylineRef = useRef<google.maps.Polyline | null>(null);
@@ -66,6 +72,7 @@ export const MapContainer = forwardRef<
   const [mapTheme, setMapTheme] = useState<MapTheme>(props.initialMapTheme || "division");
   const [mapsUnavailable, setMapsUnavailable] = useState(false);
   const [usingMapbox, setUsingMapbox] = useState(false);
+  const [configVersion, setConfigVersion] = useState(0);
   const { data: jobSites } = useJobSites();
   const { measurement, setDrawingMode, clearDrawings } = useMapDrawing(mapInstanceRef.current);
   const [activeMode, setActiveMode] = useState<DrawingMode>(null);
@@ -98,6 +105,9 @@ export const MapContainer = forwardRef<
     glitchIntensity: 30, // percent
     glitchClickPreset: "subtle" as "barely" | "subtle" | "normal",
     vignetteEffect: false,
+    radarType: "standard" as "standard" | "sonar" | "aviation",
+    radarAudioEnabled: false,
+    radarAudioVolume: 50,
   });
 
   useEffect(() => {
@@ -155,10 +165,10 @@ export const MapContainer = forwardRef<
   }, [toast]);
 
   useEffect(() => {
-    // Load persisted settings including map theme
-    try {
-      const raw = localStorage.getItem("aos_settings");
-      if (raw) {
+    const readFromLocalStorage = () => {
+      try {
+        const raw = localStorage.getItem("aos_settings");
+        if (!raw) return;
         const parsed = JSON.parse(raw);
         setUiSettings((prev) => ({
           ...prev,
@@ -170,42 +180,34 @@ export const MapContainer = forwardRef<
           glitchIntensity: parsed.glitchIntensity ?? prev.glitchIntensity,
           glitchClickPreset: parsed.glitchClickPreset ?? prev.glitchClickPreset,
           vignetteEffect: parsed.vignetteEffect ?? prev.vignetteEffect,
+          radarType: parsed.radarType ?? prev.radarType,
+          radarAudioEnabled: parsed.radarAudioEnabled ?? prev.radarAudioEnabled,
+          radarAudioVolume: parsed.radarAudioVolume ?? prev.radarAudioVolume,
         }));
-        // Update map theme from settings
         if (parsed.mapTheme && (parsed.mapTheme === "division" || parsed.mapTheme === "animus")) {
           setMapTheme(parsed.mapTheme);
         }
-      }
-    } catch (err) {
-      console.warn("Failed to load persisted UI settings:", err);
-    }
-
-    // Sync across tabs/windows and when settings modal updates
-    const onStorage = (e: StorageEvent) => {
-      if (e.key !== "aos_settings" || !e.newValue) return;
-      try {
-        const parsed = JSON.parse(e.newValue);
-        setUiSettings((prev) => ({
-          ...prev,
-          radarEffect: parsed.radarEffect ?? prev.radarEffect,
-          glitchEffect: parsed.glitchEffect ?? prev.glitchEffect,
-          scanlineEffect: parsed.scanlineEffect ?? prev.scanlineEffect,
-          gridOverlay: parsed.gridOverlay ?? prev.gridOverlay,
-          radarSpeed: parsed.radarSpeed ?? prev.radarSpeed,
-          glitchIntensity: parsed.glitchIntensity ?? prev.glitchIntensity,
-          glitchClickPreset: parsed.glitchClickPreset ?? prev.glitchClickPreset,
-          vignetteEffect: parsed.vignetteEffect ?? prev.vignetteEffect,
-        }));
-        // Update map theme from settings
-        if (parsed.mapTheme && (parsed.mapTheme === "division" || parsed.mapTheme === "animus")) {
-          setMapTheme(parsed.mapTheme);
-        }
+        if (parsed.apiKeys) setConfigVersion((v) => v + 1);
       } catch (err) {
-        console.warn("Failed to sync UI settings from storage event:", err);
+        console.warn("Failed to read UI settings:", err);
       }
     };
+
+    // Initial load
+    readFromLocalStorage();
+
+    // Sync across tabs/windows and within same tab via custom event
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== "aos_settings" || !e.newValue) return;
+      readFromLocalStorage();
+    };
+    const onCustom = () => readFromLocalStorage();
     window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    window.addEventListener("aos_settings_updated", onCustom as any);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("aos_settings_updated", onCustom as any);
+    };
   }, []);
 
   const handleModeChange = (mode: DrawingMode) => {
@@ -401,13 +403,14 @@ export const MapContainer = forwardRef<
 
   useEffect(() => {
     // If no Google Maps key, use Mapbox fallback
-    const noGoogleKey = !GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY === "undefined";
+    const currentGoogleKey = getGoogleMapsApiKey();
+    const noGoogleKey = !currentGoogleKey || currentGoogleKey === "undefined";
     const initializeMapboxFallback = async () => {
       setUsingMapbox(true);
       setMapsUnavailable(false);
       if (!mapRef.current || mapboxInstanceRef.current) return;
       try {
-        let token = LOCAL_MAPBOX_TOKEN;
+        let token = getMapboxAccessToken();
         if (!token) {
           const { data, error } = await supabase.functions.invoke("get-mapbox-token");
           if (error || !data?.token) throw new Error(error?.message || "No Mapbox token");
@@ -465,7 +468,7 @@ export const MapContainer = forwardRef<
         initMap();
         return;
       }
-      if (!GOOGLE_MAPS_API_KEY) {
+      if (!currentGoogleKey) {
         initializeMapboxFallback();
         return;
       }
@@ -523,7 +526,7 @@ export const MapContainer = forwardRef<
         // No explicit remove for Google Maps; allow GC
       }
     };
-  }, [mapTheme]);
+  }, [mapTheme, configVersion]);
 
   // Apply theme class to body for CSS variables
   useEffect(() => {
@@ -652,9 +655,61 @@ export const MapContainer = forwardRef<
         circle.addListener("click", () => {
           infoWindow.open(mapInstanceRef.current);
         });
+
+        // Track for later cleanup alongside polylines
+        savedMeasurementsRef.current.push(circle);
       }
     });
   }, [measurements]);
+
+  // AI detection overlay: highlight asphalt area and display area label
+  useEffect(() => {
+    if (!mapInstanceRef.current || usingMapbox) return;
+    const handler = (e: any) => {
+      try {
+        const detail = e?.detail || {};
+        const areaSqFt = Number(detail.areaSqFt || 0);
+        if (!areaSqFt || areaSqFt <= 0) return;
+
+        // Clear previous overlay
+        if (aiOverlayRef.current) {
+          aiOverlayRef.current.setMap(null);
+          aiOverlayRef.current = null;
+        }
+
+        // Convert sqft to m², then compute equivalent radius in meters
+        const areaSqM = areaSqFt * 0.092903;
+        const radiusMeters = Math.sqrt(areaSqM / Math.PI);
+
+        const center = mapInstanceRef.current.getCenter?.();
+        if (!center) return;
+
+        const circle = new google.maps.Circle({
+          center,
+          radius: radiusMeters,
+          strokeColor: "#00D1FF",
+          strokeOpacity: 0.9,
+          strokeWeight: 2,
+          fillColor: "#00D1FF",
+          fillOpacity: 0.18,
+          map: mapInstanceRef.current,
+        });
+
+        const info = new google.maps.InfoWindow({
+          content: `<div style="color:#0a0a0a"><strong>Asphalt Area:</strong> ${Math.round(areaSqFt).toLocaleString()} ft²</div>`,
+          position: center,
+        });
+        circle.addListener("click", () => info.open({ map: mapInstanceRef.current!, position: center }));
+        info.open({ map: mapInstanceRef.current!, position: center });
+
+        aiOverlayRef.current = circle;
+      } catch (err) {
+        console.warn("Failed to render AI overlay", err);
+      }
+    };
+    window.addEventListener("ai-detection-overlay", handler as any);
+    return () => window.removeEventListener("ai-detection-overlay", handler as any);
+  }, [usingMapbox]);
 
   return (
     <MapContext.Provider value={{ map: mapInstanceRef.current }}>
@@ -671,7 +726,19 @@ export const MapContainer = forwardRef<
         showGridOverlay={uiSettings.gridOverlay}
         glitchClickPreset={uiSettings.glitchClickPreset}
         vignetteEffect={uiSettings.vignetteEffect}
+        radarType={uiSettings.radarType}
+        radarAudioEnabled={uiSettings.radarAudioEnabled}
+        radarAudioVolume={uiSettings.radarAudioVolume}
       />
+
+      {/* HUD overlay elements */}
+      <CornerBrackets />
+      <CompassRose />
+      <CoordinateDisplay lat={mapInstanceRef.current?.getCenter?.()?.lat()} lng={mapInstanceRef.current?.getCenter?.()?.lng()} />
+      <ScaleBar lat={mapInstanceRef.current?.getCenter?.()?.lat()} zoom={mapInstanceRef.current?.getZoom?.() || 0} />
+      <ZoomIndicator zoom={mapInstanceRef.current?.getZoom?.() || 0} />
+      {/* Optional */}
+      {/* <MiniMap /> */}
 
       <MeasurementDisplay distance={measurement.distance} area={measurement.area} />
       <MapVisibilityControls />
@@ -691,9 +758,9 @@ export const MapContainer = forwardRef<
       )}
       <div
         ref={mapRef}
-        className="absolute inset-0 w-full h-full"
+        className="absolute inset-0 w-full h-full map-container"
         style={{
-          filter: mapTheme === "division" ? "brightness(0.8)" : "brightness(1.05) contrast(1.05)",
+          filter: mapTheme === "division" ? "brightness(0.7) contrast(1.3)" : "brightness(1.05) contrast(1.05)",
         }}
       />
       {usingMapbox && (
@@ -715,10 +782,12 @@ export const MapContainer = forwardRef<
         </div>
       )}
       {showAIDetection && (
-        <AIAsphaltDetectionModal
-          isOpen={showAIDetection}
-          onClose={() => setShowAIDetection(false)}
-        />
+        <Suspense fallback={null}>
+          <AIAsphaltDetectionModalLazy
+            isOpen={showAIDetection}
+            onClose={() => setShowAIDetection(false)}
+          />
+        </Suspense>
       )}
     </MapContext.Provider>
   );

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useWeatherAlerts } from "@/hooks/useWeatherAlerts";
+import { useWeatherAlertLocations } from "@/hooks/useWeatherAlertLocations";
 
 interface WeatherRadarLayerProps {
   map: google.maps.Map | null;
@@ -17,9 +18,10 @@ export const WeatherRadarLayer = ({
   const { data: alerts } = useWeatherAlerts();
   const [circles, setCircles] = useState<google.maps.Circle[]>([]);
   const [markers, setMarkers] = useState<google.maps.Marker[]>([]);
+  const { locations } = useWeatherAlertLocations();
 
   useEffect(() => {
-    if (!map || !showAlerts || !alerts) return;
+    if (!map || !showAlerts) return;
 
     // Clear existing circles and markers
     circles.forEach((circle) => circle.setMap(null));
@@ -28,12 +30,31 @@ export const WeatherRadarLayer = ({
     const newCircles: google.maps.Circle[] = [];
     const newMarkers: google.maps.Marker[] = [];
 
-    alerts.forEach((alert) => {
+    const allPoints = [
+      // Current alerts
+      ...(alerts || []).map((a) => ({
+        position: a.location,
+        severity: a.severity,
+        message: a.message,
+        radius: a.radius,
+        type: a.type,
+      })),
+      // Custom saved locations with selected alert radius
+      ...(locations || []).map((l) => ({
+        position: { lat: l.lat, lng: l.lng },
+        severity: "medium" as const,
+        message: l.name,
+        radius: alertRadius,
+        type: "custom" as const,
+      })),
+    ];
+
+    allPoints.forEach((alert) => {
       // Create alert circle
       const circle = new google.maps.Circle({
         map,
-        center: alert.location,
-        radius: alertRadius * 1609.34, // Convert miles to meters
+        center: alert.position,
+        radius: (alert.radius ?? alertRadius) * 1609.34, // miles to meters
         fillColor: getSeverityColor(alert.severity),
         fillOpacity: opacity / 200,
         strokeColor: getSeverityColor(alert.severity),
@@ -44,7 +65,7 @@ export const WeatherRadarLayer = ({
       // Create alert marker
       const marker = new google.maps.Marker({
         map,
-        position: alert.location,
+        position: alert.position,
         icon: {
           path: google.maps.SymbolPath.CIRCLE,
           scale: 10,
@@ -60,9 +81,9 @@ export const WeatherRadarLayer = ({
       const infoWindow = new google.maps.InfoWindow({
         content: `
           <div class="p-2">
-            <h3 class="font-bold text-sm mb-1">${alert.type.toUpperCase()} ALERT</h3>
+            <h3 class="font-bold text-sm mb-1">${String(alert.type).toUpperCase()} ALERT</h3>
             <p class="text-xs mb-1">${alert.message}</p>
-            <p class="text-xs text-muted-foreground">Severity: ${alert.severity.toUpperCase()}</p>
+            <p class="text-xs text-muted-foreground">Severity: ${String(alert.severity).toUpperCase()}</p>
             <p class="text-xs text-muted-foreground">Radius: ${alert.radius} miles</p>
           </div>
         `,

@@ -1,17 +1,23 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { X, Settings, Moon, Sun, Bell, ImageUp, Zap, Volume2, Palette, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useGamificationToggle } from "@/context/GamificationContext";
 import { Slider } from "@/components/ui/slider";
+import { WeatherAlertLocationsManager } from "./WeatherAlertLocationsManager";
+import { applyThemeVariables, applyWallpaper } from "@/lib/theme";
+import { Input } from "@/components/ui/input";
+import { detectExistingApiKeys } from "@/config/env";
 
 interface SettingsModalProps {
   onClose: () => void;
 }
 
 export const SettingsModal = ({ onClose }: SettingsModalProps) => {
+  const { enabled: gamifyEnabled, setEnabled: setGamifyEnabled } = useGamificationToggle();
   const [settings, setSettings] = useState({
     darkMode: true,
     notifications: true,
@@ -22,6 +28,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     highContrast: false,
     // Animation & Effects
     radarEffect: true,
+    radarType: 'standard' as 'standard' | 'sonar' | 'aviation',
     glitchEffect: true,
     scanlineEffect: true,
     gridOverlay: true,
@@ -34,17 +41,33 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     uiSounds: false,
     alertSounds: true,
     soundVolume: 70,
+    radarAudioEnabled: false,
+    radarAudioVolume: 50,
+    // Weather Alerts
+    weatherAlertsEnabled: true,
+    weatherAlertRadius: 15,
     // Themes & Wallpapers
     theme: "tactical-dark" as
       | "tactical-dark"
       | "light"
       | "high-contrast"
+<<<<<<< HEAD
       | "church-blue"
+=======
+      | "industry-blue"
+>>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
       | "safety-green"
       | "construction"
       | "landscaping"
       | "security"
+<<<<<<< HEAD
       | "aviation",
+=======
+      | "aviation"
+      | "division-shd"
+      | "dark-zone"
+      | "black-tusk",
+>>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
     mapTheme: "division" as "division" | "animus",
     wallpaperUrl: "",
     wallpaperOpacity: 60,
@@ -53,6 +76,18 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     useDefaultLocation: false,
     // Premium gating
     premiumEnabled: false,
+    // API Keys (overrides env when provided)
+    apiKeys: {
+      googleMaps: "",
+      googleGeneric: "",
+      mapbox: "",
+      openWeather: "",
+    } as {
+      googleMaps?: string;
+      googleGeneric?: string;
+      mapbox?: string;
+      openWeather?: string;
+    },
   });
 
   // Persist settings in localStorage
@@ -66,9 +101,29 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     } catch {}
   }, []);
 
+  // Prefill API keys from environment/config on first load if missing
+  useEffect(() => {
+    try {
+      const found = detectExistingApiKeys();
+      setSettings((prev) => {
+        const current = prev.apiKeys || {};
+        const merged = { ...current } as typeof current;
+        if (!merged.googleMaps && found.googleMaps) merged.googleMaps = found.googleMaps;
+        if (!merged.googleGeneric && found.googleGeneric) merged.googleGeneric = found.googleGeneric;
+        if (!merged.mapbox && found.mapbox) merged.mapbox = found.mapbox;
+        if (!merged.openWeather && found.openWeather) merged.openWeather = found.openWeather;
+        return { ...prev, apiKeys: merged };
+      });
+    } catch {}
+  }, []);
+
   useEffect(() => {
     try {
       localStorage.setItem("aos_settings", JSON.stringify(settings));
+      // notify live listeners in same tab
+      window.dispatchEvent(new Event("aos_settings_updated"));
+      // also notify theme consumers; Toaster listens for this
+      window.dispatchEvent(new Event("theme-updated"));
     } catch {}
   }, [settings]);
 
@@ -76,8 +131,9 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // Apply theme by setting CSS variables on :root
+  // Apply theme by setting CSS variables on :root and sync dark class based on darkMode
   useEffect(() => {
+<<<<<<< HEAD
     const root = document.documentElement as HTMLElement;
     const applyTheme = (theme: typeof settings.theme) => {
       // default base from index.css. Override selectively.
@@ -174,6 +230,11 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
       body.style.opacity = "1";
     }
   }, [settings.theme, settings.wallpaperUrl, settings.wallpaperOpacity]);
+=======
+    applyThemeVariables(settings.theme as any, { highContrast: settings.highContrast, forceDark: settings.darkMode });
+    applyWallpaper(settings.wallpaperUrl, settings.wallpaperOpacity);
+  }, [settings.theme, settings.wallpaperUrl, settings.wallpaperOpacity, settings.highContrast, settings.darkMode]);
+>>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/80 backdrop-blur-sm">
@@ -194,11 +255,28 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
           <TabsList className="mx-4 mt-4">
             <TabsTrigger value="appearance">Appearance</TabsTrigger>
             <TabsTrigger value="themes">Themes</TabsTrigger>
+            <TabsTrigger value="weather">Weather</TabsTrigger>
+            <TabsTrigger value="gamification">Gamification</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="animations">Animations</TabsTrigger>
+            <TabsTrigger value="hud">HUD</TabsTrigger>
             <TabsTrigger value="sounds">Sounds</TabsTrigger>
             <TabsTrigger value="advanced">Advanced</TabsTrigger>
+            <TabsTrigger value="api-keys">API Keys</TabsTrigger>
           </TabsList>
+            <TabsContent value="gamification" className="mt-0 space-y-6">
+              <div className="tactical-panel p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Enable Gamification</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Turns on points, streaks, badges, leaderboards, and EOD summary
+                    </p>
+                  </div>
+                  <Switch checked={gamifyEnabled} onCheckedChange={setGamifyEnabled} />
+                </div>
+              </div>
+            </TabsContent>
 
           <ScrollArea className="flex-1 p-4">
             <TabsContent value="appearance" className="mt-0 space-y-6">
@@ -255,6 +333,60 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
               </div>
             </TabsContent>
 
+            <TabsContent value="hud" className="mt-0 space-y-6">
+              <div className="tactical-panel p-4 space-y-3">
+                <div className="text-sm font-semibold">HUD Elements</div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs">Corner Brackets</span>
+                  <Switch checked={true} disabled />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs">Compass Rose</span>
+                  <Switch checked={true} disabled />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs">Coordinate Display</span>
+                  <Switch checked={true} disabled />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs">Scale Bar</span>
+                  <Switch checked={true} disabled />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs">Zoom Indicator</span>
+                  <Switch checked={true} disabled />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="weather" className="mt-0 space-y-6">
+              <div className="tactical-panel p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Enable Weather Alerts</Label>
+                    <p className="text-xs text-muted-foreground">Show alert radius circles and markers</p>
+                  </div>
+                  <Switch
+                    checked={settings.weatherAlertsEnabled}
+                    onCheckedChange={() => handleToggle('weatherAlertsEnabled')}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Alert Radius: {settings.weatherAlertRadius} miles</Label>
+                  <Slider
+                    value={[settings.weatherAlertRadius]}
+                    onValueChange={([val]) => setSettings((p) => ({ ...p, weatherAlertRadius: val }))}
+                    min={5}
+                    max={50}
+                    step={1}
+                    className="mt-2"
+                  />
+                </div>
+              </div>
+
+              <WeatherAlertLocationsManager />
+            </TabsContent>
+
             <TabsContent value="themes" className="mt-0 space-y-6">
               <div className="tactical-panel p-4 space-y-4">
                 <div className="flex items-center gap-3 mb-2">
@@ -266,8 +398,12 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     { id: "tactical-dark", label: "Tactical Dark", premium: false },
                     { id: "light", label: "Light", premium: false },
                     { id: "high-contrast", label: "High Contrast", premium: false },
-                    { id: "church-blue", label: "Church Blue", premium: false },
+                    { id: "industry-blue", label: "Industry Blue", premium: false },
                     { id: "safety-green", label: "Safety Green", premium: false },
+                    // Division-inspired collection
+                    { id: "division-shd", label: "Division: SHD", premium: false },
+                    { id: "dark-zone", label: "Division: Dark Zone", premium: false },
+                    { id: "black-tusk", label: "Division: Black Tusk", premium: false },
                     // Premium industry themes
                     { id: "construction", label: "Construction (Premium)", premium: true },
                     { id: "landscaping", label: "Landscaping (Premium)", premium: true },
@@ -388,6 +524,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div>
                     <Label className="text-xs">Primary Hue</Label>
+<<<<<<< HEAD
                     <input
                       type="range"
                       min={0}
@@ -407,12 +544,28 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                         const sat = current[1] || "100%";
                         const lum = current[2] || "50%";
                         root.style.setProperty("--primary", `${e.target.value} ${sat} ${lum}`);
+=======
+                    <input type="range" min={0} max={360} step={1}
+                      value={(() => {
+                        const raw = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+                        const [h] = raw ? raw.split(' ') : ['30'];
+                        return Number(h) || 30;
+                      })()}
+                      onChange={(e) => {
+                        const root = document.documentElement as HTMLElement;
+                        const current = getComputedStyle(root).getPropertyValue('--primary').trim();
+                        const parts = current ? current.split(' ') : [];
+                        const sat = parts[1] || '100%';
+                        const lum = parts[2] || '50%';
+                        root.style.setProperty('--primary', `${e.target.value} ${sat} ${lum}`);
+>>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
                       }}
                       className="w-full"
                     />
                   </div>
                   <div>
                     <Label className="text-xs">Accent Hue</Label>
+<<<<<<< HEAD
                     <input
                       type="range"
                       min={0}
@@ -432,12 +585,28 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                         const sat = current[1] || "100%";
                         const lum = current[2] || "50%";
                         root.style.setProperty("--accent", `${e.target.value} ${sat} ${lum}`);
+=======
+                    <input type="range" min={0} max={360} step={1}
+                      value={(() => {
+                        const raw = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+                        const [h] = raw ? raw.split(' ') : ['197'];
+                        return Number(h) || 197;
+                      })()}
+                      onChange={(e) => {
+                        const root = document.documentElement as HTMLElement;
+                        const current = getComputedStyle(root).getPropertyValue('--accent').trim();
+                        const parts = current ? current.split(' ') : [];
+                        const sat = parts[1] || '100%';
+                        const lum = parts[2] || '50%';
+                        root.style.setProperty('--accent', `${e.target.value} ${sat} ${lum}`);
+>>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
                       }}
                       className="w-full"
                     />
                   </div>
                   <div>
                     <Label className="text-xs">Background Luminance</Label>
+<<<<<<< HEAD
                     <input
                       type="range"
                       min={0}
@@ -459,6 +628,22 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                         const h = current[0] || "0";
                         const s = current[1] || "0%";
                         root.style.setProperty("--background", `${h} ${s} ${e.target.value}%`);
+=======
+                    <input type="range" min={0} max={100} step={1}
+                      value={(() => {
+                        const raw = getComputedStyle(document.documentElement).getPropertyValue('--background').trim();
+                        const parts = raw ? raw.split(' ') : [];
+                        const lum = parts[2] || '4%';
+                        return Number(String(lum).replace('%','')) || 4;
+                      })()}
+                      onChange={(e) => {
+                        const root = document.documentElement as HTMLElement;
+                        const current = getComputedStyle(root).getPropertyValue('--background').trim();
+                        const parts = current ? current.split(' ') : [];
+                        const h = parts[0] || '0';
+                        const s = parts[1] || '0%';
+                        root.style.setProperty('--background', `${h} ${s} ${e.target.value}%`);
+>>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
                       }}
                       className="w-full"
                     />
@@ -550,6 +735,21 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                         step={1}
                         className="mt-2"
                       />
+                      <div className="mt-3">
+                        <Label className="text-xs">Radar Type</Label>
+                        <div className="flex gap-2 mt-1">
+                          {(["standard","sonar","aviation"] as const).map((t) => (
+                            <Button
+                              key={t}
+                              variant={settings.radarType === t ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setSettings((p) => ({ ...p, radarType: t }))}
+                            >
+                              {t.charAt(0).toUpperCase() + t.slice(1)}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -683,7 +883,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   />
                 </div>
 
-                {/* Volume */}
+              {/* Volume */}
                 <div>
                   <Label className="text-xs">Master Volume: {settings.soundVolume}%</Label>
                   <Slider
@@ -697,6 +897,31 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     className="mt-2"
                   />
                 </div>
+
+              {/* Radar Ping Audio */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Radar Ping Audio</Label>
+                  <p className="text-xs text-muted-foreground">Beep on sweep rotation</p>
+                </div>
+                <Switch
+                  checked={settings.radarAudioEnabled}
+                  onCheckedChange={() => handleToggle('radarAudioEnabled')}
+                />
+              </div>
+              {settings.radarAudioEnabled && (
+                <div>
+                  <Label className="text-xs">Radar Volume: {settings.radarAudioVolume}%</Label>
+                  <Slider
+                    value={[settings.radarAudioVolume]}
+                    onValueChange={([val]) => setSettings((prev) => ({ ...prev, radarAudioVolume: val }))}
+                    min={0}
+                    max={100}
+                    step={5}
+                    className="mt-2"
+                  />
+                </div>
+              )}
               </div>
             </TabsContent>
 
@@ -729,6 +954,82 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                 )}
               </div>
             </TabsContent>
+
+            {/* API Keys Management */}
+            <TabsContent value="api-keys" className="mt-0 space-y-6">
+              <div className="tactical-panel p-4 space-y-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <Settings className="w-5 h-5 text-primary" />
+                  <Label>API Keys</Label>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Values entered here override environment variables on this device. Keys are stored locally in your browser storage.
+                </p>
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-xs">Google Maps API Key</Label>
+                    <Input
+                      type="password"
+                      placeholder="AIza..."
+                      value={settings.apiKeys?.googleMaps || ""}
+                      onChange={(e) =>
+                        setSettings((p) => ({
+                          ...p,
+                          apiKeys: { ...(p.apiKeys || {}), googleMaps: e.target.value },
+                        }))
+                      }
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Google API Key (generic fallback)</Label>
+                    <Input
+                      type="password"
+                      placeholder="AIza..."
+                      value={settings.apiKeys?.googleGeneric || ""
+                      }
+                      onChange={(e) =>
+                        setSettings((p) => ({
+                          ...p,
+                          apiKeys: { ...(p.apiKeys || {}), googleGeneric: e.target.value },
+                        }))
+                      }
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Mapbox Access Token</Label>
+                    <Input
+                      type="password"
+                      placeholder="pk.eyJ..."
+                      value={settings.apiKeys?.mapbox || ""}
+                      onChange={(e) =>
+                        setSettings((p) => ({
+                          ...p,
+                          apiKeys: { ...(p.apiKeys || {}), mapbox: e.target.value },
+                        }))
+                      }
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">OpenWeather API Key</Label>
+                    <Input
+                      type="password"
+                      placeholder="abc123..."
+                      value={settings.apiKeys?.openWeather || ""}
+                      onChange={(e) =>
+                        setSettings((p) => ({
+                          ...p,
+                          apiKeys: { ...(p.apiKeys || {}), openWeather: e.target.value },
+                        }))
+                      }
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
           </ScrollArea>
         </Tabs>
 
@@ -737,7 +1038,19 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button>Save Changes</Button>
+          <Button
+            onClick={() => {
+              try {
+                localStorage.setItem("aos_settings", JSON.stringify(settings));
+              } catch {}
+              // Re-apply in case toggles changed without theme change
+              applyThemeVariables(settings.theme as any, { highContrast: settings.highContrast, forceDark: settings.darkMode });
+              applyWallpaper(settings.wallpaperUrl, settings.wallpaperOpacity);
+              onClose();
+            }}
+          >
+            Save Changes
+          </Button>
         </div>
       </div>
     </div>

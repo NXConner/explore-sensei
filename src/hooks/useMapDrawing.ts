@@ -1,5 +1,7 @@
 /// <reference types="@types/google.maps" />
 import { useRef, useCallback, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { emitGamificationEvent } from "@/lib/gamificationClient";
 
 export type DrawingMode = "marker" | "polyline" | "circle" | "rectangle" | "measure" | null;
 
@@ -64,12 +66,15 @@ export const useMapDrawing = (map: google.maps.Map | null) => {
           const path = (event.overlay as google.maps.Polyline).getPath();
           const distance = calculateDistance(path.getArray());
           setMeasurement({ distance });
+          try { emitGamificationEvent({ event_type: "map_drawing_saved", metadata: { type: "polyline", distance } }); } catch {}
         } else if (event.type === google.maps.drawing.OverlayType.CIRCLE) {
           const area = calculateArea(event.overlay as google.maps.Circle);
           setMeasurement({ area });
+          try { emitGamificationEvent({ event_type: "map_drawing_saved", metadata: { type: "circle", area } }); } catch {}
         } else if (event.type === google.maps.drawing.OverlayType.RECTANGLE) {
           const area = calculateArea(event.overlay as google.maps.Rectangle);
           setMeasurement({ area });
+          try { emitGamificationEvent({ event_type: "map_drawing_saved", metadata: { type: "rectangle", area } }); } catch {}
         }
       },
     );

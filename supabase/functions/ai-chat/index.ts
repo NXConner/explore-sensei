@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -54,6 +55,56 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
+
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+    const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY');
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      throw new Error('Supabase environment not configured');
+    }
+
+    // Require authenticated caller and apply per-user rate limiting
+    const authHeader = req.headers.get('Authorization') ?? '';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: userRes } = await supabase.auth.getUser();
+    const user = userRes?.user ?? null;
+    if (!user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Hourly rate limit
+    const limit = parseInt(Deno.env.get('AI_CHAT_HOURLY_LIMIT') ?? '60');
+    const now = new Date();
+    const hourStart = new Date(now);
+    hourStart.setMinutes(0, 0, 0);
+    const periodStartIso = hourStart.toISOString();
+
+    const { data: usageRow } = await supabase
+      .from('edge_function_usage')
+      .select('count')
+      .eq('user_id', user.id)
+      .eq('function_name', 'ai-chat')
+      .eq('period_start', periodStartIso)
+      .maybeSingle();
+
+    const currentCount = usageRow?.count ?? 0;
+    if (currentCount >= limit) {
+      return new Response(
+        JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    await supabase.from('edge_function_usage').upsert({
+      user_id: user.id,
+      function_name: 'ai-chat',
+      period_start: periodStartIso,
+      count: currentCount + 1,
+    }, { onConflict: 'user_id,function_name,period_start' });
 
     console.log("Calling Lovable AI with", messages.length, "messages");
 

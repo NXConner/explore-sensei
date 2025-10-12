@@ -72,6 +72,7 @@ export const MapVisibilityControls = () => {
     });
   };
 
+<<<<<<< HEAD
   if (!isOpen) {
     return (
       <div className="absolute left-80 top-20 z-[900]">
@@ -82,9 +83,42 @@ export const MapVisibilityControls = () => {
       </div>
     );
   }
+=======
+  // Apply computed CSS filter to the actual map container in real-time
+  React.useEffect(() => {
+    const mapEl = document.querySelector('.map-container') as HTMLElement | null;
+    if (!mapEl) return;
+
+    const filterString = `brightness(${controls.brightness}%) contrast(${controls.contrast}%) saturate(${100 + controls.sharpness}%) hue-rotate(${controls.hdr}deg) sepia(${Math.max(0, controls.gamma - 100)}%)`;
+    mapEl.style.filter = filterString;
+  }, [controls]);
+
+  // External control via global events from sidebar button
+  React.useEffect(() => {
+    const toggle = () => setIsOpen((v) => !v);
+    const open = () => setIsOpen(true);
+    const close = () => setIsOpen(false);
+    window.addEventListener("toggle-enhance-panel", toggle as any);
+    window.addEventListener("open-enhance-panel", open as any);
+    window.addEventListener("close-enhance-panel", close as any);
+    return () => {
+      window.removeEventListener("toggle-enhance-panel", toggle as any);
+      window.removeEventListener("open-enhance-panel", open as any);
+      window.removeEventListener("close-enhance-panel", close as any);
+    };
+  }, []);
+
+  // Broadcast state so sidebar can reflect button active state
+  React.useEffect(() => {
+    const evt = new CustomEvent('enhance-panel-state', { detail: { open: isOpen } });
+    window.dispatchEvent(evt);
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+>>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
 
   return (
-    <div className="absolute left-80 top-20 z-[900] tactical-panel w-80">
+    <div className="absolute left-80 top-20 z-[900] tactical-panel w-80 pointer-events-auto">
       {/* Header */}
       <div className="flex items-center justify-between p-3 border-b border-primary/30">
         <div className="flex items-center gap-2">

@@ -8,7 +8,11 @@ const Index = lazy(() => import("./pages/Index"));
 const Profile = lazy(() => import("./pages/Profile").then((m) => ({ default: m.Profile })));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Auth = lazy(() => import("./pages/Auth"));
+const ClientAppLazy = lazy(() => import("./pages/client/ClientApp").then(m => ({ default: m.ClientApp })));
 import { initAnalytics, trackPageView } from "@/lib/analytics";
+import { GamificationProvider } from "@/context/GamificationContext";
+import { applySavedThemeFromLocalStorage, listenForThemeChanges } from "@/lib/theme";
+import { ProtectedFeature } from "@/components/ProtectedFeature";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +24,24 @@ const AnalyticsListener = () => {
   useEffect(() => {
     trackPageView(location.pathname);
   }, [location.pathname]);
+  // HUD: route-change glitch effect based on settings
+  useEffect(() => {
+    // Apply saved theme on first route event
+    applySavedThemeFromLocalStorage();
+    const stopListen = listenForThemeChanges();
+    try {
+      const raw = localStorage.getItem("aos_settings");
+      const settings = raw ? JSON.parse(raw) : {};
+      if (settings?.glitchEffect !== false && settings?.glitchOnPageTransition !== false) {
+        document.body.classList.add("glitch-distortion");
+        const t = setTimeout(() => document.body.classList.remove("glitch-distortion"), 220);
+        return () => {
+          clearTimeout(t);
+          stopListen?.();
+        };
+      }
+    } catch {}
+  }, [location.pathname]);
   return null;
 };
 
@@ -28,18 +50,31 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <AnalyticsListener />
-        <Suspense fallback={null}>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/auth" element={<Auth />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
+      <GamificationProvider>
+        <BrowserRouter>
+          <AnalyticsListener />
+          <Suspense fallback={null}>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/auth" element={<Auth />} />
+              {/* Client-facing app */}
+              <Route
+                path="/client/*"
+                element={
+                  <ProtectedFeature
+                    allowed={["Viewer","Operator","Manager","Administrator","Super Administrator"]}
+                  >
+                    <ClientAppLazy />
+                  </ProtectedFeature>
+                }
+              />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </GamificationProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

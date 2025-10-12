@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import {
   Activity,
   Calendar,
@@ -27,11 +28,16 @@ import {
   Play,
   Tv,
 } from "lucide-react";
+=======
+import { Activity, Calendar, Users, Truck, DollarSign, User, Briefcase, Clock, Camera, HardHat, FileText, ClipboardList, Shield, Wallet, BookOpen, Calculator, Route, LogOut, TrendingUp, MessageSquare, Zap, FolderOpen, Receipt, Cloud, MapPin, Play, Tv, Trophy } from "lucide-react";
+>>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
 import { Button } from "@/components/ui/button";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useGamificationToggle } from "@/context/GamificationContext";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface TopBarProps {
   onModuleClick: (module: string) => void;
@@ -49,8 +55,10 @@ export const TopBar = ({
   onShowBusinessHub,
 }: TopBarProps) => {
   const { user, isAdmin, signOut } = useAuth();
+  const { role } = useUserRole();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { enabled: gamifyEnabled, setEnabled: setGamifyEnabled } = useGamificationToggle();
 
   const handleSignOut = async () => {
     await signOut();
@@ -61,7 +69,7 @@ export const TopBar = ({
     navigate("/auth");
   };
 
-  const modules = [
+  const allModules = [
     { id: "dashboard", icon: Activity, label: "DASH" },
     { id: "jobs", icon: Briefcase, label: "JOBS" },
     { id: "time", icon: Clock, label: "TIME" },
@@ -83,6 +91,27 @@ export const TopBar = ({
     { id: "receipts", icon: Receipt, label: "RECEIPTS" },
     { id: "eod-playback", icon: Play, label: "EOD" },
   ];
+
+  // Filter modules by role; clients (Viewer) get a Client Portal entry only
+  const modules = (() => {
+    if (!role || role === "Viewer") {
+      return [
+        { id: "client-portal", icon: Tv, label: "CLIENT" },
+      ];
+    }
+    if (role === "Operator") {
+      return allModules.filter((m) => [
+        "dashboard","jobs","time","photos","equipment","route","clients","documents","eod-playback"
+      ].includes(m.id));
+    }
+    if (role === "Manager") {
+      return allModules.filter((m) => [
+        "dashboard","jobs","schedule","route","clients","invoicing","estimate","documents","receipts","fleet","photos"
+      ].includes(m.id));
+    }
+    // Admins see everything
+    return allModules;
+  })();
 
   return (
     <div className="absolute top-0 left-0 right-0 z-[1000] hud-element animate-fade-in">
@@ -120,7 +149,13 @@ export const TopBar = ({
           {modules.map((module) => (
             <Button
               key={module.id}
-              onClick={() => onModuleClick(module.id)}
+              onClick={() => {
+                if (module.id === "client-portal") {
+                  window.location.href = "/client";
+                } else {
+                  onModuleClick(module.id);
+                }
+              }}
               variant="ghost"
               size="sm"
               className="flex items-center gap-1 md:gap-2 text-[10px] md:text-xs font-bold uppercase tracking-wider hover:bg-primary/20 hover:text-primary border border-transparent hover:border-primary/50 transition-all whitespace-nowrap px-2 md:px-3 hover-scale"
@@ -133,6 +168,16 @@ export const TopBar = ({
 
         {/* User Profile - visible on desktop */}
         <div className="hidden md:flex items-center gap-2 flex-shrink-0">
+          <Button
+            variant={gamifyEnabled ? "default" : "outline"}
+            size="sm"
+            onClick={() => setGamifyEnabled(!gamifyEnabled)}
+            className="hover:bg-primary/20 px-2 gap-2"
+            title={gamifyEnabled ? "Gamification ON" : "Gamification OFF"}
+          >
+            <Trophy className="w-4 h-4" />
+            <span className="text-xs font-bold">GAMIFY</span>
+          </Button>
           {/* Premium Features */}
           <NotificationCenter />
           {onShowChat && (

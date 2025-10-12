@@ -2,6 +2,9 @@ import React from "react";
 import { User, Mail, Phone, MapPin, Building, Award } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { AchievementsPanel } from "@/components/gamification/AchievementsPanel";
+import { LeaderboardPanel } from "@/components/gamification/LeaderboardPanel";
+import { QuestCenter } from "@/components/gamification/QuestCenter";
 
 export const Profile = () => {
   return (
@@ -88,26 +91,9 @@ export const Profile = () => {
             </div>
           </Card>
 
-          <Card className="tactical-panel p-6">
-            <h2 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
-              <Award className="w-5 h-5" />
-              Achievements
-            </h2>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <p>Projects Completed</p>
-                <p className="font-bold text-primary">127</p>
-              </div>
-              <div className="flex items-center justify-between">
-                <p>Team Members</p>
-                <p className="font-bold text-primary">3</p>
-              </div>
-              <div className="flex items-center justify-between">
-                <p>Active Jobs</p>
-                <p className="font-bold text-primary">8</p>
-              </div>
-            </div>
-          </Card>
+          <AchievementsPanel />
+          <LeaderboardPanel />
+          <QuestCenter />
         </div>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+<<<<<<< HEAD
 import {
   Crosshair,
   Minus,
@@ -12,6 +13,9 @@ import {
   ChevronRight,
   Search,
 } from "lucide-react";
+=======
+import { Crosshair, Minus, Circle, Square, Ruler, Trash2, Plus, MapPin, ChevronLeft, ChevronRight, Search, Eye } from "lucide-react";
+>>>>>>> 9994a4d1e9900372338879dc4e862a100a01a0c3
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -34,6 +38,13 @@ export const LeftSidebar = () => {
     darkZones: false,
     equipment: true,
   });
+  const [enhanceOpen, setEnhanceOpen] = useState(false);
+
+  React.useEffect(() => {
+    const handler = (e: any) => setEnhanceOpen(!!e?.detail?.open);
+    window.addEventListener('enhance-panel-state', handler as any);
+    return () => window.removeEventListener('enhance-panel-state', handler as any);
+  }, []);
 
   React.useEffect(() => {
     if (map) {
@@ -94,14 +105,29 @@ export const LeftSidebar = () => {
   return (
     <div className="absolute left-0 top-16 bottom-16 w-72 z-[900] hud-element border-r border-primary/30 flex flex-col">
       {/* Minimize Button */}
-      <div className="flex justify-end p-2 border-b border-primary/30 flex-shrink-0">
+      <div className="flex items-center justify-between p-2 border-b border-primary/30 flex-shrink-0">
         <Button
           onClick={() => setIsMinimized(true)}
           variant="ghost"
           size="sm"
           className="h-8 w-8 p-0"
+          title="Minimize"
         >
           <ChevronLeft className="w-4 h-4" />
+        </Button>
+        {/* Enhance button placed in sidebar */}
+        <Button
+          onClick={() => {
+            const evt = new Event('toggle-enhance-panel');
+            window.dispatchEvent(evt);
+          }}
+          variant={enhanceOpen ? "default" : "ghost"}
+          size="sm"
+          className="h-8 px-2 gap-1"
+          title="Visibility Controls"
+        >
+          <Eye className="w-4 h-4" />
+          <span className="text-xs">Enhance</span>
         </Button>
       </div>
 
@@ -122,6 +148,8 @@ export const LeftSidebar = () => {
             </Button>
           </form>
         </div>
+
+        
 
         {/* Drawing Tools */}
         <div className="tactical-panel m-2 p-4">
