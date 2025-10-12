@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
 import { useGamification } from "@/hooks/useGamification";
+import { useGamificationToggle } from "@/context/GamificationContext";
 
 interface JobFormProps {
   job?: any;
@@ -28,6 +29,7 @@ export const JobForm = ({ job, onSave, onCancel }: JobFormProps) => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { emitEvent } = useGamification();
+  const { enabled: gamifyEnabled } = useGamificationToggle();
 
   useEffect(() => {
     fetchClients();
@@ -78,9 +80,11 @@ export const JobForm = ({ job, onSave, onCancel }: JobFormProps) => {
       description: isUpdate ? "Job updated successfully" : "Job created successfully",
     });
 
-    try {
-      await emitEvent({ event_type: "job_status_updated", metadata: { status, isUpdate } });
-    } catch {}
+    if (gamifyEnabled) {
+      try {
+        await emitEvent({ event_type: "job_status_updated", metadata: { status, isUpdate } });
+      } catch {}
+    }
 
     onSave();
   };

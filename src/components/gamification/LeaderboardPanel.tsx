@@ -1,8 +1,11 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { useGamification } from "@/hooks/useGamification";
+import { useGamificationToggle } from "@/context/GamificationContext";
 
 export const LeaderboardPanel: React.FC = () => {
+  const { enabled } = useGamificationToggle();
+  if (!enabled) return null;
   const { leaderboardQuery } = useGamification();
   const board = leaderboardQuery.data?.leaderboard ?? [];
 

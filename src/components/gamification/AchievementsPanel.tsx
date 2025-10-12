@@ -1,8 +1,11 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { useGamification } from "@/hooks/useGamification";
+import { useGamificationToggle } from "@/context/GamificationContext";
 
 export const AchievementsPanel: React.FC = () => {
+  const { enabled } = useGamificationToggle();
+  if (!enabled) return null;
   const { profileQuery } = useGamification();
   const profile = profileQuery.data?.profile;
   const badges = profileQuery.data?.badges ?? [];

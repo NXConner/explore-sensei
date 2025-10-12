@@ -5,6 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useGamificationToggle } from "@/context/GamificationContext";
 import { Slider } from "@/components/ui/slider";
 
 interface SettingsModalProps {
@@ -12,6 +13,7 @@ interface SettingsModalProps {
 }
 
 export const SettingsModal = ({ onClose }: SettingsModalProps) => {
+  const { enabled: gamifyEnabled, setEnabled: setGamifyEnabled } = useGamificationToggle();
   const [settings, setSettings] = useState({
     darkMode: true,
     notifications: true,
@@ -188,8 +190,22 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="animations">Animations</TabsTrigger>
             <TabsTrigger value="sounds">Sounds</TabsTrigger>
+            <TabsTrigger value="gamification">Gamification</TabsTrigger>
             <TabsTrigger value="advanced">Advanced</TabsTrigger>
           </TabsList>
+            <TabsContent value="gamification" className="mt-0 space-y-6">
+              <div className="tactical-panel p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Enable Gamification</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Turns on points, streaks, badges, leaderboards, and EOD summary
+                    </p>
+                  </div>
+                  <Switch checked={gamifyEnabled} onCheckedChange={setGamifyEnabled} />
+                </div>
+              </div>
+            </TabsContent>
 
           <ScrollArea className="flex-1 p-4">
             <TabsContent value="appearance" className="mt-0 space-y-6">

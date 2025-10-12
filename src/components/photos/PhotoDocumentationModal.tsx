@@ -10,6 +10,7 @@ import { PhotoUploadForm } from "./PhotoUploadForm";
 import { PhotoGallery } from "./PhotoGallery";
 import { format } from "date-fns";
 import { useGamification } from "@/hooks/useGamification";
+import { useGamificationToggle } from "@/context/GamificationContext";
 
 interface PhotoDocumentationModalProps {
   onClose: () => void;
@@ -28,6 +29,7 @@ export const PhotoDocumentationModal = ({ onClose }: PhotoDocumentationModalProp
   const [showUpload, setShowUpload] = useState(false);
   const { toast } = useToast();
   const { emitEvent } = useGamification();
+  const { enabled: gamifyEnabled } = useGamificationToggle();
 
   useEffect(() => {
     fetchJobs();
@@ -57,7 +59,7 @@ export const PhotoDocumentationModal = ({ onClose }: PhotoDocumentationModalProp
       title: "Success",
       description: "Photo uploaded successfully",
     });
-    try { emitEvent({ event_type: "photo_uploaded", metadata: { job_id: selectedJobId, type: photoType } }); } catch {}
+    if (gamifyEnabled) { try { emitEvent({ event_type: "photo_uploaded", metadata: { job_id: selectedJobId, type: photoType } }); } catch {} }
   };
 
   return (

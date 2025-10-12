@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useWeatherAlerts } from "@/hooks/useWeatherAlerts";
 import { useGamification } from "@/hooks/useGamification";
+import { useGamificationToggle } from "@/context/GamificationContext";
 
 interface WeatherRadarModalProps {
   onClose: () => void;
@@ -20,6 +21,7 @@ export const WeatherRadarModal = ({ onClose }: WeatherRadarModalProps) => {
   const [alertRadius, setAlertRadius] = useState(15);
   const { data: alerts } = useWeatherAlerts();
   const { emitEvent } = useGamification();
+  const { enabled: gamifyEnabled } = useGamificationToggle();
 
   const timeFrames = [
     "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", 
@@ -77,7 +79,7 @@ export const WeatherRadarModal = ({ onClose }: WeatherRadarModalProps) => {
                     value={[alertRadius]}
                     onValueChange={([val]) => {
                       setAlertRadius(val);
-                      try { emitEvent({ event_type: "weather_alert_configured", metadata: { radius_miles: val } }); } catch {}
+                      if (gamifyEnabled) { try { emitEvent({ event_type: "weather_alert_configured", metadata: { radius_miles: val } }); } catch {} }
                     }}
                     min={5}
                     max={50}
