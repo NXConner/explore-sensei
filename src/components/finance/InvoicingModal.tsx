@@ -69,12 +69,7 @@ export const InvoicingModal: React.FC<InvoicingModalProps> = ({ onClose }) => {
       ]);
 
       // Fallbacks for environments where relationships/tables are not present yet
-      let invoicesData = invoicesRes.data;
-      if (!invoicesData) {
-        const fallback = await supabase.from('invoices').select('*').order('created_at', { ascending: false });
-        invoicesData = fallback.data || [];
-      }
-
+      let invoicesData = invoicesRes.data || [];
       const paymentsData = paymentsRes.data || [];
       const clientsData = clientsRes.data || [];
       const jobsData = jobsRes.data || [];

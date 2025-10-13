@@ -66,6 +66,8 @@ export interface Payment {
   payment_method: string;
   payment_date: string;
   status: string;
+  reference?: string;
+  notes?: string;
   created_at: string;
   updated_at: string;
 }
@@ -128,6 +130,8 @@ export function mapDbPaymentToPayment(dbPayment: any): Payment {
     payment_method: dbPayment.payment_method || 'unknown',
     payment_date: dbPayment.payment_date,
     status: dbPayment.status,
+    reference: dbPayment.reference,
+    notes: dbPayment.notes,
     created_at: dbPayment.created_at,
     updated_at: dbPayment.updated_at
   };

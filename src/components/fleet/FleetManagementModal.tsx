@@ -184,8 +184,10 @@ export const FleetManagementModal: React.FC<FleetManagementModalProps> = ({ onCl
     return 'text-red-500';
   };
 
-  const getMaintenanceStatus = (vehicle: Vehicle) => {
-    if (!vehicle.next_maintenance) return 'No maintenance scheduled';
+  const getMaintenanceStatus = (vehicle: Vehicle): { status: string; color: string } => {
+    if (!vehicle.next_maintenance) {
+      return { status: 'No maintenance scheduled', color: 'text-gray-600' };
+    }
     
     const nextDate = new Date(vehicle.next_maintenance);
     const today = new Date();
@@ -264,13 +266,9 @@ export const FleetManagementModal: React.FC<FleetManagementModalProps> = ({ onCl
                             
                             <div className="flex items-center gap-2 text-sm">
                               <Clock className="h-4 w-4" />
-                              {typeof getMaintenanceStatus(vehicle) === 'object' ? (
-                                <span className={getMaintenanceStatus(vehicle).color}>
-                                  {getMaintenanceStatus(vehicle).status}
-                                </span>
-                              ) : (
-                                <span>{getMaintenanceStatus(vehicle)}</span>
-                              )}
+                              <span className={getMaintenanceStatus(vehicle).color}>
+                                {getMaintenanceStatus(vehicle).status}
+                              </span>
                             </div>
                           </CardContent>
                         </Card>
@@ -464,9 +462,7 @@ export const FleetManagementModal: React.FC<FleetManagementModalProps> = ({ onCl
                             )}
                             <div className="flex items-center gap-4 text-sm">
                               <span>Cost: ${record.cost.toFixed(2)}</span>
-                              {record.next_due && (
-                                <span>Next Due: {new Date(record.next_due).toLocaleDateString()}</span>
-                              )}
+                              <span>Date: {new Date(record.date).toLocaleDateString()}</span>
                             </div>
                           </div>
                         </CardContent>
