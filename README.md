@@ -8,7 +8,7 @@
 
 > **AI-assisted development for pavement analysis and performance tracking, specifically optimized for asphalt paving and sealing, with a strategic focus on church parking lot repair, sealcoating, and line-striping. Supporting both Virginia and North Carolina contractor licensing.**
 
-## 🚀 **Project Status: 92% Complete - Production Ready**
+## 🚀 **Project Status: Production Ready**
 
 ### ✅ **Completed Features:**
 - 🏢 **Jobs Management** - Complete CRUD with church-specific templates
@@ -67,7 +67,7 @@
 ## 📦 **Installation**
 
 ### **Prerequisites**
-- Node.js 18+ 
+- Node.js 18+
 - npm 9+
 - Git
 
@@ -78,7 +78,7 @@ git clone https://github.com/explore-sensei/pavement-performance-suite.git
 cd pavement-performance-suite
 
 # Install dependencies
-npm install
+npm install --legacy-peer-deps
 
 # Set up environment variables
 cp .env.example .env.local
@@ -103,6 +103,7 @@ VITE_OPENWEATHER_API_KEY=your_openweather_api_key
 # AI Services
 VITE_AI_SERVICE_URL=your_ai_service_url
 VITE_AI_SERVICE_KEY=your_ai_service_key
+VITE_VALID_API_KEYS=comma,separated,keys
 ```
 
 ## 🚀 **Development**
@@ -137,6 +138,7 @@ npm run db:seed          # Seed database
 npm run security:audit   # Security audit
 npm run performance:lighthouse  # Lighthouse audit
 npm run build:analyze    # Bundle analysis
+npm run performance:budget # Size budget check
 
 # Documentation
 npm run docs:generate    # Generate API docs
@@ -165,6 +167,23 @@ src/
 ├── types/              # TypeScript type definitions
 └── __tests__/          # Test suites
 ```
+
+## 🧭 How to Use and Get the Most Out of It
+
+- Jobs: Create jobs with accurate geolocation to unlock map, weather, and routing.
+- Scheduling: Use weather radar and alerts to pick optimal work windows for churches.
+- Fleet: Keep `maintenance_records` current; maintenance status badges derive from `next_maintenance`.
+- Photos: Use photo documentation for visual quotes and completion proofs.
+- AI Assistant: Trigger asphalt detection from the map; export measurements to estimates.
+- Finance: Generate invoices from completed jobs; export PDFs from the Finance module.
+- Themes: Switch themes in Settings; upload wallpaper images and tune opacity for readability.
+- Accessibility: Keyboard nav and a11y checks are enforced; use semantic labels where prompted.
+
+Tips
+- Keep `aos_settings` small; large images as wallpaper may impact performance.
+- Use the Mapbox fallback only when Google Maps API is unavailable; some advanced tools are disabled.
+- Run `npm run security:audit` regularly and keep dependencies up to date.
+- Use `npm run build:analyze` to monitor bundle sizes; consider code splitting heavy modals.
 
 ## 🧪 **Testing**
 

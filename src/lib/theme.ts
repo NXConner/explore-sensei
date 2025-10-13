@@ -173,7 +173,9 @@ export function applyThemeVariables(
   // Broadcast theme changes to any listeners (e.g., toasters)
   try {
     window.dispatchEvent(new Event("theme-updated"));
-  } catch {}
+  } catch (_err) {
+    // noop
+  }
 }
 
 export function applyWallpaper(url?: string, opacityPercent?: number) {
@@ -213,10 +215,12 @@ export function applySavedThemeFromLocalStorage() {
     // Backward-compatible alias: map legacy 'church-blue' to 'industry-blue'
     const mappedTheme = (parsed.theme === "church-blue" ? "industry-blue" : parsed.theme) as ThemeId | undefined;
     const theme = mappedTheme || "tactical-dark";
-    const isDark = (parsed as any).darkMode ?? theme !== "light";
+    const isDark = (parsed as unknown as { darkMode?: boolean }).darkMode ?? theme !== "light";
     applyThemeVariables(theme, { highContrast: !!parsed.highContrast, forceDark: !!isDark });
     applyWallpaper(parsed.wallpaperUrl, parsed.wallpaperOpacity);
-  } catch {}
+  } catch (_err) {
+    // noop
+  }
 }
 
 export function listenForThemeChanges() {

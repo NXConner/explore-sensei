@@ -335,7 +335,7 @@ const Index = () => {
       )}
       {activeModule === "route" && (
         <Suspense fallback={null}>
-          <RouteOptimizationModal isOpen={true} onClose={() => setActiveModule(null)} />
+          <RouteOptimizationModal onClose={() => setActiveModule(null)} />
         </Suspense>
       )}
 

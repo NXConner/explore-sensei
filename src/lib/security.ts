@@ -231,7 +231,8 @@ export const validateSession = (sessionId: string, expiresAt: number): boolean =
 // API Security
 export const validateAPIKey = (apiKey: string): boolean => {
   // In a real implementation, this would check against a database
-  const validKeys = process.env.VALID_API_KEYS?.split(',') || [];
+  const validKeysRaw = (import.meta as any)?.env?.VITE_VALID_API_KEYS || process.env.VITE_VALID_API_KEYS || "";
+  const validKeys = String(validKeysRaw).split(',').map(k => k.trim()).filter(Boolean);
   return validKeys.includes(apiKey);
 };
 
