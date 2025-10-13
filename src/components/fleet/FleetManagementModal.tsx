@@ -83,7 +83,7 @@ export const FleetManagementModal: React.FC<FleetManagementModalProps> = ({ onCl
   const startRealTimeTracking = () => {
     const interval = setInterval(async () => {
       // Simulate real-time location updates
-      const updatedLocations = new Map();
+      const updatedLocations = new Map<string, any>();
       
       for (const vehicle of vehicles) {
         if (vehicle.status === 'active' && vehicle.assigned_employee) {

@@ -59,21 +59,30 @@ export const InvoicingModal: React.FC<InvoicingModalProps> = ({ onClose }) => {
     setIsLoading(true);
     try {
       const [invoicesRes, paymentsRes, clientsRes, jobsRes] = await Promise.all([
-        supabase.from('invoices').select(`
-          *,
-          clients (name, email, address),
-          jobs (title, description),
-          line_items (*)
-        `).order('created_at', { ascending: false }),
+        supabase
+          .from('invoices')
+          .select(`*, clients (name, email, address), jobs (title, description), line_items (*)`)
+          .order('created_at', { ascending: false }),
         supabase.from('payments').select('*').order('payment_date', { ascending: false }),
         supabase.from('clients').select('*').order('name'),
         supabase.from('jobs').select('*').order('title')
       ]);
 
-      if (invoicesRes.data) setInvoices(invoicesRes.data.map(mapDbInvoiceToInvoice));
-      if (paymentsRes.data) setPayments(paymentsRes.data.map(mapDbPaymentToPayment));
-      if (clientsRes.data) setClients(clientsRes.data.map(mapDbClientToClient));
-      if (jobsRes.data) setJobs(jobsRes.data as Job[]);
+      // Fallbacks for environments where relationships/tables are not present yet
+      let invoicesData = invoicesRes.data;
+      if (!invoicesData) {
+        const fallback = await supabase.from('invoices').select('*').order('created_at', { ascending: false });
+        invoicesData = fallback.data || [];
+      }
+
+      const paymentsData = paymentsRes.data || [];
+      const clientsData = clientsRes.data || [];
+      const jobsData = jobsRes.data || [];
+
+      setInvoices((invoicesData as any[]).map(mapDbInvoiceToInvoice));
+      setPayments((paymentsData as any[]).map(mapDbPaymentToPayment));
+      setClients((clientsData as any[]).map(mapDbClientToClient));
+      setJobs(jobsData as Job[]);
     } catch (error) {
       console.error('Error fetching invoicing data:', error);
       toast({
