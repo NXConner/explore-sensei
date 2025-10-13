@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { LoadingOverlay } from '@/components/ui/LoadingSpinner';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { HoverAnimation } from '@/components/ui/Animations';
+import { useJobSites } from '@/hooks/useJobSites';
 
 interface WeatherAlert {
   id: string;
@@ -86,6 +87,7 @@ export const WeatherRadarModal: React.FC<WeatherRadarModalProps> = ({ onClose })
   const [activeTab, setActiveTab] = useState<'radar' | 'alerts' | 'forecast' | 'settings'>('radar');
   
   const { toast } = useToast();
+  const { data: jobSites } = useJobSites();
 
   useEffect(() => {
     fetchWeatherData();
@@ -93,30 +95,26 @@ export const WeatherRadarModal: React.FC<WeatherRadarModalProps> = ({ onClose })
       const interval = setInterval(fetchWeatherData, refreshInterval);
       return () => clearInterval(interval);
     }
-  }, [refreshInterval, weatherSettings.auto_refresh]);
+  }, [refreshInterval, weatherSettings.auto_refresh, jobSites]);
 
   const fetchWeatherData = async () => {
     setIsLoading(true);
     try {
-      // Fetch job sites with weather data
-      const { data: jobSites } = await supabase
-        .from('job_sites')
-        .select('id, name, address, lat, lng')
-        .eq('status', 'active');
-
-      if (!jobSites) return;
-
-      // Simulate weather data fetching (in real app, would call OpenWeather API)
-      const weatherDataPromises = jobSites.map(async (site) => {
+      // Use jobs as the source of job sites with coordinates
+      if (!jobSites || jobSites.length === 0) {
+        setWeatherData([]);
+      } else {
+        // Simulate weather data fetching (in real app, would call a Weather API)
+        const weatherDataPromises = jobSites.map(async (site) => {
         // Simulate API call delay
         await new Promise(resolve => setTimeout(resolve, 100));
         
         return {
           job_site_id: site.id,
           job_site_name: site.name,
-          address: site.address,
+          address: site.client_name ? `${site.client_name}` : 'N/A',
           current_weather: {
-            location: site.address,
+            location: site.name,
             temperature: Math.round(Math.random() * 40 + 30), // 30-70°F
             condition: ['Clear', 'Partly Cloudy', 'Cloudy', 'Rainy'][Math.floor(Math.random() * 4)],
             humidity: Math.round(Math.random() * 40 + 40), // 40-80%
@@ -134,10 +132,11 @@ export const WeatherRadarModal: React.FC<WeatherRadarModalProps> = ({ onClose })
           recommendations: generateRecommendations(),
           risk_level: Math.random() > 0.7 ? 'high' : Math.random() > 0.4 ? 'medium' : 'low'
         } as JobSiteWeather;
-      });
+        });
 
-      const weatherResults = await Promise.all(weatherDataPromises);
-      setWeatherData(weatherResults);
+        const weatherResults = await Promise.all(weatherDataPromises);
+        setWeatherData(weatherResults);
+      }
 
       // Fetch weather alerts
       const { data: alertsData } = await supabase
