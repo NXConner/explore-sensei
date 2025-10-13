@@ -697,13 +697,10 @@ export const MapContainer = forwardRef<
 
         const info = new google.maps.InfoWindow({
           content: `<div style="color:#0a0a0a"><strong>Asphalt Area:</strong> ${Math.round(areaSqFt).toLocaleString()} ft²</div>`,
+          position: center,
         });
-        circle.addListener("click", () => {
-          info.setPosition(center);
-          info.open(mapInstanceRef.current!);
-        });
-        info.setPosition(center);
-        info.open(mapInstanceRef.current!);
+        circle.addListener("click", () => info.open({ map: mapInstanceRef.current!, position: center }));
+        info.open({ map: mapInstanceRef.current!, position: center });
 
         aiOverlayRef.current = circle;
       } catch (err) {
