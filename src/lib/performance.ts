@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 /**
  * Performance optimization utilities for Explore Sensei
@@ -150,23 +150,27 @@ export const performanceMonitor = {
 // React performance hooks
 export const usePerformance = (componentName: string) => {
   const renderCount = useRef(0);
-  const startTime = useRef(performance.now());
-  
+  const startTimeRef = useRef<number | null>(null);
+
   useEffect(() => {
+    // Set start time at commit phase to avoid impure calls during render
+    startTimeRef.current = performance.now();
     renderCount.current++;
-    const endTime = performance.now();
-    const renderTime = endTime - startTime.current;
-    
-    if (renderTime > 16) { // More than one frame
-      console.warn(`${componentName} render took ${renderTime.toFixed(2)}ms`);
-    }
-    
-    startTime.current = performance.now();
+
+    return () => {
+      if (startTimeRef.current != null) {
+        const endTime = performance.now();
+        const renderTime = endTime - startTimeRef.current;
+        if (renderTime > 16) {
+          console.warn(`${componentName} render took ${renderTime.toFixed(2)}ms`);
+        }
+      }
+    };
   });
-  
-  return {
-    renderCount: renderCount.current
-  };
+
+  // Expose a stable snapshot via state to avoid reading ref during render
+  const [countSnapshot] = useState(() => renderCount.current);
+  return { renderCount: countSnapshot };
 };
 
 // Memory management

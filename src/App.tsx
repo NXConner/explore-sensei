@@ -40,7 +40,9 @@ const AnalyticsListener = () => {
           stopListen?.();
         };
       }
-    } catch {}
+    } catch (_err) {
+      // noop
+    }
   }, [location.pathname]);
   return null;
 };
