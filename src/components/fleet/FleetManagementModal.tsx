@@ -16,44 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { LoadingSpinner, LoadingOverlay } from '@/components/ui/LoadingSpinner';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { AnimatedDiv, HoverAnimation } from '@/components/ui/Animations';
-
-interface Vehicle {
-  id: string;
-  make: string;
-  model: string;
-  year: number;
-  license_plate: string;
-  vin: string;
-  color: string;
-  status: 'active' | 'maintenance' | 'out_of_service' | 'retired';
-  current_location?: {
-    lat: number;
-    lng: number;
-    address: string;
-    timestamp: string;
-  };
-  assigned_employee?: string;
-  fuel_level?: number;
-  mileage: number;
-  last_maintenance?: string;
-  next_maintenance?: string;
-  insurance_expiry?: string;
-  registration_expiry?: string;
-}
-
-interface MaintenanceRecord {
-  id: string;
-  vehicle_id: string;
-  type: 'routine' | 'repair' | 'inspection' | 'emergency';
-  description: string;
-  cost: number;
-  date: string;
-  mileage: number;
-  next_due?: string;
-  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
-  assigned_mechanic?: string;
-  notes?: string;
-}
+import { Vehicle, MaintenanceRecord, mapDbVehicleToVehicle, mapDbMaintenanceToMaintenance } from './FleetTypes';
 
 interface FleetManagementModalProps {
   onClose: () => void;
@@ -73,7 +36,7 @@ export const FleetManagementModal: React.FC<FleetManagementModalProps> = ({ onCl
     mileage: 0,
     notes: ''
   });
-  const [trackingInterval, setTrackingInterval] = useState<NodeJS.Timeout | null>(null);
+  const [trackingInterval, setTrackingInterval] = useState<number | null>(null);
   const [realTimeLocations, setRealTimeLocations] = useState<Map<string, any>>(new Map());
   
   const { toast } = useToast();
@@ -103,8 +66,8 @@ export const FleetManagementModal: React.FC<FleetManagementModalProps> = ({ onCl
         `).order('date', { ascending: false })
       ]);
 
-      if (vehiclesRes.data) setVehicles(vehiclesRes.data as Vehicle[]);
-      if (maintenanceRes.data) setMaintenanceRecords(maintenanceRes.data as MaintenanceRecord[]);
+      if (vehiclesRes.data) setVehicles(vehiclesRes.data.map(mapDbVehicleToVehicle));
+      if (maintenanceRes.data) setMaintenanceRecords(maintenanceRes.data.map(mapDbMaintenanceToMaintenance));
     } catch (error) {
       console.error('Error fetching fleet data:', error);
       toast({
@@ -145,10 +108,7 @@ export const FleetManagementModal: React.FC<FleetManagementModalProps> = ({ onCl
       const { error } = await supabase
         .from('vehicles')
         .update({
-          current_location: {
-            ...location,
-            address: 'Current Location' // In real app, reverse geocode
-          }
+          location: JSON.stringify(location)
         })
         .eq('id', vehicleId);
 
@@ -165,9 +125,10 @@ export const FleetManagementModal: React.FC<FleetManagementModalProps> = ({ onCl
       const { error } = await supabase
         .from('maintenance_records')
         .insert([{
-          vehicle_id: selectedVehicle.id,
-          ...maintenanceForm,
-          status: 'scheduled'
+          asset_id: selectedVehicle.id,
+          oil_type: maintenanceForm.description,
+          oil_change_date: maintenanceForm.date,
+          maintenance_notes: maintenanceForm.notes
         }]);
 
       if (error) throw error;
@@ -303,9 +264,13 @@ export const FleetManagementModal: React.FC<FleetManagementModalProps> = ({ onCl
                             
                             <div className="flex items-center gap-2 text-sm">
                               <Clock className="h-4 w-4" />
-                              <span className={getMaintenanceStatus(vehicle).color}>
-                                {getMaintenanceStatus(vehicle).status}
-                              </span>
+                              {typeof getMaintenanceStatus(vehicle) === 'object' ? (
+                                <span className={getMaintenanceStatus(vehicle).color}>
+                                  {getMaintenanceStatus(vehicle).status}
+                                </span>
+                              ) : (
+                                <span>{getMaintenanceStatus(vehicle)}</span>
+                              )}
                             </div>
                           </CardContent>
                         </Card>
@@ -476,10 +441,10 @@ export const FleetManagementModal: React.FC<FleetManagementModalProps> = ({ onCl
                           <div className="flex items-center justify-between mb-3">
                             <div>
                               <h3 className="font-semibold">
-                                {record.vehicles?.make} {record.vehicles?.model} - {record.vehicles?.license_plate}
+                                Vehicle Maintenance - {record.vehicle_id}
                               </h3>
                               <p className="text-sm text-muted-foreground">
-                                {new Date(record.date).toLocaleDateString()} • {record.mileage.toLocaleString()} mi
+                                {new Date(record.date).toLocaleDateString()}
                               </p>
                             </div>
                             <div className="flex items-center gap-2">

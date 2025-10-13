@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Scan, Upload, MapPin, AlertCircle, Download, Share2, Camera, FileImage, Zap, TrendingUp, Shield, Clock, Edit3 } from "lucide-react";
+import { Scan, Upload, MapPin, AlertCircle, Download, Share2, Camera, FileImage, Zap, TrendingUp, Shield, Clock, Edit3, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
@@ -400,7 +400,17 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
                     className="flex-1"
                     onClick={() => {
                       if (results) {
-                        exportAIReportToPDF(results, selectedImage);
+                        exportAIReportToPDF({
+                          condition: results.condition || 'Unknown',
+                          confidence_score: results.confidence_score,
+                          area_sqft: results.area_sqft || 0,
+                          area_sqm: results.area_sqm || 0,
+                          detected_issues: results.detected_issues.map(issue => ({ type: issue, severity: 'medium', location: 'N/A' })),
+                          recommendations: results.recommendations,
+                          priority: results.priority.toString(),
+                          estimated_repair_cost: results.estimated_repair_cost,
+                          ai_notes: results.ai_notes
+                        }, selectedImage);
                         toast({
                           title: "PDF Exported",
                           description: "AI analysis report has been exported to PDF",

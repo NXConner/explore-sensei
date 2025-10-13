@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Route, MapPin, Clock, Fuel, Users, Zap, Navigation, AlertCircle, CheckCircle, TrendingUp, Settings } from 'lucide-react';
+import { X, Route, MapPin, Clock, Fuel, Users, Zap, Navigation, AlertCircle, CheckCircle, TrendingUp, Settings, Download, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

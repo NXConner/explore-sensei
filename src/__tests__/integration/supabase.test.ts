@@ -2,8 +2,8 @@ import { createClient } from '@supabase/supabase-js';
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 
 // Test database configuration
-const supabaseUrl = process.env.VITE_SUPABASE_URL || 'http://localhost:54321';
-const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || 'test-key';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'http://localhost:54321';
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'test-key';
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 

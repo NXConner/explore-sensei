@@ -76,7 +76,7 @@ export const TimeTrackingModal: React.FC<TimeTrackingModalProps> = ({ onClose })
   const [pendingApprovals, setPendingApprovals] = useState<TimeEntry[]>([]);
   
   const { toast } = useToast();
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<number | null>(null);
 
   useEffect(() => {
     fetchData();
