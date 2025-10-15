@@ -110,7 +110,7 @@ export const useRouteOptimizations = () => {
         total_distance: totalDistance,
         total_duration: totalDuration,
         total_fuel_cost: totalFuelCost,
-        job_sites,
+        job_sites: jobSites,
         waypoints: waypoints.map((wp, index) => ({
           ...wp,
           arrival_time: new Date(Date.now() + index * 2 * 60 * 60 * 1000).toISOString(),
@@ -123,10 +123,18 @@ export const useRouteOptimizations = () => {
       clearInterval(progressInterval);
       setProgress(100);
 
-      // Save to database
+      // Save to database - map to actual schema
       const { error: dbError } = await supabase
         .from('route_optimizations')
-        .insert([optimizedRoute]);
+        .insert([{
+          name: optimizedRoute.route_name,
+          created_by: (await supabase.auth.getUser()).data.user?.id || '',
+          start_location: { lat: vehicle.current_location.lat, lng: vehicle.current_location.lng },
+          stops: waypoints,
+          total_distance: totalDistance,
+          total_duration: totalDuration,
+          optimization_method: settings.optimize_for
+        }]);
 
       if (dbError) throw dbError;
 
@@ -268,7 +276,20 @@ export const useRouteOptimizations = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setRoutes(data || []);
+      // Map database schema to OptimizedRoute interface
+      const mappedRoutes: OptimizedRoute[] = (data || []).map(route => ({
+        id: route.id,
+        vehicle_id: '', // Not in schema
+        route_name: route.name,
+        total_distance: route.total_distance || 0,
+        total_duration: route.total_duration || 0,
+        total_fuel_cost: 0, // Calculate if needed
+        job_sites: [],
+        waypoints: (route.stops as any[]) || [],
+        optimization_score: 0,
+        created_at: route.created_at
+      }));
+      setRoutes(mappedRoutes);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to fetch routes');
     }

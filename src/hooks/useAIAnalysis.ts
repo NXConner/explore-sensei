@@ -164,20 +164,17 @@ export const useAIAnalysis = () => {
     );
   }, []);
 
-  const saveAnalysis = useCallback(async (analysisData: AnalysisResult, jobSiteId?: string) => {
+  const saveAnalysis = useCallback(async (analysisData: AnalysisResult, jobId?: string) => {
     try {
       const { error } = await supabase
         .from('ai_site_analysis')
         .insert([{
-          job_site_id: jobSiteId,
+          job_id: jobId,
+          analysis_type: 'condition_assessment',
           condition_score: analysisData.condition_score,
-          detected_issues: analysisData.detected_issues,
-          recommendations: analysisData.recommendations,
+          detected_issues: analysisData.detected_issues as any,
           confidence_score: analysisData.confidence_score,
-          severity: analysisData.severity,
-          estimated_cost: analysisData.estimated_cost,
-          priority: analysisData.priority,
-          analysis_date: new Date().toISOString()
+          user_id: 'demo-user'
         }]);
 
       if (error) throw error;
@@ -195,15 +192,15 @@ export const useAIAnalysis = () => {
     }
   }, [toast]);
 
-  const getAnalysisHistory = useCallback(async (jobSiteId?: string) => {
+  const getAnalysisHistory = useCallback(async (jobId?: string) => {
     try {
       let query = supabase
         .from('ai_site_analysis')
         .select('*')
-        .order('analysis_date', { ascending: false });
+        .order('created_at', { ascending: false });
 
-      if (jobSiteId) {
-        query = query.eq('job_site_id', jobSiteId);
+      if (jobId) {
+        query = query.eq('job_id', jobId);
       }
 
       const { data, error } = await query;

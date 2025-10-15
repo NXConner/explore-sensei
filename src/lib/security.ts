@@ -231,7 +231,7 @@ export const validateSession = (sessionId: string, expiresAt: number): boolean =
 // API Security
 export const validateAPIKey = (apiKey: string): boolean => {
   // In a real implementation, this would check against a database
-  const validKeysRaw = (import.meta as any)?.env?.VITE_VALID_API_KEYS || process.env.VITE_VALID_API_KEYS || "";
+  const validKeysRaw = (import.meta as any)?.env?.VITE_VALID_API_KEYS || "";
   const validKeys = String(validKeysRaw).split(',').map(k => k.trim()).filter(Boolean);
   return validKeys.includes(apiKey);
 };
@@ -292,18 +292,18 @@ export const validateEnvironment = (): {
   ];
   
   requiredEnvVars.forEach(envVar => {
-    if (!process.env[envVar]) {
+    if (!(import.meta as any)?.env?.[envVar]) {
       issues.push(`Missing required environment variable: ${envVar}`);
     }
   });
   
   // Check for development environment
-  if (process.env.NODE_ENV === 'development') {
+  if (import.meta.env?.DEV) {
     issues.push('Running in development mode - security features may be reduced');
   }
   
   // Check for HTTPS
-  if (typeof window !== 'undefined' && window.location.protocol !== 'https:' && process.env.NODE_ENV === 'production') {
+  if (typeof window !== 'undefined' && window.location.protocol !== 'https:' && import.meta.env?.PROD) {
     issues.push('Not running over HTTPS in production');
   }
   

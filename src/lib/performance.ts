@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import React from 'react';
 
 /**
  * Performance optimization utilities for Explore Sensei
@@ -9,7 +10,7 @@ export const debounce = <T extends (...args: any[]) => any>(
   func: T,
   wait: number
 ): ((...args: Parameters<T>) => void) => {
-  let timeout: NodeJS.Timeout;
+  let timeout: ReturnType<typeof setTimeout>;
   return (...args: Parameters<T>) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => func(...args), wait);
@@ -175,7 +176,7 @@ export const usePerformance = (componentName: string) => {
 
 // Memory management
 export const memoryManager = {
-  getMemoryUsage: (): MemoryInfo | null => {
+  getMemoryUsage: (): any | null => {
     if ('memory' in performance) {
       return (performance as any).memory;
     }
@@ -237,12 +238,13 @@ export const bundleAnalyzer = {
   },
   
   getTotalSize: (): number => {
-    const chunks = (window as any).__webpack_require__.cache;
+    const chunks = (window as any).__webpack_require__?.cache;
     if (!chunks) return 0;
     
-    return Object.values(chunks).reduce((total: number, chunk: any) => {
-      return total + (chunk.size || 0);
+    const total = Object.values(chunks).reduce((acc: number, chunk: any) => {
+      return acc + ((chunk?.size as number) || 0);
     }, 0);
+    return total as number;
   }
 };
 

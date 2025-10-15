@@ -78,16 +78,14 @@ export default function Auth() {
       if (data.user) {
         const { data: userRole } = await supabase
           .from("user_roles")
-          .select(`
-            roles!inner(name, description)
-          `)
+          .select("role")
           .eq("user_id", data.user.id)
           .single();
 
-        track("auth_login_success", { role: userRole?.roles?.name });
+        track("auth_login_success", { role: userRole?.role });
         toast({
           title: "Success",
-          description: `Logged in as ${userRole?.roles?.name || "User"}`,
+          description: `Logged in as ${userRole?.role || "User"}`,
         });
       }
     } catch (error: unknown) {
@@ -127,19 +125,10 @@ export default function Auth() {
 
       // Assign role to user if signup was successful
       if (data.user) {
-        // Get the role ID for the selected role
-        const { data: roleData } = await supabase
-          .from("roles")
-          .select("id")
-          .eq("name", selectedRole)
-          .single();
-
-        if (roleData) {
-          await supabase.from("user_roles").insert({
-            user_id: data.user.id,
-            role_id: roleData.id,
-          });
-        }
+        await supabase.from("user_roles").insert({
+          user_id: data.user.id,
+          role: selectedRole as any,
+        });
       }
 
       track("auth_signup_success", { role: selectedRole });

@@ -3,7 +3,8 @@
  * Supports both Virginia and North Carolina operations
  */
 
-import { performance } from 'perf_hooks';
+// Browser-compatible performance API
+const performanceAPI = typeof window !== 'undefined' ? window.performance : performance;
 
 // Types for monitoring
 export interface MetricData {
@@ -153,7 +154,7 @@ export class Logger {
     }
 
     // Console output for development
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env?.DEV) {
       const prefix = `[${logEntry.timestamp.toISOString()}] [${level.toUpperCase()}]`;
       console.log(`${prefix} ${message}`, context || '');
     }
@@ -231,7 +232,7 @@ export class ErrorTracker {
     });
 
     // Log to console in development
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env?.DEV) {
       console.error('Error tracked:', error, context);
     }
   }
