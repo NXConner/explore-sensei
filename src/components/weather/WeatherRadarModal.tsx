@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Cloud, Sun, CloudRain, Snowflake as Snow, Wind, AlertTriangle, MapPin, Clock, Thermometer, Droplets, Eye, Zap } from 'lucide-react';
+import { X, Cloud, Sun, CloudRain, Snowflake as Snow, Wind, AlertTriangle, MapPin, Clock, Thermometer, Droplets, Eye, Zap, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
