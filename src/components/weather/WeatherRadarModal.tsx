@@ -139,13 +139,15 @@ export const WeatherRadarModal: React.FC<WeatherRadarModalProps> = ({ onClose })
       }
 
       // Fetch weather alerts
-      const { data: alertsData } = await supabase
-        .from('weather_alerts')
-        .select('*')
-        .gte('end_time', new Date().toISOString())
-        .order('created_at', { ascending: false });
-
-      if (alertsData) setAlerts(alertsData as WeatherAlert[]);
+      // TODO: Re-enable when weather_alerts table is created
+      // const { data: alertsData, error: alertsError } = await supabase
+      //   .from('weather_alerts')
+      //   .select('*')
+      //   .gte('end_time', new Date().toISOString())
+      //   .order('created_at', { ascending: false });
+      // if (alertsData && !alertsError) {
+      //   setAlerts(alertsData as WeatherAlert[]);
+      // }
 
     } catch (error) {
       console.error('Error fetching weather data:', error);
