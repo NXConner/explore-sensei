@@ -30,11 +30,17 @@ interface AsphaltArea {
   condition: string;
 }
 
+interface DetectedIssue {
+  type: string;
+  severity: string;
+  location: string;
+}
+
 interface AnalysisResult {
   id: string;
   image: string;
   condition_score: number;
-  detected_issues: string[];
+  detected_issues: DetectedIssue[] | string[];
   recommendations: string[];
   confidence_score: number;
   severity: 'low' | 'medium' | 'high' | 'critical';
@@ -340,16 +346,31 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
                   <div className="mb-4">
                     <div className="text-sm font-semibold mb-2">Detected Issues</div>
                     <div className="space-y-2">
-                      {results.detected_issues.map((issue: string, idx: number) => (
-                        <div key={idx} className="border rounded p-2 bg-background text-sm">
-                          <span className="font-semibold capitalize">
-                            {issue.replace(/_/g, " ")}
-                          </span>
-                          <span className="text-muted-foreground ml-2">
-                            Issue detected
-                          </span>
-                        </div>
-                      ))}
+                      {results.detected_issues.map((issue: any, idx: number) => {
+                        const issueText = typeof issue === 'string' 
+                          ? issue 
+                          : issue.type || 'Unknown issue';
+                        const severity = typeof issue === 'object' ? issue.severity : undefined;
+                        const location = typeof issue === 'object' ? issue.location : undefined;
+                        
+                        return (
+                          <div key={idx} className="border rounded p-2 bg-background text-sm">
+                            <span className="font-semibold capitalize">
+                              {issueText.replace(/_/g, " ")}
+                            </span>
+                            {severity && (
+                              <Badge variant="outline" className="ml-2">
+                                {severity}
+                              </Badge>
+                            )}
+                            {location && (
+                              <span className="text-muted-foreground ml-2">
+                                @ {location.replace(/_/g, " ")}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -405,7 +426,11 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
                           confidence_score: results.confidence_score,
                           area_sqft: results.area_sqft || 0,
                           area_sqm: results.area_sqm || 0,
-                          detected_issues: results.detected_issues.map(issue => ({ type: issue, severity: 'medium', location: 'N/A' })),
+                          detected_issues: results.detected_issues.map(issue => 
+                            typeof issue === 'string' 
+                              ? { type: issue, severity: 'medium', location: 'N/A' }
+                              : issue
+                          ),
                           recommendations: results.recommendations,
                           priority: results.priority.toString(),
                           estimated_repair_cost: results.estimated_repair_cost,
