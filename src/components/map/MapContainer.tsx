@@ -478,7 +478,23 @@ export const MapContainer = forwardRef<
           initMap();
         })
         .catch((err) => {
-          console.warn("Google Maps failed to load. Falling back to Mapbox.", err);
+          const errorMsg = err?.message || String(err);
+          console.warn("Google Maps failed to load. Falling back to Mapbox.", errorMsg);
+          
+          // Show appropriate error message to user
+          if (errorMsg.includes("ExpiredKeyMapError") || errorMsg.includes("expired")) {
+            toast({
+              title: "Google Maps API Key Expired",
+              description: "Falling back to Mapbox. Update your Google Maps API key in settings for full features.",
+              variant: "destructive",
+            });
+          } else if (errorMsg.includes("Missing")) {
+            toast({
+              title: "Google Maps Not Configured",
+              description: "Using Mapbox as the map provider. Configure Google Maps in settings for advanced features.",
+            });
+          }
+          
           initializeMapboxFallback();
         });
     };
