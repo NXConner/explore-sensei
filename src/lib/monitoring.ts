@@ -153,9 +153,10 @@ export class Logger {
       this.logs.splice(0, this.logs.length - this.maxLogs);
     }
 
-    // Console output for development
+    // Console output only in development; in production, optionally send to external sink
     if (import.meta.env?.DEV) {
       const prefix = `[${logEntry.timestamp.toISOString()}] [${level.toUpperCase()}]`;
+      // eslint-disable-next-line no-console
       console.log(`${prefix} ${message}`, context || '');
     }
   }

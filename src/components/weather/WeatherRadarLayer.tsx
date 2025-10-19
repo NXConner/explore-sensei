@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useWeatherAlerts } from "@/hooks/useWeatherAlerts";
+import { logger } from "@/lib/monitoring";
 import { useWeatherAlertLocations } from "@/hooks/useWeatherAlertLocations";
 
 interface WeatherRadarLayerProps {
@@ -90,7 +91,7 @@ export const WeatherRadarLayer = ({
       });
 
       marker.addListener("click", () => {
-        infoWindow.open(map, marker);
+        try { infoWindow.open(map, marker); } catch (err) { logger.warn('Failed to open alert info window', { err }); }
       });
 
       newCircles.push(circle);

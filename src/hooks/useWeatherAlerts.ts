@@ -1,4 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/lib/monitoring";
 
 interface WeatherAlert {
   id: string;
@@ -14,27 +16,28 @@ export const useWeatherAlerts = () => {
   return useQuery({
     queryKey: ["weather-alerts"],
     queryFn: async (): Promise<WeatherAlert[]> => {
-      // Mock weather alerts - integrate with real weather API
-      return [
-        {
-          id: "alert-1",
-          type: "storm",
-          severity: "high",
-          message: "Severe thunderstorm warning in effect",
-          location: { lat: 40.7128, lng: -74.006 },
-          radius: 15,
-          expires: new Date(Date.now() + 3600000),
-        },
-        {
-          id: "alert-2",
-          type: "rain",
-          severity: "medium",
-          message: "Heavy rain expected",
-          location: { lat: 40.758, lng: -73.9855 },
-          radius: 10,
-          expires: new Date(Date.now() + 7200000),
-        },
-      ];
+      try {
+        const { data, error } = await supabase
+          .from("weather_alerts")
+          .select("id, type, severity, title, message, location, radius, end_time")
+          .gte("end_time", new Date().toISOString())
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+        const alerts: WeatherAlert[] = (data || []).map((row: any) => ({
+          id: row.id,
+          type: (row.type || 'storm') as WeatherAlert["type"],
+          severity: (row.severity || 'medium') as WeatherAlert["severity"],
+          message: row.title ? `${row.title}: ${row.message}` : row.message,
+          location: { lat: row.location?.lat ?? 0, lng: row.location?.lng ?? 0 },
+          radius: Number(row.radius ?? 10),
+          expires: new Date(row.end_time || Date.now())
+        }));
+        return alerts;
+      } catch (err) {
+        logger.warn('Falling back to mocked weather alerts', { error: err });
+        return [];
+      }
     },
     refetchInterval: 300000, // Refetch every 5 minutes
   });

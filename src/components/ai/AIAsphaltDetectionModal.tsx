@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { exportAIReportToPDF } from "@/lib/pdfExport";
+import { logger } from "@/lib/monitoring";
 import { getGoogleMapsApiKey } from "@/config/env";
 import { useMap } from "@/components/map/MapContext";
 import { LoadingSpinner, LoadingOverlay } from "@/components/ui/LoadingSpinner";
@@ -90,7 +91,7 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
       setError("");
       setResults(null);
 
-      console.log("Calling AI analysis function...");
+      logger.debug("Calling AI analysis function...", { source: "AIAsphaltDetectionModal" });
 
       const { data, error: functionError } = await supabase.functions.invoke("analyze-asphalt", {
         body: { imageData: imageDataUrl },
@@ -109,12 +110,21 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
       setProgress(100);
       setResults(data.analysis);
 
+      // Broadcast overlay event for map visualization (area circle)
+      try {
+        const areaSqFt = Number(data?.analysis?.area_sqft || 0);
+        if (areaSqFt > 0) {
+          const evt = new CustomEvent("ai-detection-overlay", { detail: { areaSqFt } });
+          window.dispatchEvent(evt);
+        }
+      } catch {}
+
       toast({
         title: "Analysis Complete",
         description: `Surface condition: ${data.analysis.condition}. Confidence: ${data.analysis.confidence_score}%`,
       });
     } catch (err: unknown) {
-      console.error("Analysis error:", err);
+      logger.error("Analysis error", { error: err });
       const errorMsg = err instanceof Error ? err.message : "Failed to analyze image";
       setError(errorMsg);
       toast({
@@ -208,6 +218,7 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
       toast({ title: "Capturing Map View", description: "Fetching static map image..." });
 
       const staticUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoom}&size=800x600&maptype=satellite&scale=2&key=${apiKey}`;
+      // Note: Static Maps requires billing; if watermark appears, notify user
 
       const resp = await fetch(staticUrl);
       if (!resp.ok) throw new Error("Failed to fetch static map image");
@@ -407,11 +418,19 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
                   <Button
                     className="flex-1"
                     onClick={() => {
-                      // TODO: Wire to estimate module with prefilled line items from results
-                      toast({
-                        title: "Estimate Generation",
-                        description: "Prefill coming from AI results is in progress.",
-                      });
+                      if (results) {
+                        try {
+                          const evt = new CustomEvent('ai-detection-estimate', { detail: { analysis: results } });
+                          window.dispatchEvent(evt);
+                          toast({
+                            title: "Estimate Prefilled",
+                            description: "Estimate calculator opened with AI results.",
+                          });
+                        } catch (err) {
+                          logger.error("Failed to dispatch estimate event", { error: err });
+                          toast({ title: "Estimate Error", description: "Could not open estimate from AI results.", variant: "destructive" });
+                        }
+                      }
                     }}
                   >
                     Generate Estimate

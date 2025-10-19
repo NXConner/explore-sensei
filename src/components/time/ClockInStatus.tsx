@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useGamification } from "@/hooks/useGamification";
 import { EODSummaryModal } from "@/components/gamification/EODSummaryModal";
 import { useGamificationToggle } from "@/context/GamificationContext";
+import { logger } from "@/lib/monitoring";
 
 export const ClockInStatus = () => {
   const [isClockedIn, setIsClockedIn] = useState(false);
@@ -82,9 +83,13 @@ export const ClockInStatus = () => {
         type: newStatus ? "clock_in" : "clock_out",
         elapsed: elapsedTime,
       };
-      console.log("Clock event:", logEntry);
+      if (import.meta.env.DEV) {
+        logger.debug("Clock event", logEntry as any);
+      } else {
+        logger.info("Clock event", logEntry as any);
+      }
     } catch (error) {
-      console.error("Failed to log clock event:", error);
+      logger.error("Failed to log clock event", { error });
     }
   };
 
