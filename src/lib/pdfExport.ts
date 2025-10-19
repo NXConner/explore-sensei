@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { logger } from "@/lib/monitoring";
 
 export const exportEstimateToPDF = async (estimate: {
   id: string;
@@ -144,7 +145,7 @@ export const exportAIReportToPDF = async (
       pdf.addImage(imageDataUrl, "JPEG", 20, yPos, imgWidth, imgHeight);
       yPos += imgHeight + 10;
     } catch (error) {
-      console.error("Error adding image to PDF:", error);
+      logger.error('Error adding image to PDF', { error });
     }
   }
 

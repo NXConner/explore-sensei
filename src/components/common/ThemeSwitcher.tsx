@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from '@/lib/monitoring';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -40,7 +41,7 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ onThemeChange, onC
         const parsedConfig = JSON.parse(savedConfig);
         setConfig(parsedConfig);
       } catch (error) {
-        console.error('Failed to parse saved design config:', error);
+        logger.warn('Failed to parse saved design config', { error });
       }
     }
   }, []);
