@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { LoadingSpinner, LoadingOverlay } from '@/components/ui/LoadingSpinner';
+import { logger } from '@/lib/monitoring';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { AnimatedDiv, HoverAnimation } from '@/components/ui/Animations';
 import { Vehicle, MaintenanceRecord, mapDbVehicleToVehicle, mapDbMaintenanceToMaintenance } from './FleetTypes';
@@ -69,7 +70,7 @@ export const FleetManagementModal: React.FC<FleetManagementModalProps> = ({ onCl
       if (vehiclesRes.data) setVehicles(vehiclesRes.data.map(mapDbVehicleToVehicle));
       if (maintenanceRes.data) setMaintenanceRecords(maintenanceRes.data.map(mapDbMaintenanceToMaintenance));
     } catch (error) {
-      console.error('Error fetching fleet data:', error);
+      logger.error('Error fetching fleet data', { error });
       toast({
         title: 'Error',
         description: 'Failed to load fleet data',
@@ -114,7 +115,7 @@ export const FleetManagementModal: React.FC<FleetManagementModalProps> = ({ onCl
 
       if (error) throw error;
     } catch (error) {
-      console.error('Error updating vehicle location:', error);
+      logger.error('Error updating vehicle location', { error });
     }
   };
 
@@ -149,7 +150,7 @@ export const FleetManagementModal: React.FC<FleetManagementModalProps> = ({ onCl
       });
       fetchData();
     } catch (error) {
-      console.error('Error scheduling maintenance:', error);
+      logger.error('Error scheduling maintenance', { error });
       toast({
         title: 'Error',
         description: 'Failed to schedule maintenance',

@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { LoadingSpinner, LoadingOverlay } from '@/components/ui/LoadingSpinner';
+import { logger } from '@/lib/monitoring';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { AnimatedDiv, HoverAnimation } from '@/components/ui/Animations';
 import { Invoice, Payment, Client, InvoiceLineItem, Job, mapDbInvoiceToInvoice, mapDbPaymentToPayment, mapDbClientToClient } from './InvoicingModalTypes';
@@ -79,7 +80,7 @@ export const InvoicingModal: React.FC<InvoicingModalProps> = ({ onClose }) => {
       setClients((clientsData as any[]).map(mapDbClientToClient));
       setJobs(jobsData as Job[]);
     } catch (error) {
-      console.error('Error fetching invoicing data:', error);
+      logger.error('Error fetching invoicing data', { error });
       toast({
         title: 'Error',
         description: 'Failed to load invoicing data',
@@ -141,7 +142,7 @@ export const InvoicingModal: React.FC<InvoicingModalProps> = ({ onClose }) => {
       resetInvoiceForm();
       fetchData();
     } catch (error) {
-      console.error('Error creating invoice:', error);
+      logger.error('Error creating invoice', { error });
       toast({
         title: 'Error',
         description: 'Failed to create invoice',
@@ -194,7 +195,7 @@ export const InvoicingModal: React.FC<InvoicingModalProps> = ({ onClose }) => {
       });
       fetchData();
     } catch (error) {
-      console.error('Error recording payment:', error);
+      logger.error('Error recording payment', { error });
       toast({
         title: 'Error',
         description: 'Failed to record payment',
@@ -211,7 +212,7 @@ export const InvoicingModal: React.FC<InvoicingModalProps> = ({ onClose }) => {
         description: `Invoice ${invoice.invoice_number} PDF has been generated`
       });
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      logger.error('Error generating PDF', { error });
       toast({
         title: 'Error',
         description: 'Failed to generate PDF',
@@ -235,7 +236,7 @@ export const InvoicingModal: React.FC<InvoicingModalProps> = ({ onClose }) => {
 
       fetchData();
     } catch (error) {
-      console.error('Error sending invoice:', error);
+      logger.error('Error sending invoice', { error });
       toast({
         title: 'Error',
         description: 'Failed to send invoice',
