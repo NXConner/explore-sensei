@@ -1,22 +1,28 @@
 ---
 name: Bug report
-about: Report a problem to help us improve
+about: Create a report to help us improve
 labels: bug
 ---
 
-## Description
+### Describe the bug
+A clear and concise description of what the bug is.
 
-## Steps to Reproduce
+### To Reproduce
+Steps to reproduce the behavior:
+1. Go to '...'
+2. Click on '....'
+3. See error
 
-## Expected Behavior
+### Expected behavior
+A clear and concise description of what you expected to happen.
 
-## Actual Behavior
+### Screenshots
+If applicable, add screenshots to help explain your problem.
 
-## Screenshots/Logs
+### Environment
+- OS:
+- Browser:
+- App version/commit:
 
-## Environment
-
-- Browser/OS:
-- Version:
-
-## Additional Context
+### Additional context
+Add any other context about the problem here.

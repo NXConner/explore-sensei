@@ -84,6 +84,17 @@ jobs:
           name: build-files
           path: dist/
       
+      - name: Run database migrations (staging)
+        if: ${{ secrets.DATABASE_URL != '' }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          sudo apt-get update && sudo apt-get install -y postgresql-client
+          for f in supabase/migrations/*.sql; do
+            echo "Applying $f"
+            psql "$DATABASE_URL" -v "ON_ERROR_STOP=1" -f "$f"
+          done
+      
       - name: Deploy to staging
         run: |
           echo "Deploying to staging environment..."
@@ -107,6 +118,17 @@ jobs:
         with:
           name: build-files
           path: dist/
+      
+      - name: Run database migrations (production)
+        if: ${{ secrets.DATABASE_URL != '' }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          sudo apt-get update && sudo apt-get install -y postgresql-client
+          for f in supabase/migrations/*.sql; do
+            echo "Applying $f"
+            psql "$DATABASE_URL" -v "ON_ERROR_STOP=1" -f "$f"
+          done
       
       - name: Deploy to production
         run: |

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from '@/lib/monitoring';
 import { useToast } from '@/hooks/use-toast';
 
 interface PWAInstallPrompt {
@@ -120,7 +121,7 @@ export const usePWA = () => {
           });
         })
         .catch((error) => {
-          console.error('Service Worker registration failed:', error);
+          logger.error('Service Worker registration failed', { error });
         });
     }
   }, [toast]);
@@ -140,7 +141,7 @@ export const usePWA = () => {
         });
       }
     } catch (error) {
-      console.error('Failed to install app:', error);
+      logger.error('Failed to install app', { error });
       toast({
         title: 'Installation Failed',
         description: 'Failed to install the app',
@@ -173,7 +174,7 @@ export const usePWA = () => {
         });
       } catch (error) {
         if ((error as Error).name !== 'AbortError') {
-          console.error('Share failed:', error);
+          logger.error('Share failed', { error });
           toast({
             title: 'Share Failed',
             description: 'Failed to share content',
@@ -314,7 +315,7 @@ export const usePWA = () => {
         }
         return persistent;
       } catch (error) {
-        console.error('Failed to request persistent storage:', error);
+        logger.error('Failed to request persistent storage', { error });
         return false;
       }
     }
@@ -332,7 +333,7 @@ export const usePWA = () => {
           available: estimate.quota! - estimate.usage!
         };
       } catch (error) {
-        console.error('Failed to get storage quota:', error);
+        logger.error('Failed to get storage quota', { error });
         return null;
       }
     }

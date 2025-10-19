@@ -1,4 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { logger } from '@/lib/monitoring';
 import { AlertTriangle, RefreshCw, Home, Bug } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,10 +42,8 @@ export class ErrorBoundary extends Component<Props, State> {
       errorInfo
     });
 
-    // Log error to console in development
-    if (import.meta.env.DEV) {
-      console.error('ErrorBoundary caught an error:', error, errorInfo);
-    }
+    // Structured error logging (dev logs to console; prod forwards to sink)
+    logger.error('ErrorBoundary caught an error', { error, errorInfo });
 
     // Call custom error handler
     this.props.onError?.(error, errorInfo);

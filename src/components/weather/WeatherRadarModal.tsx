@@ -139,16 +139,37 @@ export const WeatherRadarModal: React.FC<WeatherRadarModalProps> = ({ onClose })
         setWeatherData(weatherResults);
       }
 
-      // Fetch weather alerts
-      // TODO: Re-enable when weather_alerts table is created
-      // const { data: alertsData, error: alertsError } = await supabase
-      //   .from('weather_alerts')
-      //   .select('*')
-      //   .gte('end_time', new Date().toISOString())
-      //   .order('created_at', { ascending: false });
-      // if (alertsData && !alertsError) {
-      //   setAlerts(alertsData as WeatherAlert[]);
-      // }
+      // Fetch weather alerts from persisted table (with RLS)
+      try {
+        const { data: alertsData, error: alertsError } = await supabase
+          .from('weather_alerts')
+          .select('id, type, severity, title, message, location, start_time, end_time, created_at')
+          .gte('end_time', new Date().toISOString())
+          .order('created_at', { ascending: false });
+
+        if (!alertsError && Array.isArray(alertsData)) {
+          const mapped: WeatherAlert[] = alertsData.map((row: any) => ({
+            id: row.id,
+            type: (row.type || 'advisory') as WeatherAlert['type'],
+            severity: (row.severity || 'medium') as WeatherAlert['severity'],
+            title: row.title || 'Weather Alert',
+            description: row.message || '',
+            affected_areas: row.location
+              ? [
+                  typeof row.location === 'string'
+                    ? row.location
+                    : `${row.location?.lat ?? '0'}, ${row.location?.lng ?? '0'}`,
+                ]
+              : ['N/A'],
+            start_time: row.start_time || row.created_at,
+            end_time: row.end_time || row.created_at,
+            created_at: row.created_at,
+          }));
+          setAlerts(mapped);
+        }
+      } catch (err) {
+        logger.warn('Failed to fetch weather alerts', { error: err });
+      }
 
     } catch (error) {
       logger.error('Error fetching weather data', { error });

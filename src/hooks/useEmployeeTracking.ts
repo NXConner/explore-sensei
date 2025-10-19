@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { logger } from '@/lib/monitoring';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -121,7 +122,7 @@ export const useEmployeeTracking = (date?: Date, options?: { subscribeRealtime?:
       if (error) throw error;
       setSummaries(Array.isArray(data) ? data : []);
     } catch (error: any) {
-      console.error("Failed to fetch summaries:", error);
+      logger.error('Failed to fetch summaries', { error });
     }
   };
 
