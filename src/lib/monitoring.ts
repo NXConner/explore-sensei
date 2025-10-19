@@ -158,8 +158,10 @@ export class Logger {
     // Console output only in development; in production, optionally send to external sink
     if (import.meta.env?.DEV) {
       const prefix = `[${logEntry.timestamp.toISOString()}] [${level.toUpperCase()}]`;
-      // eslint-disable-next-line no-console
-      console.log(`${prefix} ${message}`, context || '');
+      try {
+        // eslint-disable-next-line no-console
+        console.log(`${prefix} ${message}`, this.sanitizeContext(context) || '');
+      } catch {}
     }
 
     // In production, forward to external sink if configured
@@ -292,7 +294,10 @@ export class ErrorTracker {
 
     // Log to console in development
     if (import.meta.env?.DEV) {
-      console.error('Error tracked:', error, context);
+      try {
+        // eslint-disable-next-line no-console
+        console.error('Error tracked:', error, this.sanitizeContext(context));
+      } catch {}
     }
   }
 
@@ -431,7 +436,12 @@ export class AlertManager {
 
   private sendNotification(channel: string, notification: any): void {
     // In a real implementation, this would integrate with notification services
-    console.log(`Sending notification to ${channel}:`, notification.message);
+    if (import.meta.env?.DEV) {
+      try {
+        // eslint-disable-next-line no-console
+        console.log(`Sending notification to ${channel}:`, notification.message);
+      } catch {}
+    }
   }
 
   getActiveAlerts(): Array<{

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import React from 'react';
+import { logger } from '@/lib/monitoring';
 
 /**
  * Performance optimization utilities for Explore Sensei
@@ -163,7 +164,7 @@ export const usePerformance = (componentName: string) => {
         const endTime = performance.now();
         const renderTime = endTime - startTimeRef.current;
         if (renderTime > 16) {
-          console.warn(`${componentName} render took ${renderTime.toFixed(2)}ms`);
+          logger.warn(`${componentName} render took ${renderTime.toFixed(2)}ms`);
         }
       }
     };

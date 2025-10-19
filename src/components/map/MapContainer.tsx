@@ -145,7 +145,7 @@ export const MapContainer = forwardRef<
           });
         },
         (error) => {
-          console.error("Geolocation error:", error);
+          logger.warn("Geolocation error", { error });
           // Fallback to default location or saved address
           const savedSettings = localStorage.getItem("aos_settings");
           if (savedSettings) {
@@ -190,7 +190,7 @@ export const MapContainer = forwardRef<
         }
         if (parsed.apiKeys) setConfigVersion((v) => v + 1);
       } catch (err) {
-        console.warn("Failed to read UI settings:", err);
+        logger.warn("Failed to read UI settings", { error: err });
       }
     };
 
@@ -393,7 +393,7 @@ export const MapContainer = forwardRef<
         description: "Your measurement has been saved successfully.",
       });
     } catch (error) {
-      console.error("Error saving measurement:", error);
+      logger.error("Error saving measurement", { error });
       toast({
         title: "Error",
         description: "Failed to save measurement.",
@@ -550,7 +550,7 @@ export const MapContainer = forwardRef<
               });
             }
           } catch (err) {
-            console.warn("Failed to set zoom control position", err);
+            logger.warn("Failed to set zoom control position", { error: err });
           }
 
           if (navigator.geolocation) {
@@ -793,7 +793,7 @@ export const MapContainer = forwardRef<
 
         aiOverlayRef.current = circle;
       } catch (err) {
-        console.warn("Failed to render AI overlay", err);
+        logger.warn("Failed to render AI overlay", { error: err });
       }
     };
     window.addEventListener("ai-detection-overlay", handler as any);

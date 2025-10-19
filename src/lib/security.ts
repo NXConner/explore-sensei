@@ -1,4 +1,5 @@
 import DOMPurify from 'dompurify';
+import { logger } from '@/lib/monitoring';
 
 /**
  * Security utilities for application hardening
@@ -275,8 +276,7 @@ export const logSecurityEvent = (event: {
   
   // In a real implementation, this would be sent to a logging service
   if (import.meta.env?.DEV) {
-    // eslint-disable-next-line no-console
-    console.log('Security Event:', logEntry);
+    logger.info('Security Event', logEntry as any);
   }
 };
 
