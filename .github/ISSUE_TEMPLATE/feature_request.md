@@ -4,10 +4,14 @@ about: Suggest an idea for this project
 labels: enhancement
 ---
 
-## Motivation
+### Problem to solve
+What problem are we trying to solve? Who benefits?
 
-## Proposal
+### Proposed solution
+Describe the solution you'd like.
 
-## Alternatives Considered
+### Alternatives considered
+Describe any alternative solutions or features you've considered.
 
-## Additional Context
+### Additional context
+Add any other context or screenshots about the feature request here.
