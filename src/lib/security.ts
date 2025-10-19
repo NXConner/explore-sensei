@@ -274,7 +274,10 @@ export const logSecurityEvent = (event: {
   };
   
   // In a real implementation, this would be sent to a logging service
-  console.log('Security Event:', logEntry);
+  if (import.meta.env?.DEV) {
+    // eslint-disable-next-line no-console
+    console.log('Security Event:', logEntry);
+  }
 };
 
 // Environment Security

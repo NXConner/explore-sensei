@@ -22,6 +22,7 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY not configured");
     }
 
+    // deno-lint-ignore no-console
     console.log("Starting asphalt analysis...");
 
     // Call Lovable AI with vision capabilities
@@ -109,6 +110,7 @@ Return your analysis as a JSON object with this structure:
 
     if (!response.ok) {
       const errorText = await response.text();
+      // deno-lint-ignore no-console
       console.error("AI API error:", response.status, errorText);
 
       if (response.status === 429) {
@@ -122,6 +124,7 @@ Return your analysis as a JSON object with this structure:
     }
 
     const data = await response.json();
+    // deno-lint-ignore no-console
     console.log("AI response received");
 
     const aiMessage = data.choices[0]?.message?.content;
@@ -151,6 +154,7 @@ Return your analysis as a JSON object with this structure:
         };
       }
     } catch (parseError) {
+      // deno-lint-ignore no-console
       console.error("Error parsing AI response:", parseError);
       // Return raw response if parsing fails
       analysis = {
@@ -166,6 +170,7 @@ Return your analysis as a JSON object with this structure:
       };
     }
 
+    // deno-lint-ignore no-console
     console.log("Analysis complete:", analysis);
 
     return new Response(JSON.stringify({ success: true, analysis }), {
@@ -175,6 +180,7 @@ Return your analysis as a JSON object with this structure:
       },
     });
   } catch (error: any) {
+    // deno-lint-ignore no-console
     console.error("Error in analyze-asphalt function:", error);
     return new Response(
       JSON.stringify({

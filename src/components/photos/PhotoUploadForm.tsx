@@ -14,6 +14,7 @@ import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, MapPin } from "lucide-react";
+import { logger } from "@/lib/monitoring";
 
 interface PhotoUploadFormProps {
   jobs: Array<{ id: string; title: string }>;
@@ -85,7 +86,7 @@ export const PhotoUploadForm = ({ jobs, onSave, onCancel }: PhotoUploadFormProps
           latitude = position.coords.latitude;
           longitude = position.coords.longitude;
         } catch (error) {
-          console.log("Could not get location:", error);
+          logger.warn("Could not get location", { error });
         }
       }
 

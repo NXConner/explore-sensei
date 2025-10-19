@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/monitoring';
 import { LoadingOverlay } from '@/components/ui/LoadingSpinner';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { HoverAnimation } from '@/components/ui/Animations';
@@ -150,7 +151,7 @@ export const WeatherRadarModal: React.FC<WeatherRadarModalProps> = ({ onClose })
       // }
 
     } catch (error) {
-      console.error('Error fetching weather data:', error);
+      logger.error('Error fetching weather data', { error });
       toast({
         title: 'Error',
         description: 'Failed to load weather data',

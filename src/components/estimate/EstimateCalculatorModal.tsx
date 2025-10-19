@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { exportEstimateToPDF } from "@/lib/pdfExport";
 import { autoPopulateEstimate } from "@/lib/estimateLogic";
 import { useMapMeasurements } from "@/hooks/useMapMeasurements";
+import { logger } from "@/lib/monitoring";
 
 interface EstimateCalculatorModalProps {
   isOpen: boolean;
@@ -100,6 +101,7 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
         setAiPrefillApplied(true);
         // Auto-generate items for sealcoat only
         setTimeout(() => handleAutoPopulate(), 0);
+        logger.info('Estimate prefill applied from AI analysis', { area_sqft: analysis.area_sqft });
       } catch {}
     };
     window.addEventListener('ai-detection-estimate', handler as any);

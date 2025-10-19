@@ -1,5 +1,6 @@
 import { Loader } from "@googlemaps/js-api-loader";
 import { getGoogleMapsApiKey } from "@/config/env";
+import { logger } from "@/lib/monitoring";
 
 let loaderPromise: Promise<void> | null = null;
 let lastKey: string | undefined;
@@ -17,6 +18,7 @@ export function loadGoogleMaps(
 
   const apiKey = getGoogleMapsApiKey();
   if (!apiKey) {
+    logger.warn("Google Maps API key missing; maps will not load");
     return Promise.reject(new Error("Missing Google Maps API key"));
   }
 
@@ -31,11 +33,14 @@ export function loadGoogleMaps(
     loaderPromise = loader
       .load()
       .then(() => {
-        // Loaded
+        if (import.meta.env.DEV) {
+          logger.info("Google Maps JS API loaded");
+        }
       })
       .catch((err) => {
         // Reset so future attempts can retry (e.g., updated key)
         loaderPromise = null;
+        logger.error("Google Maps JS API failed to load", { error: err });
         throw err;
       });
   }

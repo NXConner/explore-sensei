@@ -29,16 +29,30 @@ const API_CACHE_PATTERNS = [
 ];
 
 // Install event - cache static assets
+// Gate verbose logging to development only
+(function(){
+  try {
+    const isDev = self.location && (self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1');
+    const originalLog = console.log;
+    const originalDebug = console.debug || console.log;
+    console.log = (...args) => { if (isDev) originalLog.apply(console, args); };
+    console.debug = (...args) => { if (isDev) originalDebug.apply(console, args); };
+  } catch (_) {}
+})();
+
 self.addEventListener('install', (event) => {
+  // eslint-disable-next-line no-console
   console.log('Service Worker: Installing...');
   
   event.waitUntil(
     caches.open(STATIC_CACHE_NAME)
       .then((cache) => {
+        // eslint-disable-next-line no-console
         console.log('Service Worker: Caching static assets');
         return cache.addAll(STATIC_ASSETS);
       })
       .then(() => {
+        // eslint-disable-next-line no-console
         console.log('Service Worker: Static assets cached');
         return self.skipWaiting();
       })
@@ -50,6 +64,7 @@ self.addEventListener('install', (event) => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
+  // eslint-disable-next-line no-console
   console.log('Service Worker: Activating...');
   
   event.waitUntil(
@@ -58,6 +73,7 @@ self.addEventListener('activate', (event) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
             if (cacheName !== STATIC_CACHE_NAME && cacheName !== DYNAMIC_CACHE_NAME) {
+              // eslint-disable-next-line no-console
               console.log('Service Worker: Deleting old cache', cacheName);
               return caches.delete(cacheName);
             }
@@ -65,6 +81,7 @@ self.addEventListener('activate', (event) => {
         );
       })
       .then(() => {
+        // eslint-disable-next-line no-console
         console.log('Service Worker: Activated');
         return self.clients.claim();
       })
@@ -149,6 +166,7 @@ async function handleAPIRequest(request) {
     
     return networkResponse;
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.log('Service Worker: Network failed, trying cache for API request');
     
     const cache = await caches.open(DYNAMIC_CACHE_NAME);
@@ -241,6 +259,7 @@ async function handleOtherRequest(request) {
 
 // Background sync for offline actions
 self.addEventListener('sync', (event) => {
+  // eslint-disable-next-line no-console
   console.log('Service Worker: Background sync triggered', event.tag);
   
   if (event.tag === 'time-entry-sync') {
@@ -265,6 +284,7 @@ async function syncTimeEntries() {
       try {
         await fetch(request);
         await cache.delete(request);
+        // eslint-disable-next-line no-console
         console.log('Service Worker: Synced time entry');
       } catch (error) {
         console.error('Service Worker: Failed to sync time entry', error);
@@ -288,6 +308,7 @@ async function syncFleetLocations() {
       try {
         await fetch(request);
         await cache.delete(request);
+        // eslint-disable-next-line no-console
         console.log('Service Worker: Synced fleet location');
       } catch (error) {
         console.error('Service Worker: Failed to sync fleet location', error);
@@ -310,6 +331,7 @@ async function syncWeatherData() {
     for (const request of weatherRequests) {
       try {
         await fetch(request);
+        // eslint-disable-next-line no-console
         console.log('Service Worker: Synced weather data');
       } catch (error) {
         console.error('Service Worker: Failed to sync weather data', error);
@@ -322,6 +344,7 @@ async function syncWeatherData() {
 
 // Push notifications for important updates
 self.addEventListener('push', (event) => {
+  // eslint-disable-next-line no-console
   console.log('Service Worker: Push notification received');
   
   const options = {
@@ -354,6 +377,7 @@ self.addEventListener('push', (event) => {
 
 // Handle notification clicks
 self.addEventListener('notificationclick', (event) => {
+  // eslint-disable-next-line no-console
   console.log('Service Worker: Notification clicked', event.action);
   
   event.notification.close();
@@ -367,6 +391,7 @@ self.addEventListener('notificationclick', (event) => {
 
 // Message handling for communication with main thread
 self.addEventListener('message', (event) => {
+  // eslint-disable-next-line no-console
   console.log('Service Worker: Message received', event.data);
   
   if (event.data && event.data.type === 'SKIP_WAITING') {
@@ -380,6 +405,7 @@ self.addEventListener('message', (event) => {
 
 // Periodic background sync (if supported)
 self.addEventListener('periodicsync', (event) => {
+  // eslint-disable-next-line no-console
   console.log('Service Worker: Periodic sync triggered', event.tag);
   
   if (event.tag === 'weather-update') {
@@ -394,6 +420,7 @@ async function updateWeatherData() {
   try {
     const response = await fetch('/api/weather/update');
     if (response.ok) {
+      // eslint-disable-next-line no-console
       console.log('Service Worker: Weather data updated');
     }
   } catch (error) {
@@ -406,6 +433,7 @@ async function updateFleetLocations() {
   try {
     const response = await fetch('/api/fleet/locations/update');
     if (response.ok) {
+      // eslint-disable-next-line no-console
       console.log('Service Worker: Fleet locations updated');
     }
   } catch (error) {
