@@ -139,7 +139,11 @@ export const WeatherRadarModal: React.FC<WeatherRadarModalProps> = ({ onClose })
         setWeatherData(weatherResults);
       }
 
-      // Fetch weather alerts from persisted table (with RLS)
+      // TODO: Fetch weather alerts from persisted table (table needs to be created first)
+      // Temporarily disabled until weather_alerts table is created
+      logger.warn('weather_alerts table not yet created, skipping fetch');
+      
+      /* Uncomment when weather_alerts table is created:
       try {
         const { data: alertsData, error: alertsError } = await supabase
           .from('weather_alerts')
@@ -170,6 +174,7 @@ export const WeatherRadarModal: React.FC<WeatherRadarModalProps> = ({ onClose })
       } catch (err) {
         logger.warn('Failed to fetch weather alerts', { error: err });
       }
+      */
 
     } catch (error) {
       logger.error('Error fetching weather data', { error });
