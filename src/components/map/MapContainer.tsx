@@ -20,7 +20,7 @@ import { divisionMapStyle, animusMapStyle } from "./themes";
 import { WeatherRadarLayer } from "@/components/weather/WeatherRadarLayer";
 import { RainRadarOverlay } from "@/components/weather/RainRadarOverlay";
 import { MapContext } from "./MapContext";
-import { getGoogleMapsApiKey, getMapboxAccessToken } from "@/config/env";
+import { getGoogleMapsApiKey, getMapboxAccessToken, getPreferredMapProvider } from "@/config/env";
 import { geocodeAddress, getDirections } from "@/lib/mapsClient";
 import { CornerBrackets } from "@/components/hud/CornerBrackets";
 import { CompassRose } from "@/components/hud/CompassRose";
@@ -404,6 +404,9 @@ export const MapContainer = forwardRef<
   useEffect(() => {
     // If no Google Maps key, use Mapbox fallback
     const currentGoogleKey = getGoogleMapsApiKey();
+    const preference = getPreferredMapProvider();
+    const forceMapbox = preference === "mapbox";
+    const forceGoogle = preference === "google";
     const noGoogleKey = !currentGoogleKey || currentGoogleKey === "undefined";
     const initializeMapboxFallback = async () => {
       setUsingMapbox(true);
@@ -449,7 +452,7 @@ export const MapContainer = forwardRef<
       }
     };
 
-    if (noGoogleKey) {
+    if (forceMapbox || (preference !== "google" && noGoogleKey)) {
       initializeMapboxFallback();
 
       return () => {
@@ -464,6 +467,19 @@ export const MapContainer = forwardRef<
     setMapsUnavailable(false);
 
     const beginLoadGoogleMaps = () => {
+      // Catch Google Maps auth failures (bad key, referer, billing, etc.)
+      try {
+        (window as any).gm_authFailure = () => {
+          console.warn("Google Maps authentication failed. Falling back to Mapbox.");
+          toast({
+            title: "Google Maps authentication failed",
+            description:
+              "Using Mapbox fallback. Ensure billing is enabled and the key allows this domain.",
+            variant: "destructive",
+          });
+          initializeMapboxFallback();
+        };
+      } catch {}
       if (window.google && window.google.maps) {
         initMap();
         return;
@@ -475,6 +491,11 @@ export const MapContainer = forwardRef<
 
       loadGoogleMaps(["places", "drawing", "geometry"])
         .then(() => {
+          // If preference forces Mapbox, skip Google even if loaded
+          if (forceMapbox) {
+            initializeMapboxFallback();
+            return;
+          }
           initMap();
         })
         .catch((err) => {
@@ -535,7 +556,11 @@ export const MapContainer = forwardRef<
       }
     };
 
-    beginLoadGoogleMaps();
+    if (forceGoogle || (!forceMapbox && !noGoogleKey)) {
+      beginLoadGoogleMaps();
+    } else {
+      initializeMapboxFallback();
+    }
 
     return () => {
       if (mapInstanceRef.current) {
