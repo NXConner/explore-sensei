@@ -114,24 +114,27 @@ export const TopBar = ({
 
         {/* Module Buttons - scrollable */}
         <div className="flex gap-1 md:gap-2 overflow-x-auto w-full md:flex-1 scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent pb-1 md:pb-0 hover:scrollbar-thumb-primary/50">
-          {modules.map((module) => (
-            <Button
-              key={module.id}
-              onClick={() => {
-                if (module.id === "client-portal") {
-                  window.location.href = "/client";
-                } else {
-                  onModuleClick(module.id);
-                }
-              }}
-              variant="ghost"
-              size="sm"
-              className="flex items-center gap-1 md:gap-2 text-[10px] md:text-xs font-bold uppercase tracking-wider hover:bg-primary/20 hover:text-primary border border-transparent hover:border-primary/50 transition-all whitespace-nowrap px-2 md:px-3 hover-scale"
-            >
-              <module.icon className="w-3 h-3 md:w-4 md:h-4" />
-              <span className="hidden sm:inline">{module.label}</span>
-            </Button>
-          ))}
+          {modules.map((module) => {
+            const Icon = module.icon;
+            return (
+              <Button
+                key={module.id}
+                onClick={() => {
+                  if (module.id === "client-portal") {
+                    window.location.href = "/client";
+                  } else {
+                    onModuleClick(module.id);
+                  }
+                }}
+                variant="ghost"
+                size="sm"
+                className="flex items-center gap-1 md:gap-2 text-[10px] md:text-xs font-bold uppercase tracking-wider hover:bg-primary/20 hover:text-primary border border-transparent hover:border-primary/50 transition-all whitespace-nowrap px-2 md:px-3 hover-scale"
+              >
+                <Icon className="w-3 h-3 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">{module.label}</span>
+              </Button>
+            );
+          })}
         </div>
 
         {/* User Profile - visible on desktop */}
