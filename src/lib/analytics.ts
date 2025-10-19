@@ -1,4 +1,5 @@
 type AnalyticsEventPayload = Record<string, unknown> | undefined;
+import { logger } from '@/lib/monitoring';
 
 let isInitialized = false;
 let writeFn: ((event: string, payload?: AnalyticsEventPayload) => void) | null = null;
@@ -12,8 +13,7 @@ export function initAnalytics(
     customWriter ??
     ((event, payload) => {
       if (import.meta.env?.DEV) {
-        // eslint-disable-next-line no-console
-        console.debug("analytics", { event, payload });
+        logger.debug('analytics', { event, payload });
       }
     });
   isInitialized = true;
