@@ -524,14 +524,6 @@ export const MapContainer = forwardRef<
       if (mapRef.current && !mapInstanceRef.current) {
         const defaultCenter = { lat: 36.6904, lng: -80.2715 };
 
-        // Guard against undefined ControlPosition during edge cases of Maps API init
-        const zoomOptions: google.maps.ZoomControlOptions | undefined = (window as any).google?.maps
-          ?.ControlPosition
-          ? {
-              position: (window as any).google.maps.ControlPosition.RIGHT_CENTER,
-            }
-          : undefined;
-
         mapInstanceRef.current = new google.maps.Map(mapRef.current, {
           center: defaultCenter,
           zoom: 12,
@@ -539,11 +531,21 @@ export const MapContainer = forwardRef<
           styles: mapTheme === "division" ? divisionMapStyle : animusMapStyle,
           disableDefaultUI: true,
           zoomControl: true,
-          // When ControlPosition isn't available yet, omit to use default position
-          zoomControlOptions: zoomOptions,
           scrollwheel: true,
           gestureHandling: "greedy",
         });
+
+        // Set zoom control position after map creation, guarded for enum availability
+        try {
+          const cp = (window as any).google?.maps?.ControlPosition;
+          if (cp && mapInstanceRef.current) {
+            mapInstanceRef.current.setOptions({
+              zoomControlOptions: { position: cp.RIGHT_CENTER },
+            });
+          }
+        } catch (err) {
+          console.warn("Failed to set zoom control position", err);
+        }
 
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(
