@@ -481,10 +481,7 @@ export const MapContainer = forwardRef<
           initializeMapboxFallback();
         };
       } catch {}
-      if (window.google && window.google.maps) {
-        initMap();
-        return;
-      }
+      
       if (!currentGoogleKey) {
         initializeMapboxFallback();
         return;
@@ -523,46 +520,63 @@ export const MapContainer = forwardRef<
 
     const initMap = () => {
       if (mapRef.current && !mapInstanceRef.current) {
+        // Verify Google Maps API is fully loaded
+        if (!window.google?.maps?.Map) {
+          logger.error("Google Maps API not fully loaded");
+          initializeMapboxFallback();
+          return;
+        }
+
         const defaultCenter = { lat: 36.6904, lng: -80.2715 };
 
-        mapInstanceRef.current = new google.maps.Map(mapRef.current, {
-          center: defaultCenter,
-          zoom: 12,
-          mapTypeId: "hybrid",
-          styles: mapTheme === "division" ? divisionMapStyle : animusMapStyle,
-          disableDefaultUI: true,
-          zoomControl: true,
-          scrollwheel: true,
-          gestureHandling: "greedy",
-        });
-
-        // Set zoom control position after map creation, guarded for enum availability
         try {
-          const cp = (window as any).google?.maps?.ControlPosition;
-          if (cp && mapInstanceRef.current) {
-            mapInstanceRef.current.setOptions({
-              zoomControlOptions: { position: cp.RIGHT_CENTER },
-            });
+          mapInstanceRef.current = new google.maps.Map(mapRef.current, {
+          center: defaultCenter,
+            zoom: 12,
+            mapTypeId: "hybrid",
+            styles: mapTheme === "division" ? divisionMapStyle : animusMapStyle,
+            disableDefaultUI: true,
+            zoomControl: true,
+            scrollwheel: true,
+            gestureHandling: "greedy",
+          });
+
+          // Set zoom control position after map creation, guarded for enum availability
+          try {
+            const cp = (window as any).google?.maps?.ControlPosition;
+            if (cp && mapInstanceRef.current) {
+              mapInstanceRef.current.setOptions({
+                zoomControlOptions: { position: cp.RIGHT_CENTER },
+              });
+            }
+          } catch (err) {
+            console.warn("Failed to set zoom control position", err);
           }
+
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                const userLocation = {
+                  lat: position.coords.latitude,
+                  lng: position.coords.longitude,
+                };
+                mapInstanceRef.current?.setCenter(userLocation);
+                mapInstanceRef.current?.setZoom(15);
+              },
+              () => {},
+            );
+          }
+
+          trafficLayerRef.current = new google.maps.TrafficLayer();
         } catch (err) {
-          console.warn("Failed to set zoom control position", err);
+          logger.error("Failed to initialize Google Maps", { error: err });
+          toast({
+            title: "Map Initialization Failed",
+            description: "Falling back to Mapbox.",
+            variant: "destructive",
+          });
+          initializeMapboxFallback();
         }
-
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              const userLocation = {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-              };
-              mapInstanceRef.current?.setCenter(userLocation);
-              mapInstanceRef.current?.setZoom(15);
-            },
-            () => {},
-          );
-        }
-
-        trafficLayerRef.current = new google.maps.TrafficLayer();
       }
     };
 
