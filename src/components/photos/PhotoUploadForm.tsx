@@ -130,7 +130,7 @@ export const PhotoUploadForm = ({ jobs, onSave, onCancel }: PhotoUploadFormProps
 
       onSave();
     } catch (error: any) {
-      console.error("Upload error:", error);
+      logger.error("Photo upload failed", { error });
       toast({
         title: "Upload Failed",
         description: error.message,

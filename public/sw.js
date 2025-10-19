@@ -6,13 +6,6 @@ const DYNAMIC_CACHE_NAME = 'explore-sensei-dynamic-v1.0.0';
 // Static assets to cache
 const STATIC_ASSETS = [
   '/',
-  '/dashboard',
-  '/time-tracking',
-  '/fleet',
-  '/invoicing',
-  '/ai-analysis',
-  '/weather',
-  '/route-optimization',
   '/manifest.json',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png'
@@ -32,11 +25,19 @@ const API_CACHE_PATTERNS = [
 // Gate verbose logging to development only
 (function(){
   try {
-    const isDev = self.location && (self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1');
+    const host = (self && self.location && self.location.hostname) || '';
+    const isDev = host === 'localhost' || host === '127.0.0.1';
     const originalLog = console.log;
     const originalDebug = console.debug || console.log;
+    const originalInfo = console.info || console.log;
+    const originalWarn = console.warn;
+    const originalError = console.error;
     console.log = (...args) => { if (isDev) originalLog.apply(console, args); };
     console.debug = (...args) => { if (isDev) originalDebug.apply(console, args); };
+    console.info = (...args) => { if (isDev) originalInfo.apply(console, args); };
+    console.warn = (...args) => { if (isDev) originalWarn.apply(console, args); };
+    // keep errors visible in all envs
+    console.error = (...args) => { originalError.apply(console, args); };
   } catch (_) {}
 })();
 
@@ -191,19 +192,9 @@ async function handleAPIRequest(request) {
 // Handle navigation requests - cache first with network fallback
 async function handleNavigationRequest(request) {
   try {
-    const cache = await caches.open(STATIC_CACHE_NAME);
-    const cachedResponse = await cache.match('/');
-    
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-    
-    const networkResponse = await fetch(request);
-    if (networkResponse.ok) {
-      cache.put(request, networkResponse.clone());
-    }
-    
-    return networkResponse;
+    // SPA fallback: serve index.html from network first to avoid stale routes
+    const response = await fetch(request);
+    return response;
   } catch (error) {
     console.error('Service Worker: Error handling navigation request', error);
     return new Response(`
@@ -250,7 +241,8 @@ async function handleNavigationRequest(request) {
 // Handle other requests - network first
 async function handleOtherRequest(request) {
   try {
-    return await fetch(request);
+    const response = await fetch(request, { cache: 'no-store' });
+    return response;
   } catch (error) {
     console.error('Service Worker: Error handling other request', error);
     return new Response('Offline', { status: 503 });

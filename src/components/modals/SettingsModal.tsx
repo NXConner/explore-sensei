@@ -145,7 +145,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
 
         {/* Content */}
         <Tabs defaultValue="appearance" className="flex-1 flex flex-col">
-          <TabsList className="mx-4 mt-4">
+            <TabsList className="mx-4 mt-4">
             <TabsTrigger value="appearance">Appearance</TabsTrigger>
             <TabsTrigger value="themes">Themes</TabsTrigger>
             <TabsTrigger value="weather">Weather</TabsTrigger>
@@ -156,6 +156,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
             <TabsTrigger value="sounds">Sounds</TabsTrigger>
             <TabsTrigger value="advanced">Advanced</TabsTrigger>
             <TabsTrigger value="api-keys">API Keys</TabsTrigger>
+              <TabsTrigger value="roles">Roles</TabsTrigger>
           </TabsList>
             <TabsContent value="gamification" className="mt-0 space-y-6">
               <div className="tactical-panel p-4">
@@ -491,6 +492,38 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                       }}
                     >
                       Body
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* Role Management (surface only) */}
+            <TabsContent value="roles" className="mt-0 space-y-6">
+              <div className="tactical-panel p-4 space-y-4">
+                <div className="text-sm font-semibold">Role Management</div>
+                <p className="text-xs text-muted-foreground">
+                  Manage user roles and permissions. Only Super Administrators can modify roles.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs">Assign Role to User (email)</Label>
+                    <div className="flex gap-2 mt-1">
+                      <Input placeholder="user@example.com" />
+                      <select className="hud-element border-primary/30 rounded px-2 py-1 text-xs bg-transparent">
+                        <option>Viewer</option>
+                        <option>Operator</option>
+                        <option>Manager</option>
+                        <option>Administrator</option>
+                        <option>Super Administrator</option>
+                      </select>
+                      <Button size="sm" disabled title="Requires Super Administrator">Assign</Button>
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Existing Roles</Label>
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      Roles are defined in the database (`roles`, `user_roles`). Changes require appropriate permissions.
                     </div>
                   </div>
                 </div>

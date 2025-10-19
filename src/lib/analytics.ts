@@ -11,8 +11,10 @@ export function initAnalytics(
   writeFn =
     customWriter ??
     ((event, payload) => {
-      // eslint-disable-next-line no-console
-      console.debug("analytics", { event, payload });
+      if (import.meta.env?.DEV) {
+        // eslint-disable-next-line no-console
+        console.debug("analytics", { event, payload });
+      }
     });
   isInitialized = true;
 }

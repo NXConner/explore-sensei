@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { logger } from "@/lib/monitoring";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -42,7 +43,7 @@ export const useAIChat = () => {
 
       setMessages((prev) => [...prev, { role: "assistant", content: aiResponse }]);
     } catch (error: unknown) {
-      console.error("AI Error:", error);
+      logger.error("AI chat error", { error });
 
       let errorMessage = "Failed to get AI response. Please try again.";
 

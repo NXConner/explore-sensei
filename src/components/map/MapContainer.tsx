@@ -21,6 +21,7 @@ import { WeatherRadarLayer } from "@/components/weather/WeatherRadarLayer";
 import { RainRadarOverlay } from "@/components/weather/RainRadarOverlay";
 import { MapContext } from "./MapContext";
 import { getGoogleMapsApiKey, getMapboxAccessToken, getPreferredMapProvider } from "@/config/env";
+import { logger } from "@/lib/monitoring";
 import { geocodeAddress, getDirections } from "@/lib/mapsClient";
 import { CornerBrackets } from "@/components/hud/CornerBrackets";
 import { CompassRose } from "@/components/hud/CompassRose";
@@ -447,7 +448,7 @@ export const MapContainer = forwardRef<
           );
         }
       } catch (e) {
-        console.warn("Failed to initialize Mapbox:", e);
+        logger.warn("Failed to initialize Mapbox", { error: e });
         setMapsUnavailable(true);
       }
     };
@@ -470,7 +471,7 @@ export const MapContainer = forwardRef<
       // Catch Google Maps auth failures (bad key, referer, billing, etc.)
       try {
         (window as any).gm_authFailure = () => {
-          console.warn("Google Maps authentication failed. Falling back to Mapbox.");
+          logger.warn("Google Maps authentication failed. Falling back to Mapbox.");
           toast({
             title: "Google Maps authentication failed",
             description:
@@ -500,7 +501,7 @@ export const MapContainer = forwardRef<
         })
         .catch((err) => {
           const errorMsg = err?.message || String(err);
-          console.warn("Google Maps failed to load. Falling back to Mapbox.", errorMsg);
+          logger.warn("Google Maps failed to load. Falling back to Mapbox.", { error: errorMsg });
           
           // Show appropriate error message to user
           if (errorMsg.includes("ExpiredKeyMapError") || errorMsg.includes("expired")) {

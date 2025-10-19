@@ -251,7 +251,7 @@ export const EstimateCalculatorModal = ({ isOpen, onClose }: EstimateCalculatorM
         setSavedEstimateId(result.id);
       }
     } catch (error) {
-      console.error("Error saving estimate:", error);
+      logger.error("Error saving estimate", { error });
     }
   };
 

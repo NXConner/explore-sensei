@@ -128,6 +128,8 @@ export class Logger {
   private static instance: Logger;
   private logs: LogEntry[] = [];
   private maxLogs: number = 10000;
+  private externalSinkUrl: string | null = null;
+  private externalAuthKey: string | null = null;
 
   static getInstance(): Logger {
     if (!Logger.instance) {
@@ -159,10 +161,66 @@ export class Logger {
       // eslint-disable-next-line no-console
       console.log(`${prefix} ${message}`, context || '');
     }
+
+    // In production, forward to external sink if configured
+    if (import.meta.env?.PROD) {
+      try {
+        // Read once lazily
+        if (this.externalSinkUrl == null) {
+          const raw = (import.meta as any)?.env?.VITE_LOG_SINK_URL as string | undefined;
+          this.externalSinkUrl = raw && String(raw).trim() ? String(raw).trim() : null;
+        }
+        if (this.externalAuthKey == null) {
+          const raw = (import.meta as any)?.env?.VITE_LOG_SINK_KEY as string | undefined;
+          this.externalAuthKey = raw && String(raw).trim() ? String(raw).trim() : null;
+        }
+        if (this.externalSinkUrl) {
+          // Fire-and-forget; avoid blocking UI
+          fetch(this.externalSinkUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(this.externalAuthKey ? { Authorization: `Bearer ${this.externalAuthKey}` } : {}),
+            },
+            body: JSON.stringify({
+              level: logEntry.level,
+              message: logEntry.message,
+              timestamp: logEntry.timestamp.toISOString(),
+              context: this.sanitizeContext(logEntry.context),
+              traceId: logEntry.traceId,
+              spanId: logEntry.spanId,
+            }),
+            keepalive: true,
+          }).catch(() => {});
+        }
+      } catch {}
+    }
   }
 
   debug(message: string, context?: Record<string, any>): void {
     this.log('debug', message, context);
+  }
+
+  private sanitizeContext(context?: Record<string, any>): Record<string, any> | undefined {
+    if (!context) return undefined;
+    try {
+      const clone = JSON.parse(JSON.stringify(context));
+      const redactKeys = ['password', 'token', 'authorization', 'auth', 'key', 'secret'];
+      const redact = (obj: any) => {
+        if (!obj || typeof obj !== 'object') return;
+        for (const k of Object.keys(obj)) {
+          if (redactKeys.includes(k.toLowerCase())) {
+            obj[k] = '[REDACTED]';
+          } else if (typeof obj[k] === 'object') {
+            redact(obj[k]);
+          }
+        }
+      };
+      redact(clone);
+      return clone;
+    } catch {
+      return undefined;
+    }
   }
 
   info(message: string, context?: Record<string, any>): void {
