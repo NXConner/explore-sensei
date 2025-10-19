@@ -76,20 +76,29 @@ export const EODPlaybackModal = ({ onClose }: EODPlaybackModalProps) => {
     if (!mapDivRef.current) return;
 
     let cancelled = false;
-    loadGoogleMaps(["places"])
+    loadGoogleMaps(["places"]) 
       .then(() => {
         if (cancelled || !mapDivRef.current) return;
-        const map = new google.maps.Map(mapDivRef.current, {
-          center: { lat: 36.5, lng: -80.5 },
-          zoom: 12,
-          mapTypeId: google.maps.MapTypeId.ROADMAP,
-          styles: [
-            { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
-            { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
-            { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
-          ],
-        });
-        mapRef.current = map;
+        // Verify Maps API is fully available
+        if (!window.google?.maps?.Map) {
+          // Do not initialize the map to avoid runtime errors
+          return;
+        }
+        try {
+          const map = new google.maps.Map(mapDivRef.current, {
+            center: { lat: 36.5, lng: -80.5 },
+            zoom: 12,
+            mapTypeId: google.maps.MapTypeId.ROADMAP,
+            styles: [
+              { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+              { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+              { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+            ],
+          });
+          mapRef.current = map;
+        } catch (err) {
+          // Swallow error to keep modal functional without map
+        }
       })
       .catch(() => {
         // If Maps fails to load, leave the DIV empty; modal still usable

@@ -568,6 +568,26 @@ export const MapContainer = forwardRef<
           }
 
           trafficLayerRef.current = new google.maps.TrafficLayer();
+
+          // Detect unauthorized/dev-only overlay and auto-fallback to Mapbox
+          setTimeout(() => {
+            const container = mapRef.current;
+            if (!container) return;
+            const text = (container.textContent || "").toLowerCase();
+            if (text.includes("for development purposes only") || text.includes("own this website")) {
+              logger.warn("Google Maps shows dev-only overlay. Switching to Mapbox.");
+              toast({
+                title: "Google Maps not authorized",
+                description: "Switching to Mapbox fallback for a functional preview.",
+                variant: "destructive",
+              });
+              try {
+                mapInstanceRef.current = null;
+                container.innerHTML = "";
+              } catch {}
+              initializeMapboxFallback();
+            }
+          }, 1200);
         } catch (err) {
           logger.error("Failed to initialize Google Maps", { error: err });
           toast({
