@@ -6,9 +6,10 @@ interface SuitabilityOverlayProps {
   tempF?: number;
   humidity?: number;
   precipChance?: number; // percent
+  thresholds?: { minTempF?: number; maxTempF?: number; maxHumidity?: number; maxPrecipChance?: number };
 }
 
-export const SuitabilityOverlay: React.FC<SuitabilityOverlayProps> = ({ map, enabled, tempF = 72, humidity = 45, precipChance = 10 }) => {
+export const SuitabilityOverlay: React.FC<SuitabilityOverlayProps> = ({ map, enabled, tempF = 72, humidity = 45, precipChance = 10, thresholds }) => {
   useEffect(() => {
     if (!map || !enabled) return;
 
@@ -20,7 +21,11 @@ export const SuitabilityOverlay: React.FC<SuitabilityOverlayProps> = ({ map, ena
       getTileUrl: (coord, z) => {
         // synthetic overlay based on params and zoom — returning a 1x1 transparent PNG via data URI is fine
         // We tint with red when unsuitable, greenish when optimal
-        const unsuitable = tempF < 55 || tempF > 95 || humidity > 70 || precipChance > 20;
+        const minT = thresholds?.minTempF ?? 55;
+        const maxT = thresholds?.maxTempF ?? 95;
+        const maxH = thresholds?.maxHumidity ?? 70;
+        const maxP = thresholds?.maxPrecipChance ?? 20;
+        const unsuitable = tempF < minT || tempF > maxT || humidity > maxH || precipChance > maxP;
         const color = unsuitable ? "255,0,0" : "0,255,128";
         const alpha = unsuitable ? 0.25 : 0.12;
         const svg = encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='${tileSize}' height='${tileSize}'>\

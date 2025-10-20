@@ -15,7 +15,7 @@ const AIAsphaltDetectionModalLazy = lazy(() =>
 );
 import { MapVisibilityControls } from "./MapVisibilityControls";
 import { EmployeeTrackingLayer } from "./EmployeeTrackingLayer";
-import { MapEffects } from "./MapEffects";
+const MapEffectsLazy = lazy(() => import("./MapEffects").then((m) => ({ default: m.MapEffects })));
 import { divisionMapStyle, animusMapStyle } from "./themes";
 import { WeatherRadarLayer } from "@/components/weather/WeatherRadarLayer";
 import { DarkZoneLayer } from "@/components/map/DarkZoneLayer";
@@ -34,7 +34,10 @@ import { MiniMap } from "@/components/hud/MiniMap";
 import { SuitabilityOverlay } from "@/components/map/SuitabilityOverlay";
 import { HeatmapOverlay } from "@/components/map/HeatmapOverlay";
 import { RadialMenu } from "@/components/map/RadialMenu";
-import { SuitabilityOverlay } from "@/components/map/SuitabilityOverlay";
+import { RingSliders } from "@/components/map/RingSliders";
+import { useOpenWeather } from "@/hooks/useOpenWeather";
+import { playCue } from "@/lib/audioEffects";
+import { DarkZoneEditor } from "@/components/map/DarkZoneEditor";
 
 // API keys are read dynamically to allow runtime updates via Settings
 
@@ -93,7 +96,9 @@ export const MapContainer = forwardRef<
   const [activeMode, setActiveMode] = useState<DrawingMode>(null);
   const { toast } = useToast();
   const { measurements } = useMapMeasurements();
-  const [showSuitability, setShowSuitability] = useState(false);
+  const [weatherCenter, setWeatherCenter] = useState<{ lat: number; lng: number } | null>(null);
+  const weather = useOpenWeather(weatherCenter?.lat, weatherCenter?.lng);
+  const [showDarkZoneEditor, setShowDarkZoneEditor] = useState(false);
 
   // Expose methods to parent component
   useImperativeHandle(ref, () => ({
@@ -125,6 +130,14 @@ export const MapContainer = forwardRef<
     radarType: "standard" as "standard" | "sonar" | "aviation",
     radarAudioEnabled: false,
     radarAudioVolume: 50,
+    ringControls: true,
+    reduceMotion: false,
+    lowPowerMode: false,
+    useCanvasFX: false,
+    soundset: "auto" as "auto" | "division" | "animus",
+    soundVolume: 70,
+    pulseHighlightPOIs: true,
+    suitabilityThresholds: { minTempF: 55, maxTempF: 95, maxHumidity: 70, maxPrecipChance: 20 },
   });
 
   useEffect(() => {
@@ -200,11 +213,22 @@ export const MapContainer = forwardRef<
           radarType: parsed.radarType ?? prev.radarType,
           radarAudioEnabled: parsed.radarAudioEnabled ?? prev.radarAudioEnabled,
           radarAudioVolume: parsed.radarAudioVolume ?? prev.radarAudioVolume,
+          ringControls: parsed.ringControls ?? prev.ringControls,
+          reduceMotion: parsed.reduceMotion ?? prev.reduceMotion,
+          lowPowerMode: parsed.lowPowerMode ?? prev.lowPowerMode,
+          useCanvasFX: parsed.useCanvasFX ?? prev.useCanvasFX,
+          soundset: parsed.soundset ?? prev.soundset,
+          soundVolume: parsed.soundVolume ?? prev.soundVolume,
+          pulseHighlightPOIs: parsed.pulseHighlightPOIs ?? prev.pulseHighlightPOIs,
+          suitabilityThresholds: parsed.suitabilityThresholds ?? prev.suitabilityThresholds,
         }));
         if (parsed.mapTheme && (parsed.mapTheme === "division" || parsed.mapTheme === "animus")) {
           setMapTheme(parsed.mapTheme);
         }
         if (parsed.apiKeys) setConfigVersion((v) => v + 1);
+        if (typeof parsed.radarOpacity === 'number') setRadarOpacity(parsed.radarOpacity);
+        if (typeof parsed.weatherAlertRadius === 'number') setAlertRadius(parsed.weatherAlertRadius);
+        if (parsed.pulseScanEnabled) setShowPulseScan(true);
       } catch (err) {
         logger.warn("Failed to read UI settings", { error: err });
       }
@@ -239,18 +263,74 @@ export const MapContainer = forwardRef<
 
   // Listen for Suitability / Pulse Scan toggles
   useEffect(() => {
-    const onSuitability = () => setShowSuitability((v) => !v);
-    const onPulse = () => setShowPulseScan((v) => !v);
+    const onSuitability = () => setShowSuitability((v) => {
+      const next = !v;
+      try { logger.info('Suitability toggled', { enabled: next }); } catch {}
+      try {
+        if (next) {
+          const th = uiSettings.suitabilityThresholds;
+          const temp = weather.data?.current?.temp ?? 72;
+          const hum = weather.data?.current?.humidity ?? 45;
+          const pop = weather.data?.precipChance ?? 0;
+          const bad = temp < (th?.minTempF ?? 55) || temp > (th?.maxTempF ?? 95) || hum > (th?.maxHumidity ?? 70) || pop > (th?.maxPrecipChance ?? 20);
+          if (bad) playCue('hazard', { soundset: uiSettings.soundset });
+        }
+      } catch {}
+      return next;
+    });
+    const onPulse = () => setShowPulseScan((v) => {
+      const next = !v;
+      try { logger.info('Pulse scan toggled', { enabled: next }); } catch {}
+      try { playCue(next ? 'objective' : 'scan-complete', { soundset: uiSettings.soundset }); } catch {}
+      return next;
+    });
     const onHeat = () => setShowHeatmap((v) => !v);
+    const onOpenDzEditor = () => setShowDarkZoneEditor(true);
     window.addEventListener('toggle-suitability', onSuitability as any);
     window.addEventListener('toggle-pulse-scan', onPulse as any);
     window.addEventListener('toggle-heatmap', onHeat as any);
+    window.addEventListener('open-dark-zone-editor', onOpenDzEditor as any);
     return () => {
       window.removeEventListener('toggle-suitability', onSuitability as any);
       window.removeEventListener('toggle-pulse-scan', onPulse as any);
       window.removeEventListener('toggle-heatmap', onHeat as any);
+      window.removeEventListener('open-dark-zone-editor', onOpenDzEditor as any);
     };
-  }, []);
+  }, [uiSettings.soundset, uiSettings.suitabilityThresholds, weather.data]);
+  // Track map center for weather queries
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+    const updateCenter = () => {
+      try {
+        const c = mapInstanceRef.current!.getCenter?.();
+        if (c) setWeatherCenter({ lat: c.lat(), lng: c.lng() });
+      } catch {}
+    };
+    updateCenter();
+    const idle = mapInstanceRef.current.addListener?.('idle', updateCenter);
+    return () => { try { (google.maps.event as any).removeListener?.(idle); } catch {} };
+  }, [mapInstanceRef.current]);
+
+  // Pulse scan POI highlighting
+  useEffect(() => {
+    if (!showPulseScan || !uiSettings.pulseHighlightPOIs) return;
+    if (!markersRef.current || markersRef.current.length === 0) return;
+    let i = 0;
+    let cancelled = false;
+    const seq = () => {
+      if (cancelled) return;
+      if (!mapInstanceRef.current) return;
+      const m = markersRef.current[i % markersRef.current.length];
+      try {
+        (m as any).setAnimation?.(google.maps.Animation.BOUNCE);
+        setTimeout(() => (m as any).setAnimation?.(null), 500);
+      } catch {}
+      i += 1;
+      timer = window.setTimeout(seq, 120);
+    };
+    let timer = window.setTimeout(seq, 120);
+    return () => { cancelled = true; window.clearTimeout(timer); };
+  }, [showPulseScan, uiSettings.pulseHighlightPOIs, markersRef.current?.length]);
 
   // Build heatmap points from job sites as a placeholder; could be productivity/issue density
   useEffect(() => {
@@ -906,7 +986,8 @@ export const MapContainer = forwardRef<
   return (
     <MapContext.Provider value={{ map: mapInstanceRef.current }}>
       {/* Map Effects */}
-      <MapEffects
+      <Suspense fallback={null}>
+      <MapEffectsLazy
         showRadar={uiSettings.radarEffect}
         showGlitch={uiSettings.glitchEffect}
         showScanline={uiSettings.scanlineEffect}
@@ -921,7 +1002,12 @@ export const MapContainer = forwardRef<
         radarType={uiSettings.radarType}
         radarAudioEnabled={uiSettings.radarAudioEnabled}
         radarAudioVolume={uiSettings.radarAudioVolume}
+        masterVolumePercent={uiSettings.soundVolume}
+        lowPowerMode={uiSettings.lowPowerMode}
+        reduceMotion={uiSettings.reduceMotion}
+        useCanvasFX={uiSettings.useCanvasFX}
       />
+      </Suspense>
       <PulseScanOverlay enabled={showPulseScan} color={mapTheme === 'division' ? 'rgba(0,255,255,0.16)' : 'rgba(255,140,0,0.16)'} speed={4} />
 
       {/* HUD overlay elements */}
@@ -952,25 +1038,35 @@ export const MapContainer = forwardRef<
         </>
       )}
       {!usingMapbox && showSuitability && (
-        <SuitabilityOverlay map={mapInstanceRef.current} enabled={true} />
+        <SuitabilityOverlay
+          map={mapInstanceRef.current}
+          enabled={true}
+          tempF={weather.data?.current?.temp ?? 72}
+          humidity={weather.data?.current?.humidity ?? 45}
+          precipChance={weather.data?.precipChance ?? 10}
+          thresholds={uiSettings.suitabilityThresholds}
+        />
       )}
 
       {!usingMapbox && showHeatmap && (
         <HeatmapOverlay map={mapInstanceRef.current} enabled={true} points={heatmapPoints} />
       )}
 
-      {showPulseScan && (
+      {showPulseScan && uiSettings.ringControls && (
         <div className="absolute inset-0 pointer-events-none z-[120]">
-          <div className="absolute top-1/2 left-1/2 w-[200%] h-[200%]" style={{
-            background: mapTheme === 'division' ? 'conic-gradient(from 0deg, transparent 0%, rgba(0,255,255,0.16) 8%, transparent 14%)' : 'conic-gradient(from 0deg, transparent 0%, rgba(255,140,0,0.16) 8%, transparent 14%)',
-            transform: 'translate(-50%, -50%)',
-            transformOrigin: 'center',
-            animation: 'spin 3s linear infinite'
-          }} />
+          <RingSliders
+            opacityValue={radarOpacity}
+            intensityValue={uiSettings.glitchIntensity}
+            onChangeOpacity={(v) => {
+              setRadarOpacity(v);
+              try { const raw = localStorage.getItem('aos_settings'); const p = raw ? JSON.parse(raw) : {}; localStorage.setItem('aos_settings', JSON.stringify({ ...p, radarOpacity: v })); } catch {}
+            }}
+            onChangeIntensity={(v) => {
+              setUiSettings((prev) => ({ ...prev, glitchIntensity: v }));
+              try { const raw = localStorage.getItem('aos_settings'); const p = raw ? JSON.parse(raw) : {}; localStorage.setItem('aos_settings', JSON.stringify({ ...p, glitchIntensity: v })); } catch {}
+            }}
+          />
         </div>
-      )}
-      {!usingMapbox && showSuitability && (
-        <SuitabilityOverlay map={mapInstanceRef.current} enabled={true} />
       )}
       {!usingMapbox && showDarkZones && (
         <DarkZoneLayer
@@ -996,6 +1092,12 @@ export const MapContainer = forwardRef<
             Mapbox fallback active. Advanced tools are disabled without Google Maps.
           </div>
         </div>
+      )}
+      {showDarkZoneEditor && (
+        <DarkZoneEditor
+          map={mapInstanceRef.current}
+          onClose={() => setShowDarkZoneEditor(false)}
+        />
       )}
       {mapsUnavailable && (
         <div className="absolute inset-0 flex items-center justify-center z-[500]">

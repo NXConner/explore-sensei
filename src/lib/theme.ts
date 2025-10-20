@@ -2,6 +2,8 @@ export type ThemeId =
   | "tactical-dark"
   | "light"
   | "high-contrast"
+  | "color-blind"
+  | "colorblind-safe"
   | "industry-blue"
   | "safety-green"
   | "construction"
@@ -73,6 +75,37 @@ export const THEME_VARS: Record<ThemeId, CssVarMap> = {
     "--border": "0 0% 25%",
     "--input": "0 0% 20%",
     "--ring": "40 100% 50%",
+  },
+  // Color-blind safe palette (deuteranopia-friendly): blue/orange scheme, strong contrast
+  "color-blind": {
+    "--background": "0 0% 6%",
+    "--foreground": "0 0% 96%",
+    "--card": "0 0% 8%",
+    "--card-foreground": "0 0% 96%",
+    "--primary": "205 100% 55%",        // blue
+    "--primary-foreground": "0 0% 100%",
+    "--accent": "30 100% 55%",          // orange
+    "--accent-foreground": "0 0% 10%",
+    "--muted": "0 0% 12%",
+    "--muted-foreground": "0 0% 78%",
+    "--border": "0 0% 18%",
+    "--input": "0 0% 14%",
+    "--ring": "205 100% 55%",
+  },
+  "colorblind-safe": {
+    "--background": "0 0% 6%",
+    "--foreground": "0 0% 96%",
+    "--card": "0 0% 8%",
+    "--card-foreground": "0 0% 96%",
+    "--primary": "205 100% 55%",
+    "--primary-foreground": "0 0% 100%",
+    "--accent": "30 100% 55%",
+    "--accent-foreground": "0 0% 10%",
+    "--muted": "0 0% 12%",
+    "--muted-foreground": "0 0% 78%",
+    "--border": "0 0% 18%",
+    "--input": "0 0% 14%",
+    "--ring": "205 100% 55%",
   },
   "industry-blue": {
     "--primary": "211 100% 45%",

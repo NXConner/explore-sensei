@@ -16,13 +16,13 @@ import {
   Trash2,
   Save,
   Download,
+  Pencil,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DrawingMode } from "@/hooks/useMapDrawing";
 import { Waves, Radio, FlameKindling } from "lucide-react";
-import { Waves, Radio } from "lucide-react";
 
 interface RightSidebarProps {
   onAIClick: () => void;
@@ -223,6 +223,20 @@ export const RightSidebar = ({
             title="Heatmap"
           >
             <FlameKindling className="w-5 h-5" />
+          </Button>
+
+          {/* Dark Zones Editor */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-12 h-12 p-0 hover:bg-red-500/20 hover:text-red-500 border border-transparent hover:border-red-500/50 transition-all"
+            onClick={() => {
+              const evt = new CustomEvent('open-dark-zone-editor', { detail: {} });
+              window.dispatchEvent(evt);
+            }}
+            title="Edit Dark Zones"
+          >
+            <Pencil className="w-5 h-5" />
           </Button>
 
           {/* Suitability Overlay (hazard/ok tint) */}
