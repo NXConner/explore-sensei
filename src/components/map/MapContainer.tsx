@@ -61,6 +61,10 @@ export interface MapContainerRef {
   getShowEmployeeTracking: () => boolean;
   getShowWeatherRadar: () => boolean;
   getActiveMode: () => DrawingMode;
+  toggleParcels: () => void;
+  getShowParcels: () => boolean;
+  setImagery: (mode: "none" | "naip" | "usgs") => void;
+  getImagery: () => "none" | "naip" | "usgs";
 }
 
 export const MapContainer = forwardRef<
