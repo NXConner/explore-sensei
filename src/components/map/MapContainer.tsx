@@ -18,6 +18,7 @@ import { EmployeeTrackingLayer } from "./EmployeeTrackingLayer";
 import { MapEffects } from "./MapEffects";
 import { divisionMapStyle, animusMapStyle } from "./themes";
 import { WeatherRadarLayer } from "@/components/weather/WeatherRadarLayer";
+import { DarkZoneLayer } from "@/components/map/DarkZoneLayer";
 import { RainRadarOverlay } from "@/components/weather/RainRadarOverlay";
 import { MapContext } from "./MapContext";
 import { getGoogleMapsApiKey, getMapboxAccessToken, getPreferredMapProvider } from "@/config/env";
@@ -840,6 +841,7 @@ export const MapContainer = forwardRef<
       <ScaleBar lat={mapInstanceRef.current?.getCenter?.()?.lat()} zoom={mapInstanceRef.current?.getZoom?.() || 0} />
       <ZoomIndicator zoom={mapInstanceRef.current?.getZoom?.() || 0} />
       {/* Optional */}
+      {/* Re-enable MiniMap */}
       {/* <MiniMap /> */}
 
       <MeasurementDisplay distance={measurement.distance} area={measurement.area} />
@@ -857,6 +859,17 @@ export const MapContainer = forwardRef<
             alertRadius={alertRadius}
           />
         </>
+      )}
+      {!usingMapbox && (
+        <DarkZoneLayer
+          map={mapInstanceRef.current}
+          onEnterZone={() => {
+            try {
+              // subtle vibration on supported devices
+              (navigator as any).vibrate?.(50);
+            } catch {}
+          }}
+        />
       )}
       <div
         ref={mapRef}

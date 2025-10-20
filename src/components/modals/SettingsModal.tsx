@@ -43,6 +43,8 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     soundVolume: 70,
     radarAudioEnabled: false,
     radarAudioVolume: 50,
+    // Boot overlay
+    bootOverlay: true,
     // Weather Alerts
     weatherAlertsEnabled: true,
     weatherAlertRadius: 15,
@@ -860,6 +862,16 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     />
                   </div>
                 )}
+                <div className="mt-6 flex items-center justify-between">
+                  <div>
+                    <Label>Boot Overlay</Label>
+                    <p className="text-sm text-muted-foreground">Show ISAC-style boot animation on app load</p>
+                  </div>
+                  <Switch
+                    checked={settings.bootOverlay}
+                    onCheckedChange={() => handleToggle('bootOverlay')}
+                  />
+                </div>
               </div>
             </TabsContent>
 

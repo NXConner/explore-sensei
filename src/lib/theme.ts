@@ -343,9 +343,18 @@ export function applySavedThemeFromLocalStorage() {
   try {
     const raw = localStorage.getItem("aos_settings");
     if (!raw) return;
-    const parsed = JSON.parse(raw) as { theme?: ThemeId | "church-blue"; highContrast?: boolean; wallpaperUrl?: string; wallpaperOpacity?: number };
+    const parsed = JSON.parse(raw) as { theme?: ThemeId | "church-blue"; highContrast?: boolean; wallpaperUrl?: string; wallpaperOpacity?: number; fidelityMode?: "inspired" | "faithful" };
     // Backward-compatible alias: map legacy 'church-blue' to 'industry-blue'
-    const mappedTheme = (parsed.theme === "church-blue" ? "industry-blue" : parsed.theme) as ThemeId | undefined;
+    let mappedTheme = (parsed.theme === "church-blue" ? "industry-blue" : parsed.theme) as ThemeId | undefined;
+    // If fidelityMode is 'faithful' and a corresponding faithful variant exists, auto-map
+    if (parsed.fidelityMode === "faithful" && mappedTheme) {
+      const mapToFaithful: Partial<Record<ThemeId, ThemeId>> = {
+        "division-shd": "division-shd-faithful",
+        "dark-zone": "dark-zone-faithful",
+        "black-tusk": "black-tusk-faithful",
+      };
+      mappedTheme = (mapToFaithful[mappedTheme] || mappedTheme) as ThemeId;
+    }
     const theme = mappedTheme || "tactical-dark";
     const isDark = (parsed as unknown as { darkMode?: boolean }).darkMode ?? theme !== "light";
     applyThemeVariables(theme, { highContrast: !!parsed.highContrast, forceDark: !!isDark });
