@@ -31,6 +31,7 @@ import { CoordinateDisplay } from "@/components/hud/CoordinateDisplay";
 import { ScaleBar } from "@/components/hud/ScaleBar";
 import { ZoomIndicator } from "@/components/hud/ZoomIndicator";
 import { MiniMap } from "@/components/hud/MiniMap";
+import { SuitabilityOverlay } from "@/components/map/SuitabilityOverlay";
 
 // API keys are read dynamically to allow runtime updates via Settings
 
@@ -84,6 +85,7 @@ export const MapContainer = forwardRef<
   const [activeMode, setActiveMode] = useState<DrawingMode>(null);
   const { toast } = useToast();
   const { measurements } = useMapMeasurements();
+  const [showSuitability, setShowSuitability] = useState(false);
 
   // Expose methods to parent component
   useImperativeHandle(ref, () => ({
@@ -914,6 +916,9 @@ export const MapContainer = forwardRef<
             alertRadius={alertRadius}
           />
         </>
+      )}
+      {!usingMapbox && showSuitability && (
+        <SuitabilityOverlay map={mapInstanceRef.current} enabled={true} />
       )}
       {!usingMapbox && showDarkZones && (
         <DarkZoneLayer
