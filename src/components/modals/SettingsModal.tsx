@@ -43,6 +43,8 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     soundVolume: 70,
     radarAudioEnabled: false,
     radarAudioVolume: 50,
+    // Boot overlay
+    bootOverlay: true,
     // Weather Alerts
     weatherAlertsEnabled: true,
     weatherAlertRadius: 15,
@@ -58,8 +60,12 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
       | "security"
       | "aviation"
       | "division-shd"
+      | "division-shd-faithful"
       | "dark-zone"
+      | "dark-zone-faithful"
       | "black-tusk",
+      // fidelity toggle: original-inspired vs faithful (close color matching)
+    fidelityMode: "inspired" as "inspired" | "faithful",
     mapTheme: "division" as "division" | "animus",
     preferredMapProvider: "auto" as "auto" | "google" | "mapbox" | "maplibre" | "leaflet",
     wallpaperUrl: "",
@@ -310,9 +316,17 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     { id: "industry-blue", label: "Industry Blue", premium: false },
                     { id: "safety-green", label: "Safety Green", premium: false },
                     // Division-inspired collection
-                    { id: "division-shd", label: "Division: SHD", premium: false },
-                    { id: "dark-zone", label: "Division: Dark Zone", premium: false },
-                    { id: "black-tusk", label: "Division: Black Tusk", premium: false },
+                    { id: "division-shd", label: "Division: SHD (Inspired)", premium: false },
+                    { id: "division-shd-faithful", label: "Division: SHD (Faithful)", premium: false },
+                    { id: "dark-zone", label: "Dark Zone (Inspired)", premium: false },
+                    { id: "dark-zone-faithful", label: "Dark Zone (Faithful)", premium: false },
+                    { id: "black-tusk", label: "Black Tusk (Inspired)", premium: false },
+                    { id: "black-tusk-faithful", label: "Black Tusk (Faithful)", premium: false },
+                    { id: "isac-core", label: "ISAC Core", premium: false },
+                    { id: "hunter", label: "Hunter", premium: false },
+                    { id: "rogue-agent", label: "Rogue Agent", premium: false },
+                    { id: "contaminated", label: "Contaminated", premium: false },
+                    { id: "night-ops", label: "Night Ops", premium: false },
                     // Premium industry themes
                     { id: "construction", label: "Construction (Premium)", premium: true },
                     { id: "landscaping", label: "Landscaping (Premium)", premium: true },
@@ -332,6 +346,44 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     </Button>
                   ))}
                 </div>
+              </div>
+
+              {/* Fidelity Mode Toggle */}
+              <div className="tactical-panel p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Fidelity Mode</Label>
+                    <p className="text-xs text-muted-foreground">Switch between Inspired (original) and Faithful color tuning</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant={settings.fidelityMode === "inspired" ? "default" : "outline"}
+                      onClick={() => setSettings((p) => ({ ...p, fidelityMode: "inspired" }))}
+                    >
+                      Inspired
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={settings.fidelityMode === "faithful" ? "default" : "outline"}
+                      onClick={() => {
+                        // auto-map base inspired themes to faithful variants when relevant
+                        const mapToFaithful: Record<string, string> = {
+                          "division-shd": "division-shd-faithful",
+                          "dark-zone": "dark-zone-faithful",
+                          "black-tusk": "black-tusk-faithful",
+                        };
+                        const nextTheme = (mapToFaithful[settings.theme as string] || settings.theme) as any;
+                        setSettings((p) => ({ ...p, fidelityMode: "faithful", theme: nextTheme }));
+                      }}
+                    >
+                      Faithful
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Fidelity affects palette intensity only. No third-party logos or assets are used.
+                </p>
               </div>
 
               {/* Map Theme Selection */}
@@ -854,6 +906,16 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     />
                   </div>
                 )}
+                <div className="mt-6 flex items-center justify-between">
+                  <div>
+                    <Label>Boot Overlay</Label>
+                    <p className="text-sm text-muted-foreground">Show ISAC-style boot animation on app load</p>
+                  </div>
+                  <Switch
+                    checked={settings.bootOverlay}
+                    onCheckedChange={() => handleToggle('bootOverlay')}
+                  />
+                </div>
               </div>
             </TabsContent>
 

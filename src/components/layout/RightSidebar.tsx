@@ -21,6 +21,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DrawingMode } from "@/hooks/useMapDrawing";
+import { Waves, Radio, FlameKindling } from "lucide-react";
+import { Waves, Radio } from "lucide-react";
 
 interface RightSidebarProps {
   onAIClick: () => void;
@@ -185,6 +187,7 @@ export const RightSidebar = ({
             </Button>
           )}
 
+<<<<<<< HEAD
           {onImageryChange && (
             <>
               <div className="h-px w-10 bg-primary/30 my-1" />
@@ -217,6 +220,77 @@ export const RightSidebar = ({
               </Button>
             </>
           )}
+=======
+          {/* Suitability Overlay (hazard/ok tint) */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-12 h-12 p-0 hover:bg-red-500/20 hover:text-red-500 border border-transparent hover:border-red-500/50 transition-all"
+            onClick={() => {
+              const evt = new CustomEvent('toggle-suitability', { detail: {} });
+              window.dispatchEvent(evt);
+            }}
+            title="Suitability Overlay"
+          >
+            <Waves className="w-5 h-5" />
+          </Button>
+
+          {/* Pulse Scan */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-12 h-12 p-0 hover:bg-cyan-500/20 hover:text-cyan-500 border border-transparent hover:border-cyan-500/50 transition-all"
+            onClick={() => {
+              const evt = new CustomEvent('toggle-pulse-scan', { detail: {} });
+              window.dispatchEvent(evt);
+            }}
+            title="Pulse Scan"
+          >
+            <Radio className="w-5 h-5" />
+          </Button>
+
+          {/* Heatmap */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-12 h-12 p-0 hover:bg-amber-500/20 hover:text-amber-500 border border-transparent hover:border-amber-500/50 transition-all"
+            onClick={() => {
+              const evt = new CustomEvent('toggle-heatmap', { detail: {} });
+              window.dispatchEvent(evt);
+            }}
+            title="Heatmap"
+          >
+            <FlameKindling className="w-5 h-5" />
+          </Button>
+
+          {/* Suitability Overlay (hazard/ok tint) */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-12 h-12 p-0 hover:bg-red-500/20 hover:text-red-500 border border-transparent hover:border-red-500/50 transition-all"
+            onClick={() => {
+              const evt = new CustomEvent('toggle-suitability', { detail: {} });
+              window.dispatchEvent(evt);
+            }}
+            title="Suitability Overlay"
+          >
+            <Waves className="w-5 h-5" />
+          </Button>
+
+          {/* Pulse Scan */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-12 h-12 p-0 hover:bg-cyan-500/20 hover:text-cyan-500 border border-transparent hover:border-cyan-500/50 transition-all"
+            onClick={() => {
+              const evt = new CustomEvent('toggle-pulse-scan', { detail: {} });
+              window.dispatchEvent(evt);
+            }}
+            title="Pulse Scan"
+          >
+            <Radio className="w-5 h-5" />
+          </Button>
+>>>>>>> origin/main
 
           {onModeChange && (
             <>
