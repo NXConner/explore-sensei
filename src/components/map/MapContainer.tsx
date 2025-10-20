@@ -34,8 +34,6 @@ import {
   getMapTilerApiKey,
   getUSGSImageryWmsUrl,
   getUSDA_NAIP_WmsUrl,
-  getPatrickCountyWmsUrl,
-  getPatrickCountyEsriFeatureUrl,
 } from "@/config/env";
 =======
 import { PulseScanOverlay } from "@/components/map/PulseScanOverlay";
@@ -98,17 +96,14 @@ export const MapContainer = forwardRef<
   const [showAIDetection, setShowAIDetection] = useState(false);
   const [showEmployeeTracking, setShowEmployeeTracking] = useState(false);
   const [showWeatherRadar, setShowWeatherRadar] = useState(false);
-<<<<<<< HEAD
   const [imagery, setImagery] = useState<"none" | "naip" | "usgs">("none");
   const leafletImageryRef = useRef<L.TileLayer | null>(null);
   const googleImageryRef = useRef<google.maps.ImageMapType | null>(null);
-=======
   const [showDarkZones, setShowDarkZones] = useState(false);
   const [showSuitability, setShowSuitability] = useState(false);
   const [showPulseScan, setShowPulseScan] = useState(false);
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [heatmapPoints, setHeatmapPoints] = useState<Array<{ lat: number; lng: number; weight?: number }>>([]);
->>>>>>> origin/main
   const [radarOpacity, setRadarOpacity] = useState(70);
   const [alertRadius, setAlertRadius] = useState(15);
   const [mapTheme, setMapTheme] = useState<MapTheme>(props.initialMapTheme || "division");
@@ -1146,14 +1141,12 @@ export const MapContainer = forwardRef<
           />
         </>
       )}
-<<<<<<< HEAD
-      {/* Imagery toggle indicator (functional layers to be added in a dedicated overlay component) */}
+      {/* Imagery indicator and tactical overlays */}
       {imagery !== "none" && (
         <div className="absolute right-4 bottom-4 z-[500]">
           <div className="tactical-panel text-xs">Imagery: {imagery.toUpperCase()}</div>
         </div>
       )}
-=======
       {!usingMapbox && showSuitability && (
         <SuitabilityOverlay map={mapInstanceRef.current} enabled={true} />
       )}
@@ -1172,9 +1165,6 @@ export const MapContainer = forwardRef<
           }} />
         </div>
       )}
-      {!usingMapbox && showSuitability && (
-        <SuitabilityOverlay map={mapInstanceRef.current} enabled={true} />
-      )}
       {!usingMapbox && showDarkZones && (
         <DarkZoneLayer
           map={mapInstanceRef.current}
@@ -1186,7 +1176,6 @@ export const MapContainer = forwardRef<
           }}
         />
       )}
->>>>>>> origin/main
       <div
         ref={mapRef}
         className="absolute inset-0 w-full h-full map-container"

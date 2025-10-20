@@ -22,7 +22,6 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DrawingMode } from "@/hooks/useMapDrawing";
 import { Waves, Radio, FlameKindling } from "lucide-react";
-import { Waves, Radio } from "lucide-react";
 
 interface RightSidebarProps {
   onAIClick: () => void;
@@ -38,6 +37,8 @@ interface RightSidebarProps {
   showWeatherRadar?: boolean;
   onImageryChange?: (mode: "none" | "naip" | "usgs") => void;
   imagery?: "none" | "naip" | "usgs";
+  onToggleParcels?: () => void;
+  showParcels?: boolean;
   onModeChange?: (mode: DrawingMode) => void;
   activeMode?: DrawingMode;
   onClear?: () => void;
@@ -64,6 +65,8 @@ export const RightSidebar = ({
   onExport,
   onImageryChange,
   imagery = "none",
+  onToggleParcels,
+  showParcels = false,
 }: RightSidebarProps) => {
   const tools = [
     {
@@ -187,7 +190,6 @@ export const RightSidebar = ({
             </Button>
           )}
 
-<<<<<<< HEAD
           {onImageryChange && (
             <>
               <div className="h-px w-10 bg-primary/30 my-1" />
@@ -218,9 +220,20 @@ export const RightSidebar = ({
               >
                 U
               </Button>
+              {onToggleParcels && (
+                <Button
+                  variant={showParcels ? "default" : "ghost"}
+                  size="sm"
+                  className="w-12 h-12 p-0"
+                  onClick={onToggleParcels}
+                  title="Toggle Parcels"
+                >
+                  P
+                </Button>
+              )}
             </>
           )}
-=======
+
           {/* Suitability Overlay (hazard/ok tint) */}
           <Button
             variant="ghost"
@@ -262,35 +275,6 @@ export const RightSidebar = ({
           >
             <FlameKindling className="w-5 h-5" />
           </Button>
-
-          {/* Suitability Overlay (hazard/ok tint) */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-12 h-12 p-0 hover:bg-red-500/20 hover:text-red-500 border border-transparent hover:border-red-500/50 transition-all"
-            onClick={() => {
-              const evt = new CustomEvent('toggle-suitability', { detail: {} });
-              window.dispatchEvent(evt);
-            }}
-            title="Suitability Overlay"
-          >
-            <Waves className="w-5 h-5" />
-          </Button>
-
-          {/* Pulse Scan */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-12 h-12 p-0 hover:bg-cyan-500/20 hover:text-cyan-500 border border-transparent hover:border-cyan-500/50 transition-all"
-            onClick={() => {
-              const evt = new CustomEvent('toggle-pulse-scan', { detail: {} });
-              window.dispatchEvent(evt);
-            }}
-            title="Pulse Scan"
-          >
-            <Radio className="w-5 h-5" />
-          </Button>
->>>>>>> origin/main
 
           {onModeChange && (
             <>
