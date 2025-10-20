@@ -120,7 +120,6 @@ export const MapContainer = forwardRef<
   const [mapsUnavailable, setMapsUnavailable] = useState(false);
   const [usingMapbox, setUsingMapbox] = useState(false);
   const [configVersion, setConfigVersion] = useState(0);
-  const [showPulseScan, setShowPulseScan] = useState(false);
   const { data: jobSites } = useJobSites();
   const { measurement, setDrawingMode, clearDrawings } = useMapDrawing(mapInstanceRef.current);
   const [activeMode, setActiveMode] = useState<DrawingMode>(null);
@@ -1338,14 +1337,13 @@ export const MapContainer = forwardRef<
           />
         </>
       )}
-<<<<<<< HEAD
       {/* Imagery toggle indicator (functional layers to be added in a dedicated overlay component) */}
       {imagery !== "none" && (
         <div className="absolute right-4 bottom-4 z-[500]">
           <div className="tactical-panel text-xs">Imagery: {imagery.toUpperCase()}</div>
         </div>
       )}
-=======
+
       {!usingMapbox && showSuitability && (
         <SuitabilityOverlay
           map={mapInstanceRef.current}
@@ -1388,7 +1386,6 @@ export const MapContainer = forwardRef<
           }}
         />
       )}
->>>>>>> origin/main
       <div
         ref={mapRef}
         className="absolute inset-0 w-full h-full map-container"

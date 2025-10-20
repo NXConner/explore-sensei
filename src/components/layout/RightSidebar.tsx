@@ -22,11 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DrawingMode } from "@/hooks/useMapDrawing";
-<<<<<<< HEAD
 import { Waves, Radio, FlameKindling, Layers } from "lucide-react";
-=======
-import { Waves, Radio, FlameKindling } from "lucide-react";
->>>>>>> origin/main
 
 interface RightSidebarProps {
   onAIClick: () => void;
@@ -40,13 +36,10 @@ interface RightSidebarProps {
   showEmployeeTracking?: boolean;
   onToggleWeatherRadar?: () => void;
   showWeatherRadar?: boolean;
-<<<<<<< HEAD
   onToggleParcels?: () => void;
   showParcels?: boolean;
-=======
   onImageryChange?: (mode: "none" | "naip" | "usgs") => void;
   imagery?: "none" | "naip" | "usgs";
->>>>>>> origin/main
   onModeChange?: (mode: DrawingMode) => void;
   activeMode?: DrawingMode;
   onClear?: () => void;
@@ -198,7 +191,6 @@ export const RightSidebar = ({
             </Button>
           )}
 
-<<<<<<< HEAD
           {onToggleParcels && (
             <Button
               variant={showParcels ? "default" : "ghost"}
@@ -211,8 +203,6 @@ export const RightSidebar = ({
             </Button>
           )}
 
-=======
-<<<<<<< HEAD
           {onImageryChange && (
             <>
               <div className="h-px w-10 bg-primary/30 my-1" />
@@ -245,8 +235,6 @@ export const RightSidebar = ({
               </Button>
             </>
           )}
-=======
->>>>>>> origin/main
           {/* Suitability Overlay (hazard/ok tint) */}
           <Button
             variant="ghost"
@@ -330,7 +318,7 @@ export const RightSidebar = ({
           >
             <Radio className="w-5 h-5" />
           </Button>
->>>>>>> origin/main
+>
 
           {onModeChange && (
             <>
