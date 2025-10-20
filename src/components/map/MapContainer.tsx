@@ -29,7 +29,7 @@ import { CompassRose } from "@/components/hud/CompassRose";
 import { CoordinateDisplay } from "@/components/hud/CoordinateDisplay";
 import { ScaleBar } from "@/components/hud/ScaleBar";
 import { ZoomIndicator } from "@/components/hud/ZoomIndicator";
-// import { MiniMap } from "@/components/hud/MiniMap";
+import { MiniMap } from "@/components/hud/MiniMap";
 
 // API keys are read dynamically to allow runtime updates via Settings
 
@@ -851,9 +851,8 @@ export const MapContainer = forwardRef<
       <CoordinateDisplay lat={mapInstanceRef.current?.getCenter?.()?.lat()} lng={mapInstanceRef.current?.getCenter?.()?.lng()} />
       <ScaleBar lat={mapInstanceRef.current?.getCenter?.()?.lat()} zoom={mapInstanceRef.current?.getZoom?.() || 0} />
       <ZoomIndicator zoom={mapInstanceRef.current?.getZoom?.() || 0} />
-      {/* Optional */}
-      {/* Re-enable MiniMap */}
-      {/* <MiniMap /> */}
+      {/* MiniMap */}
+      <MiniMap />
 
       <MeasurementDisplay distance={measurement.distance} area={measurement.area} />
       <MapVisibilityControls />

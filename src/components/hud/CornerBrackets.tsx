@@ -23,6 +23,15 @@ export const CornerBrackets: React.FC = () => {
       {corner("tr")}
       {corner("bl")}
       {corner("br")}
+      {/* Center reticle */}
+      <div className="pointer-events-none absolute inset-0 z-[900] flex items-center justify-center">
+        <div className="w-6 h-6 rounded-full border border-primary/40 relative">
+          <div className="absolute left-1/2 top-0 -translate-x-1/2 w-px h-2 bg-primary/40" />
+          <div className="absolute left-1/2 bottom-0 -translate-x-1/2 w-px h-2 bg-primary/40" />
+          <div className="absolute top-1/2 left-0 -translate-y-1/2 h-px w-2 bg-primary/40" />
+          <div className="absolute top-1/2 right-0 -translate-y-1/2 h-px w-2 bg-primary/40" />
+        </div>
+      </div>
     </>
   );
 };
