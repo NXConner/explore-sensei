@@ -14,6 +14,10 @@ interface MapEffectsProps {
   radarType?: "standard" | "sonar" | "aviation";
   radarAudioEnabled?: boolean;
   radarAudioVolume?: number; // 0..100
+  masterVolumePercent?: number; // 0..100
+  lowPowerMode?: boolean;
+  reduceMotion?: boolean;
+  useCanvasFX?: boolean;
 }
 
 export const MapEffects = ({
@@ -29,6 +33,10 @@ export const MapEffects = ({
   radarType = "standard",
   radarAudioEnabled = false,
   radarAudioVolume = 50,
+  masterVolumePercent = 70,
+  lowPowerMode = false,
+  reduceMotion = false,
+  useCanvasFX = false,
 }: MapEffectsProps) => {
   const radarRef = useRef<HTMLDivElement>(null);
   const glitchRef = useRef<HTMLDivElement>(null);
@@ -36,9 +44,9 @@ export const MapEffects = ({
   const aviationRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Respect prefers-reduced-motion
+    // Respect reduced motion and low power
     const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (!showRadar || prefersReduced) return;
+    if (!showRadar || prefersReduced || reduceMotion || lowPowerMode) return;
     let raf: number | null = null;
     let angle = 0;
     const animate = () => {
@@ -59,7 +67,7 @@ export const MapEffects = ({
 
   useEffect(() => {
     const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (!showGlitch || !glitchRef.current || prefersReduced) return;
+    if (!showGlitch || !glitchRef.current || prefersReduced || reduceMotion || lowPowerMode) return;
 
     const glitch = glitchRef.current;
     let glitchInterval: ReturnType<typeof setInterval>;
@@ -79,7 +87,7 @@ export const MapEffects = ({
   // Click-triggered glitch burst on UI interactions
   useEffect(() => {
     const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (!showGlitch || !glitchRef.current || prefersReduced) return;
+    if (!showGlitch || !glitchRef.current || prefersReduced || reduceMotion || lowPowerMode) return;
     const glitch = glitchRef.current;
 
     const handleClick = (e: MouseEvent) => {
@@ -113,8 +121,8 @@ export const MapEffects = ({
   // Audio pings for radar
   useEffect(() => {
     const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (!radarAudioEnabled || !showRadar || prefersReduced) return;
-    const revolutionMs = Math.max(800, 6000 - (radarSpeed || 1) * 500);
+    if (!radarAudioEnabled || !showRadar || prefersReduced || reduceMotion) return;
+    const revolutionMs = Math.max(1000, 6500 - (radarSpeed || 1) * 450);
     const pingEveryDegrees = 45; // 8 pings per revolution
     const pingInterval = Math.max(120, (revolutionMs * pingEveryDegrees) / 360);
 
@@ -130,7 +138,7 @@ export const MapEffects = ({
     })();
 
     const type = radarType === "aviation" ? "square" : radarType === "sonar" ? "sine" : "triangle";
-    const vol = Math.max(0, Math.min(1, (radarAudioVolume ?? 50) / 100));
+    const vol = Math.max(0, Math.min(1, ((radarAudioVolume ?? 50) / 100) * Math.max(0, Math.min(1, (masterVolumePercent ?? 70) / 100))));
 
     const id = window.setInterval(() => {
       try { beep({ frequency, durationMs: 60, volume: vol, type: type as any }); } catch {}
