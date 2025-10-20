@@ -18,8 +18,10 @@ import { EmployeeTrackingLayer } from "./EmployeeTrackingLayer";
 import { MapEffects } from "./MapEffects";
 import { divisionMapStyle, animusMapStyle } from "./themes";
 import { WeatherRadarLayer } from "@/components/weather/WeatherRadarLayer";
+import { DarkZoneLayer } from "@/components/map/DarkZoneLayer";
 import { RainRadarOverlay } from "@/components/weather/RainRadarOverlay";
 import { MapContext } from "./MapContext";
+import { PulseScanOverlay } from "@/components/map/PulseScanOverlay";
 import { getGoogleMapsApiKey, getMapboxAccessToken, getPreferredMapProvider } from "@/config/env";
 import { logger } from "@/lib/monitoring";
 import { geocodeAddress, getDirections } from "@/lib/mapsClient";
@@ -28,7 +30,11 @@ import { CompassRose } from "@/components/hud/CompassRose";
 import { CoordinateDisplay } from "@/components/hud/CoordinateDisplay";
 import { ScaleBar } from "@/components/hud/ScaleBar";
 import { ZoomIndicator } from "@/components/hud/ZoomIndicator";
-// import { MiniMap } from "@/components/hud/MiniMap";
+import { MiniMap } from "@/components/hud/MiniMap";
+import { SuitabilityOverlay } from "@/components/map/SuitabilityOverlay";
+import { HeatmapOverlay } from "@/components/map/HeatmapOverlay";
+import { RadialMenu } from "@/components/map/RadialMenu";
+import { SuitabilityOverlay } from "@/components/map/SuitabilityOverlay";
 
 // API keys are read dynamically to allow runtime updates via Settings
 
@@ -40,6 +46,7 @@ export interface MapContainerRef {
   handleToggleStreetView: () => void;
   toggleEmployeeTracking: () => void;
   toggleWeatherRadar: () => void;
+  handleTogglePulseScan: () => void;
   handleModeChange: (mode: DrawingMode) => void;
   handleClear: () => void;
   handleSave: () => void;
@@ -64,21 +71,29 @@ export const MapContainer = forwardRef<
   const streetViewRef = useRef<google.maps.StreetViewPanorama | null>(null);
   const searchMarkerRef = useRef<google.maps.Marker | null>(null);
   const routePolylineRef = useRef<google.maps.Polyline | null>(null);
+  const routeCometRef = useRef<google.maps.Circle | null>(null);
   const [showStreetView, setShowStreetView] = useState(false);
   const [showAIDetection, setShowAIDetection] = useState(false);
   const [showEmployeeTracking, setShowEmployeeTracking] = useState(false);
   const [showWeatherRadar, setShowWeatherRadar] = useState(false);
+  const [showDarkZones, setShowDarkZones] = useState(false);
+  const [showSuitability, setShowSuitability] = useState(false);
+  const [showPulseScan, setShowPulseScan] = useState(false);
+  const [showHeatmap, setShowHeatmap] = useState(false);
+  const [heatmapPoints, setHeatmapPoints] = useState<Array<{ lat: number; lng: number; weight?: number }>>([]);
   const [radarOpacity, setRadarOpacity] = useState(70);
   const [alertRadius, setAlertRadius] = useState(15);
   const [mapTheme, setMapTheme] = useState<MapTheme>(props.initialMapTheme || "division");
   const [mapsUnavailable, setMapsUnavailable] = useState(false);
   const [usingMapbox, setUsingMapbox] = useState(false);
   const [configVersion, setConfigVersion] = useState(0);
+  const [showPulseScan, setShowPulseScan] = useState(false);
   const { data: jobSites } = useJobSites();
   const { measurement, setDrawingMode, clearDrawings } = useMapDrawing(mapInstanceRef.current);
   const [activeMode, setActiveMode] = useState<DrawingMode>(null);
   const { toast } = useToast();
   const { measurements } = useMapMeasurements();
+  const [showSuitability, setShowSuitability] = useState(false);
 
   // Expose methods to parent component
   useImperativeHandle(ref, () => ({
@@ -90,6 +105,7 @@ export const MapContainer = forwardRef<
     handleModeChange,
     handleClear,
     handleSave,
+    handleTogglePulseScan: () => setShowPulseScan((v) => !v),
     getShowTraffic: () => trafficLayerRef.current?.getMap() != null,
     getShowEmployeeTracking: () => showEmployeeTracking,
     getShowWeatherRadar: () => showWeatherRadar,
@@ -211,6 +227,40 @@ export const MapContainer = forwardRef<
     };
   }, []);
 
+  // Listen for Dark Zones toggle from sidebar
+  useEffect(() => {
+    const handler = (e: any) => {
+      const enabled = !!e?.detail?.enabled;
+      setShowDarkZones(enabled);
+    };
+    window.addEventListener('toggle-dark-zones', handler as any);
+    return () => window.removeEventListener('toggle-dark-zones', handler as any);
+  }, []);
+
+  // Listen for Suitability / Pulse Scan toggles
+  useEffect(() => {
+    const onSuitability = () => setShowSuitability((v) => !v);
+    const onPulse = () => setShowPulseScan((v) => !v);
+    const onHeat = () => setShowHeatmap((v) => !v);
+    window.addEventListener('toggle-suitability', onSuitability as any);
+    window.addEventListener('toggle-pulse-scan', onPulse as any);
+    window.addEventListener('toggle-heatmap', onHeat as any);
+    return () => {
+      window.removeEventListener('toggle-suitability', onSuitability as any);
+      window.removeEventListener('toggle-pulse-scan', onPulse as any);
+      window.removeEventListener('toggle-heatmap', onHeat as any);
+    };
+  }, []);
+
+  // Build heatmap points from job sites as a placeholder; could be productivity/issue density
+  useEffect(() => {
+    if (!jobSites) return;
+    const pts = jobSites
+      .filter((s) => s.latitude && s.longitude)
+      .map((s) => ({ lat: Number(s.latitude), lng: Number(s.longitude), weight: Math.max(1, Math.min(5, (s.progress || 0) / 20)) }));
+    setHeatmapPoints(pts);
+  }, [jobSites]);
+
   const handleModeChange = (mode: DrawingMode) => {
     setActiveMode(mode);
     setDrawingMode(mode);
@@ -219,6 +269,15 @@ export const MapContainer = forwardRef<
   const handleClear = () => {
     clearDrawings();
     setActiveMode(null);
+    try {
+      routePolylineRef.current?.setMap(null);
+      routePolylineRef.current = null;
+      if (routeCometRef.current) {
+        window.clearInterval((routeCometRef.current as any).__pulse);
+        routeCometRef.current.setMap(null);
+        routeCometRef.current = null;
+      }
+    } catch {}
   };
 
   const handleLocateMe = () => {
@@ -341,10 +400,41 @@ export const MapContainer = forwardRef<
       routePolylineRef.current = new google.maps.Polyline({
         path,
         strokeColor: "#00ffff",
-        strokeOpacity: 0.8,
+        strokeOpacity: 0.9,
         strokeWeight: 4,
         map: mapInstanceRef.current,
+        icons: [{
+          icon: { path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW, scale: 2, strokeOpacity: 0, fillOpacity: 0 },
+          offset: "0%",
+          repeat: "20px",
+        }],
       });
+
+      // Comet pulse traveling along route
+      try {
+        const comet = new google.maps.Circle({
+          radius: 8,
+          strokeColor: "#00ffff",
+          strokeOpacity: 0.0,
+          strokeWeight: 1,
+          fillColor: "#00ffff",
+          fillOpacity: 0.9,
+          map: mapInstanceRef.current,
+        });
+        routeCometRef.current = comet;
+        let i = 0;
+        const pts = path.map((p) => ({ lat: p.lat(), lng: p.lng() }));
+        const id = window.setInterval(() => {
+          if (!mapInstanceRef.current || !routeCometRef.current || pts.length === 0) return;
+          const idx = i % pts.length;
+          routeCometRef.current.setCenter(pts[idx]);
+          // pulse size
+          const r = 6 + (idx % 6);
+          routeCometRef.current.setRadius(r);
+          i += 2;
+        }, 60);
+        (comet as any).__pulse = id;
+      } catch {}
 
       const bounds = new google.maps.LatLngBounds();
       path.forEach((latLng) => bounds.extend(latLng));
@@ -615,10 +705,23 @@ export const MapContainer = forwardRef<
 
   // Apply theme class to body for CSS variables
   useEffect(() => {
-    const clsDivision = "theme-division";
-    const clsAnimus = "theme-animus";
-    document.body.classList.remove(clsDivision, clsAnimus);
-    document.body.classList.add(mapTheme === "division" ? clsDivision : clsAnimus);
+    const classes = [
+      "theme-division",
+      "theme-animus",
+      "theme-division-shd",
+      "theme-division-shd-faithful",
+      "theme-dark-zone",
+      "theme-dark-zone-faithful",
+      "theme-black-tusk",
+      "theme-black-tusk-faithful",
+      "theme-night-ops",
+      "theme-isac-core",
+      "theme-rogue-agent",
+      "theme-contaminated",
+    ];
+    document.body.classList.remove(...classes);
+    // Base map style remains Division or Animus; body class controls UI tokens
+    document.body.classList.add(mapTheme === "division" ? "theme-division" : "theme-animus");
     if (mapInstanceRef.current) {
       mapInstanceRef.current.setOptions({
         styles: mapTheme === "division" ? divisionMapStyle : animusMapStyle,
@@ -819,6 +922,7 @@ export const MapContainer = forwardRef<
         radarAudioEnabled={uiSettings.radarAudioEnabled}
         radarAudioVolume={uiSettings.radarAudioVolume}
       />
+      <PulseScanOverlay enabled={showPulseScan} color={mapTheme === 'division' ? 'rgba(0,255,255,0.16)' : 'rgba(255,140,0,0.16)'} speed={4} />
 
       {/* HUD overlay elements */}
       <CornerBrackets />
@@ -826,8 +930,10 @@ export const MapContainer = forwardRef<
       <CoordinateDisplay lat={mapInstanceRef.current?.getCenter?.()?.lat()} lng={mapInstanceRef.current?.getCenter?.()?.lng()} />
       <ScaleBar lat={mapInstanceRef.current?.getCenter?.()?.lat()} zoom={mapInstanceRef.current?.getZoom?.() || 0} />
       <ZoomIndicator zoom={mapInstanceRef.current?.getZoom?.() || 0} />
-      {/* Optional */}
-      {/* <MiniMap /> */}
+      {/* MiniMap */}
+      <MiniMap />
+      {/* Radial Menu (hold 'Q') */}
+      <RadialMenu onSelect={(mode) => handleModeChange(mode)} />
 
       <MeasurementDisplay distance={measurement.distance} area={measurement.area} />
       <MapVisibilityControls />
@@ -844,6 +950,38 @@ export const MapContainer = forwardRef<
             alertRadius={alertRadius}
           />
         </>
+      )}
+      {!usingMapbox && showSuitability && (
+        <SuitabilityOverlay map={mapInstanceRef.current} enabled={true} />
+      )}
+
+      {!usingMapbox && showHeatmap && (
+        <HeatmapOverlay map={mapInstanceRef.current} enabled={true} points={heatmapPoints} />
+      )}
+
+      {showPulseScan && (
+        <div className="absolute inset-0 pointer-events-none z-[120]">
+          <div className="absolute top-1/2 left-1/2 w-[200%] h-[200%]" style={{
+            background: mapTheme === 'division' ? 'conic-gradient(from 0deg, transparent 0%, rgba(0,255,255,0.16) 8%, transparent 14%)' : 'conic-gradient(from 0deg, transparent 0%, rgba(255,140,0,0.16) 8%, transparent 14%)',
+            transform: 'translate(-50%, -50%)',
+            transformOrigin: 'center',
+            animation: 'spin 3s linear infinite'
+          }} />
+        </div>
+      )}
+      {!usingMapbox && showSuitability && (
+        <SuitabilityOverlay map={mapInstanceRef.current} enabled={true} />
+      )}
+      {!usingMapbox && showDarkZones && (
+        <DarkZoneLayer
+          map={mapInstanceRef.current}
+          onEnterZone={() => {
+            try {
+              // subtle vibration on supported devices
+              (navigator as any).vibrate?.(50);
+            } catch {}
+          }}
+        />
       )}
       <div
         ref={mapRef}

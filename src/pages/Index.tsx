@@ -207,6 +207,18 @@ const Index = () => {
       className="relative h-screen w-full overflow-hidden bg-background"
       data-testid="root-shell"
     >
+      {/* Objective Ribbon */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 z-[960] mt-2">
+        <div className="hud-element px-4 py-2 text-xs flex items-center gap-3">
+          <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+          <span className="uppercase tracking-widest">Active Mission</span>
+          <span className="text-muted-foreground">— Today’s Schedule</span>
+          <div className="w-32 h-1 bg-primary/20 rounded overflow-hidden">
+            <div className="h-full bg-primary" style={{ width: "45%" }} />
+          </div>
+          <span className="text-muted-foreground">ETA 2h</span>
+        </div>
+      </div>
       {/* Main Map */}
       <MapContainer ref={mapContainerRef} initialMapTheme={mapTheme} />
 

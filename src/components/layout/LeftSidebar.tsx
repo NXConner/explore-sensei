@@ -208,7 +208,13 @@ export const LeftSidebar = () => {
               <Checkbox
                 id="darkZones"
                 checked={layersVisible.darkZones}
-                onCheckedChange={() => handleLayerToggle("darkZones")}
+                onCheckedChange={() => {
+                  handleLayerToggle("darkZones");
+                  try {
+                    const evt = new CustomEvent('toggle-dark-zones', { detail: { enabled: !layersVisible.darkZones } });
+                    window.dispatchEvent(evt);
+                  } catch {}
+                }}
               />
               <label htmlFor="darkZones" className="text-xs cursor-pointer">
                 Dark Zones

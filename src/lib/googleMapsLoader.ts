@@ -6,7 +6,12 @@ let loaderPromise: Promise<void> | null = null;
 let lastKey: string | undefined;
 
 export function loadGoogleMaps(
-  libraries: Array<"places" | "drawing" | "geometry"> = ["places", "drawing", "geometry"],
+  libraries: Array<"places" | "drawing" | "geometry" | "visualization"> = [
+    "places",
+    "drawing",
+    "geometry",
+    "visualization",
+  ],
 ): Promise<void> {
   if (typeof window === "undefined") {
     return Promise.reject(new Error("Google Maps can only load in the browser"));

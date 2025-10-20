@@ -36,7 +36,9 @@ export const MapEffects = ({
   const aviationRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!showRadar) return;
+    // Respect prefers-reduced-motion
+    const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!showRadar || prefersReduced) return;
     let raf: number | null = null;
     let angle = 0;
     const animate = () => {
@@ -56,7 +58,8 @@ export const MapEffects = ({
   }, [showRadar, radarSpeed]);
 
   useEffect(() => {
-    if (!showGlitch || !glitchRef.current) return;
+    const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!showGlitch || !glitchRef.current || prefersReduced) return;
 
     const glitch = glitchRef.current;
     let glitchInterval: ReturnType<typeof setInterval>;
@@ -75,7 +78,8 @@ export const MapEffects = ({
 
   // Click-triggered glitch burst on UI interactions
   useEffect(() => {
-    if (!showGlitch || !glitchRef.current) return;
+    const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!showGlitch || !glitchRef.current || prefersReduced) return;
     const glitch = glitchRef.current;
 
     const handleClick = (e: MouseEvent) => {
@@ -108,7 +112,8 @@ export const MapEffects = ({
 
   // Audio pings for radar
   useEffect(() => {
-    if (!radarAudioEnabled || !showRadar) return;
+    const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!radarAudioEnabled || !showRadar || prefersReduced) return;
     const revolutionMs = Math.max(800, 6000 - (radarSpeed || 1) * 500);
     const pingEveryDegrees = 45; // 8 pings per revolution
     const pingInterval = Math.max(120, (revolutionMs * pingEveryDegrees) / 360);
