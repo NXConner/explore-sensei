@@ -32,6 +32,7 @@ import { ScaleBar } from "@/components/hud/ScaleBar";
 import { ZoomIndicator } from "@/components/hud/ZoomIndicator";
 import { MiniMap } from "@/components/hud/MiniMap";
 import { SuitabilityOverlay } from "@/components/map/SuitabilityOverlay";
+import { SuitabilityOverlay } from "@/components/map/SuitabilityOverlay";
 
 // API keys are read dynamically to allow runtime updates via Settings
 
@@ -73,6 +74,8 @@ export const MapContainer = forwardRef<
   const [showEmployeeTracking, setShowEmployeeTracking] = useState(false);
   const [showWeatherRadar, setShowWeatherRadar] = useState(false);
   const [showDarkZones, setShowDarkZones] = useState(false);
+  const [showSuitability, setShowSuitability] = useState(false);
+  const [showPulseScan, setShowPulseScan] = useState(false);
   const [radarOpacity, setRadarOpacity] = useState(70);
   const [alertRadius, setAlertRadius] = useState(15);
   const [mapTheme, setMapTheme] = useState<MapTheme>(props.initialMapTheme || "division");
@@ -227,6 +230,18 @@ export const MapContainer = forwardRef<
     };
     window.addEventListener('toggle-dark-zones', handler as any);
     return () => window.removeEventListener('toggle-dark-zones', handler as any);
+  }, []);
+
+  // Listen for Suitability / Pulse Scan toggles
+  useEffect(() => {
+    const onSuitability = () => setShowSuitability((v) => !v);
+    const onPulse = () => setShowPulseScan((v) => !v);
+    window.addEventListener('toggle-suitability', onSuitability as any);
+    window.addEventListener('toggle-pulse-scan', onPulse as any);
+    return () => {
+      window.removeEventListener('toggle-suitability', onSuitability as any);
+      window.removeEventListener('toggle-pulse-scan', onPulse as any);
+    };
   }, []);
 
   const handleModeChange = (mode: DrawingMode) => {
@@ -916,6 +931,20 @@ export const MapContainer = forwardRef<
             alertRadius={alertRadius}
           />
         </>
+      )}
+      {!usingMapbox && showSuitability && (
+        <SuitabilityOverlay map={mapInstanceRef.current} enabled={true} />
+      )}
+
+      {showPulseScan && (
+        <div className="absolute inset-0 pointer-events-none z-[120]">
+          <div className="absolute top-1/2 left-1/2 w-[200%] h-[200%]" style={{
+            background: mapTheme === 'division' ? 'conic-gradient(from 0deg, transparent 0%, rgba(0,255,255,0.16) 8%, transparent 14%)' : 'conic-gradient(from 0deg, transparent 0%, rgba(255,140,0,0.16) 8%, transparent 14%)',
+            transform: 'translate(-50%, -50%)',
+            transformOrigin: 'center',
+            animation: 'spin 3s linear infinite'
+          }} />
+        </div>
       )}
       {!usingMapbox && showSuitability && (
         <SuitabilityOverlay map={mapInstanceRef.current} enabled={true} />
