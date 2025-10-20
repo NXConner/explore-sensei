@@ -142,6 +142,7 @@ const Index = () => {
     showTraffic: false,
     showEmployeeTracking: false,
     showWeatherRadar: false,
+    showParcels: false,
     activeMode: null as DrawingMode,
   });
 
@@ -172,6 +173,7 @@ const Index = () => {
           showTraffic: mapContainerRef.current.getShowTraffic(),
           showEmployeeTracking: mapContainerRef.current.getShowEmployeeTracking(),
           showWeatherRadar: mapContainerRef.current.getShowWeatherRadar(),
+          showParcels: mapContainerRef.current.getShowParcels(),
           activeMode: mapContainerRef.current.getActiveMode(),
         });
       }
@@ -247,6 +249,8 @@ const Index = () => {
         showEmployeeTracking={mapState.showEmployeeTracking}
         onToggleWeatherRadar={() => mapContainerRef.current?.toggleWeatherRadar()}
         showWeatherRadar={mapState.showWeatherRadar}
+        onToggleParcels={() => mapContainerRef.current?.toggleParcels()}
+        showParcels={mapState.showParcels}
         onModeChange={(mode) => mapContainerRef.current?.handleModeChange(mode)}
         activeMode={mapState.activeMode}
         onClear={() => mapContainerRef.current?.handleClear()}

@@ -86,6 +86,33 @@ export function getOpenWeatherApiKey(): string | undefined {
   return undefined;
 }
 
+/**
+ * Returns a URL template for parcel tiles, e.g.
+ * https://server/arcgis/rest/services/Parcels/MapServer/tile/{z}/{y}/{x}
+ * LocalStorage path: aos_settings.providers.parcelsTilesTemplate
+ * Env var fallback: VITE_PARCELS_TILES_TEMPLATE
+ */
+export function getParcelsTilesTemplate(): string | undefined {
+  try {
+    const ls = readLocalStorageApiKey(["providers", "parcelsTilesTemplate"]);
+    if (ls) return ls;
+  } catch {}
+
+  const candidates = [
+    import.meta.env.VITE_PARCELS_TILES_TEMPLATE as unknown as string | undefined,
+  ];
+
+  for (const value of candidates) {
+    if (typeof value !== "string") continue;
+    const normalized = value.trim().replace(/^['"]|['"]$/g, "");
+    if (!normalized) continue;
+    const lower = normalized.toLowerCase();
+    if (lower === "undefined" || lower === "null") continue;
+    return normalized;
+  }
+  return undefined;
+}
+
 export function detectExistingApiKeys(): {
   googleMaps?: string;
   googleGeneric?: string;

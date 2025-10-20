@@ -21,8 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DrawingMode } from "@/hooks/useMapDrawing";
-import { Waves, Radio, FlameKindling } from "lucide-react";
-import { Waves, Radio } from "lucide-react";
+import { Waves, Radio, FlameKindling, Layers } from "lucide-react";
 
 interface RightSidebarProps {
   onAIClick: () => void;
@@ -36,6 +35,8 @@ interface RightSidebarProps {
   showEmployeeTracking?: boolean;
   onToggleWeatherRadar?: () => void;
   showWeatherRadar?: boolean;
+  onToggleParcels?: () => void;
+  showParcels?: boolean;
   onModeChange?: (mode: DrawingMode) => void;
   activeMode?: DrawingMode;
   onClear?: () => void;
@@ -55,6 +56,8 @@ export const RightSidebar = ({
   showEmployeeTracking = false,
   onToggleWeatherRadar,
   showWeatherRadar = false,
+  onToggleParcels,
+  showParcels = false,
   onModeChange,
   activeMode = null,
   onClear,
@@ -180,6 +183,18 @@ export const RightSidebar = ({
               title="Weather Radar"
             >
               <Cloud className="w-5 h-5 text-sky-500" />
+            </Button>
+          )}
+
+          {onToggleParcels && (
+            <Button
+              variant={showParcels ? "default" : "ghost"}
+              size="sm"
+              className="w-12 h-12 p-0 hover:bg-emerald-500/20 hover:text-emerald-500 border border-transparent hover:border-emerald-500/50 transition-all"
+              onClick={onToggleParcels}
+              title="Parcels Overlay"
+            >
+              <Layers className="w-5 h-5 text-emerald-500" />
             </Button>
           )}
 
