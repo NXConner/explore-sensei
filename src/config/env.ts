@@ -86,21 +86,34 @@ export function getOpenWeatherApiKey(): string | undefined {
   return undefined;
 }
 
+export function getMapTilerApiKey(): string | undefined {
+  const lsOverride = readLocalStorageApiKey(["apiKeys", "maptiler"]);
+  if (lsOverride) return lsOverride;
+  const value = (import.meta as any).env.VITE_MAPTILER_API_KEY as string | undefined;
+  if (!value || typeof value !== "string") return undefined;
+  const normalized = value.trim().replace(/^['"]|['"]$/g, "");
+  const lower = normalized.toLowerCase();
+  if (!normalized || lower === "undefined" || lower === "null") return undefined;
+  return normalized;
+}
+
 export function detectExistingApiKeys(): {
   googleMaps?: string;
   googleGeneric?: string;
   mapbox?: string;
   openWeather?: string;
+  maptiler?: string;
 } {
   return {
     googleMaps: getGoogleMapsApiKey(),
     googleGeneric: import.meta.env.VITE_GOOGLE_API_KEY as any,
     mapbox: getMapboxAccessToken(),
     openWeather: getOpenWeatherApiKey(),
+    maptiler: getMapTilerApiKey(),
   };
 }
 
-export type MapProviderPreference = "auto" | "google" | "mapbox";
+export type MapProviderPreference = "auto" | "google" | "mapbox" | "maplibre" | "leaflet";
 
 export function getPreferredMapProvider(): MapProviderPreference {
   try {
@@ -109,8 +122,54 @@ export function getPreferredMapProvider(): MapProviderPreference {
     if (!raw) return "auto";
     const parsed = JSON.parse(raw);
     const val = parsed?.preferredMapProvider;
-    return val === "google" || val === "mapbox" ? val : "auto";
+    return val === "google" || val === "mapbox" || val === "maplibre" || val === "leaflet" ? val : "auto";
   } catch {
     return "auto";
   }
+}
+
+export function getMapLibreStyleUrl(): string | undefined {
+  const lsOverride = readLocalStorageApiKey(["apiKeys", "maplibreStyle"]);
+  if (lsOverride) return lsOverride;
+  const value = (import.meta as any).env.VITE_MAPLIBRE_STYLE_URL as string | undefined;
+  if (!value || typeof value !== "string") return undefined;
+  const normalized = value.trim().replace(/^['"]|['"]$/g, "");
+  const lower = normalized.toLowerCase();
+  if (!normalized || lower === "undefined" || lower === "null") return undefined;
+  return normalized;
+}
+
+export function getBasemapPmtilesUrl(): string | undefined {
+  const lsOverride = readLocalStorageApiKey(["providers", "basemapPmtiles"]);
+  if (lsOverride) return lsOverride;
+  const value = (import.meta as any).env.VITE_BASEMAP_PMTILES_URL as string | undefined;
+  return value?.trim() || undefined;
+}
+
+export function getUSGSImageryWmsUrl(): string | undefined {
+  const ls = readLocalStorageApiKey(["providers", "usgsImageryWms"]);
+  if (ls) return ls;
+  const value = (import.meta as any).env.VITE_USGS_IMAGERY_WMS_URL as string | undefined;
+  return value?.trim() || undefined;
+}
+
+export function getUSDA_NAIP_WmsUrl(): string | undefined {
+  const ls = readLocalStorageApiKey(["providers", "usdaNaipWms"]);
+  if (ls) return ls;
+  const value = (import.meta as any).env.VITE_USDA_NAIP_WMS_URL as string | undefined;
+  return value?.trim() || undefined;
+}
+
+export function getPatrickCountyWmsUrl(): string | undefined {
+  const ls = readLocalStorageApiKey(["providers", "patrickWms"]);
+  if (ls) return ls;
+  const value = (import.meta as any).env.VITE_PATRICK_WMS_URL as string | undefined;
+  return value?.trim() || undefined;
+}
+
+export function getPatrickCountyEsriFeatureUrl(): string | undefined {
+  const ls = readLocalStorageApiKey(["providers", "patrickEsriFeature"]);
+  if (ls) return ls;
+  const value = (import.meta as any).env.VITE_PATRICK_ESRI_FEATURE_URL as string | undefined;
+  return value?.trim() || undefined;
 }

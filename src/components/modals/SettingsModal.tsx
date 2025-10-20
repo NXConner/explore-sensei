@@ -61,6 +61,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
       | "dark-zone"
       | "black-tusk",
     mapTheme: "division" as "division" | "animus",
+    preferredMapProvider: "auto" as "auto" | "google" | "mapbox" | "maplibre" | "leaflet",
     wallpaperUrl: "",
     wallpaperOpacity: 60,
     // Map defaults
@@ -79,6 +80,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
       googleGeneric?: string;
       mapbox?: string;
       openWeather?: string;
+      maptiler?: string;
     },
   });
 
@@ -104,6 +106,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
         if (!merged.googleGeneric && found.googleGeneric) merged.googleGeneric = found.googleGeneric;
         if (!merged.mapbox && found.mapbox) merged.mapbox = found.mapbox;
         if (!merged.openWeather && found.openWeather) merged.openWeather = found.openWeather;
+        if (!merged.maptiler && found.maptiler) merged.maptiler = found.maptiler;
         return { ...prev, apiKeys: merged };
       });
     } catch {}
@@ -496,6 +499,35 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   </div>
                 </div>
               </div>
+
+              {/* Preferred Map Provider */}
+              <div className="tactical-panel p-4 space-y-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <Palette className="w-5 h-5 text-primary" />
+                  <Label>Preferred Map Provider</Label>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {([
+                    { id: "auto", label: "Auto" },
+                    { id: "google", label: "Google" },
+                    { id: "mapbox", label: "Mapbox" },
+                    { id: "maplibre", label: "MapLibre" },
+                    { id: "leaflet", label: "Leaflet" },
+                  ] as const).map((opt) => (
+                    <Button
+                      key={opt.id}
+                      variant={settings.preferredMapProvider === opt.id ? "default" : "outline"}
+                      onClick={() => setSettings((p) => ({ ...p, preferredMapProvider: opt.id }))}
+                      className="justify-start"
+                    >
+                      {opt.label}
+                    </Button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Auto uses Google if configured, else Mapbox/MapLibre fallback.
+                </p>
+              </div>
             </TabsContent>
 
             {/* Role Management (surface only) */}
@@ -870,6 +902,21 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                       className="mt-1"
                     />
                   </div>
+                <div>
+                  <Label className="text-xs">MapTiler API Key</Label>
+                  <Input
+                    type="password"
+                    placeholder="get from maptiler.com"
+                    value={settings.apiKeys?.maptiler || ""}
+                    onChange={(e) =>
+                      setSettings((p) => ({
+                        ...p,
+                        apiKeys: { ...(p.apiKeys || {}), maptiler: e.target.value },
+                      }))
+                    }
+                    className="mt-1"
+                  />
+                </div>
                   <div>
                     <Label className="text-xs">OpenWeather API Key</Label>
                     <Input

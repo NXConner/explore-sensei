@@ -1,6 +1,9 @@
 /// <reference types="google.maps" />
 import React, { useEffect, useRef, useState, forwardRef, useImperativeHandle, lazy, Suspense } from "react";
 import mapboxgl from "mapbox-gl";
+import maplibregl from "maplibre-gl";
+import L from "leaflet";
+import { Protocol as PMTilesProtocol } from "pmtiles";
 import { loadGoogleMaps } from "@/lib/googleMapsLoader";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import { useJobSites } from "@/hooks/useJobSites";
@@ -20,7 +23,14 @@ import { divisionMapStyle, animusMapStyle } from "./themes";
 import { WeatherRadarLayer } from "@/components/weather/WeatherRadarLayer";
 import { RainRadarOverlay } from "@/components/weather/RainRadarOverlay";
 import { MapContext } from "./MapContext";
-import { getGoogleMapsApiKey, getMapboxAccessToken, getPreferredMapProvider } from "@/config/env";
+import {
+  getGoogleMapsApiKey,
+  getMapboxAccessToken,
+  getPreferredMapProvider,
+  getMapLibreStyleUrl,
+  getBasemapPmtilesUrl,
+  getMapTilerApiKey,
+} from "@/config/env";
 import { logger } from "@/lib/monitoring";
 import { geocodeAddress, getDirections } from "@/lib/mapsClient";
 import { CornerBrackets } from "@/components/hud/CornerBrackets";
@@ -55,7 +65,7 @@ export const MapContainer = forwardRef<
 >((props, ref) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const mapboxInstanceRef = useRef<mapboxgl.Map | null>(null);
+  const mapboxInstanceRef = useRef<any | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
   const clustererRef = useRef<MarkerClusterer | null>(null);
   const trafficLayerRef = useRef<google.maps.TrafficLayer | null>(null);
@@ -408,6 +418,8 @@ export const MapContainer = forwardRef<
     const preference = getPreferredMapProvider();
     const forceMapbox = preference === "mapbox";
     const forceGoogle = preference === "google";
+    const forceMapLibre = preference === "maplibre";
+    const forceLeaflet = preference === "leaflet";
     const noGoogleKey = !currentGoogleKey || currentGoogleKey === "undefined";
     const initializeMapboxFallback = async () => {
       setUsingMapbox(true);
@@ -452,6 +464,90 @@ export const MapContainer = forwardRef<
         setMapsUnavailable(true);
       }
     };
+
+    const initializeMapLibre = async () => {
+      setUsingMapbox(true);
+      setMapsUnavailable(false);
+      if (!mapRef.current || mapboxInstanceRef.current) return;
+      try {
+        const protocol = new PMTilesProtocol();
+        maplibregl.addProtocol("pmtiles", protocol.tile);
+        const defaultCenter: [number, number] = [-80.2715, 36.6904];
+        const styleUrl = getMapLibreStyleUrl();
+        const pmtilesUrl = getBasemapPmtilesUrl();
+        const maptilerKey = getMapTilerApiKey();
+        const style: any = styleUrl
+          ? styleUrl
+          : pmtilesUrl
+          ? {
+              version: 8,
+              glyphs: "https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf",
+              sources: {
+                protomaps: { type: "vector", url: `pmtiles://${pmtilesUrl}` },
+              },
+              layers: [
+                { id: "land", type: "fill", source: "protomaps", "source-layer": "landuse", paint: { "fill-color": "#0b0b0b" } },
+                { id: "water", type: "fill", source: "protomaps", "source-layer": "water", paint: { "fill-color": "#0a1a2a" } },
+                { id: "roads", type: "line", source: "protomaps", "source-layer": "roads", paint: { "line-color": "#7f8c8d", "line-width": 1 } },
+                { id: "boundaries", type: "line", source: "protomaps", "source-layer": "boundaries", paint: { "line-color": "#4b5563", "line-width": 0.5 } },
+                { id: "places", type: "symbol", source: "protomaps", "source-layer": "places", layout: { "text-field": ["get", "name"], "text-size": 12 }, paint: { "text-color": "#d1d5db" } },
+              ],
+            }
+          : maptilerKey
+          ? `https://api.maptiler.com/maps/streets-v2/style.json?key=${maptilerKey}`
+          : "https://demotiles.maplibre.org/style.json";
+
+        const map = new maplibregl.Map({
+          container: mapRef.current,
+          style,
+          center: defaultCenter,
+          zoom: 12,
+        });
+        mapboxInstanceRef.current = map;
+      } catch (e) {
+        logger.warn("Failed to initialize MapLibre", { error: e });
+        setMapsUnavailable(true);
+      }
+    };
+
+    const initializeLeaflet = async () => {
+      setUsingMapbox(true);
+      setMapsUnavailable(false);
+      if (!mapRef.current || mapboxInstanceRef.current) return;
+      try {
+        const map = L.map(mapRef.current).setView([36.6904, -80.2715], 12);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+          attribution: "© OpenStreetMap contributors",
+        }).addTo(map);
+        mapboxInstanceRef.current = map;
+      } catch (e) {
+        logger.warn("Failed to initialize Leaflet", { error: e });
+        setMapsUnavailable(true);
+      }
+    };
+
+    if (forceMapLibre) {
+      initializeMapLibre();
+
+      return () => {
+        if (mapboxInstanceRef.current) {
+          try { mapboxInstanceRef.current.remove(); } catch {}
+          mapboxInstanceRef.current = null;
+        }
+      };
+    }
+
+    if (forceLeaflet) {
+      initializeLeaflet();
+
+      return () => {
+        if (mapboxInstanceRef.current) {
+          try { mapboxInstanceRef.current.remove(); } catch {}
+          mapboxInstanceRef.current = null;
+        }
+      };
+    }
 
     if (forceMapbox || (preference !== "google" && noGoogleKey)) {
       initializeMapboxFallback();
