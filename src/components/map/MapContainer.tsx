@@ -69,6 +69,7 @@ export const MapContainer = forwardRef<
   const [showAIDetection, setShowAIDetection] = useState(false);
   const [showEmployeeTracking, setShowEmployeeTracking] = useState(false);
   const [showWeatherRadar, setShowWeatherRadar] = useState(false);
+  const [showDarkZones, setShowDarkZones] = useState(false);
   const [radarOpacity, setRadarOpacity] = useState(70);
   const [alertRadius, setAlertRadius] = useState(15);
   const [mapTheme, setMapTheme] = useState<MapTheme>(props.initialMapTheme || "division");
@@ -210,6 +211,16 @@ export const MapContainer = forwardRef<
       window.removeEventListener("storage", onStorage);
       window.removeEventListener("aos_settings_updated", onCustom as any);
     };
+  }, []);
+
+  // Listen for Dark Zones toggle from sidebar
+  useEffect(() => {
+    const handler = (e: any) => {
+      const enabled = !!e?.detail?.enabled;
+      setShowDarkZones(enabled);
+    };
+    window.addEventListener('toggle-dark-zones', handler as any);
+    return () => window.removeEventListener('toggle-dark-zones', handler as any);
   }, []);
 
   const handleModeChange = (mode: DrawingMode) => {
@@ -860,7 +871,7 @@ export const MapContainer = forwardRef<
           />
         </>
       )}
-      {!usingMapbox && (
+      {!usingMapbox && showDarkZones && (
         <DarkZoneLayer
           map={mapInstanceRef.current}
           onEnterZone={() => {
