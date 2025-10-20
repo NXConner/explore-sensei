@@ -200,3 +200,34 @@ export function getPatrickCountyEsriFeatureUrl(): string | undefined {
   const value = (import.meta as any).env.VITE_PATRICK_ESRI_FEATURE_URL as string | undefined;
   return value?.trim() || undefined;
 }
+
+// Provider preferences for server-side utilities (geocode/routing/elevation)
+export type GeocoderProvider = "google" | "nominatim";
+export type RoutingProvider = "google" | "osrm";
+export type ElevationProvider = "google" | "open_elevation";
+
+function readProviderPreference(lsKey: string, envKey: string, allowed: string[], fallback: string): string {
+  try {
+    const raw = typeof window !== "undefined" ? localStorage.getItem("aos_settings") : null;
+    if (raw) {
+      const p = JSON.parse(raw);
+      const val = p?.providers?.[lsKey];
+      if (typeof val === "string" && allowed.includes(val)) return val;
+    }
+  } catch {}
+  const envVal = (import.meta as any).env[envKey] as string | undefined;
+  if (envVal && allowed.includes(envVal)) return envVal;
+  return fallback;
+}
+
+export function getPreferredGeocoderProvider(): GeocoderProvider {
+  return readProviderPreference("geocoder", "VITE_MAPS_GEOCODER_PROVIDER", ["google", "nominatim"], "google") as GeocoderProvider;
+}
+
+export function getPreferredRoutingProvider(): RoutingProvider {
+  return readProviderPreference("routing", "VITE_MAPS_ROUTING_PROVIDER", ["google", "osrm"], "google") as RoutingProvider;
+}
+
+export function getPreferredElevationProvider(): ElevationProvider {
+  return readProviderPreference("elevation", "VITE_MAPS_ELEVATION_PROVIDER", ["google", "open_elevation"], "open_elevation") as ElevationProvider;
+}
