@@ -133,6 +133,23 @@ All colors MUST be HSL.
     --ring: 30 100% 50%;
   }
 
+  /* Faithful variants (color tuning only; no external assets) */
+  .theme-division-shd-faithful {
+    --primary: 30 100% 54%;
+    --primary-foreground: 0 0% 100%;
+    --accent: 197 100% 58%;
+    --accent-foreground: 0 0% 100%;
+    --background: 0 0% 2%;
+    --foreground: 0 0% 95%;
+    --card: 0 0% 5%;
+    --card-foreground: 0 0% 95%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 72%;
+    --border: 0 0% 16%;
+    --input: 0 0% 12%;
+    --ring: 30 100% 54%;
+  }
+
   .theme-dark-zone {
     --primary: 0 85% 55%;
     --primary-foreground: 0 0% 100%;
@@ -149,6 +166,22 @@ All colors MUST be HSL.
     --ring: 0 85% 55%;
   }
 
+  .theme-dark-zone-faithful {
+    --primary: 0 90% 56%;
+    --primary-foreground: 0 0% 100%;
+    --accent: 186 90% 48%;
+    --accent-foreground: 0 0% 100%;
+    --background: 0 0% 1.5%;
+    --foreground: 0 0% 96%;
+    --card: 0 0% 5%;
+    --card-foreground: 0 0% 96%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 72%;
+    --border: 0 0% 16%;
+    --input: 0 0% 12%;
+    --ring: 0 90% 56%;
+  }
+
   .theme-black-tusk {
     --primary: 135 95% 50%;
     --primary-foreground: 0 0% 10%;
@@ -163,6 +196,22 @@ All colors MUST be HSL.
     --border: 220 8% 16%;
     --input: 220 8% 14%;
     --ring: 135 95% 50%;
+  }
+
+  .theme-black-tusk-faithful {
+    --primary: 135 98% 52%;
+    --primary-foreground: 0 0% 10%;
+    --accent: 220 18% 76%;
+    --accent-foreground: 0 0% 10%;
+    --background: 220 10% 5%;
+    --foreground: 0 0% 96%;
+    --card: 220 10% 7%;
+    --card-foreground: 0 0% 96%;
+    --muted: 220 9% 13%;
+    --muted-foreground: 0 0% 76%;
+    --border: 220 9% 18%;
+    --input: 220 9% 14%;
+    --ring: 135 98% 52%;
   }
 }
 

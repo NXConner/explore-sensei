@@ -615,10 +615,23 @@ export const MapContainer = forwardRef<
 
   // Apply theme class to body for CSS variables
   useEffect(() => {
-    const clsDivision = "theme-division";
-    const clsAnimus = "theme-animus";
-    document.body.classList.remove(clsDivision, clsAnimus);
-    document.body.classList.add(mapTheme === "division" ? clsDivision : clsAnimus);
+    const classes = [
+      "theme-division",
+      "theme-animus",
+      "theme-division-shd",
+      "theme-division-shd-faithful",
+      "theme-dark-zone",
+      "theme-dark-zone-faithful",
+      "theme-black-tusk",
+      "theme-black-tusk-faithful",
+      "theme-night-ops",
+      "theme-isac-core",
+      "theme-rogue-agent",
+      "theme-contaminated",
+    ];
+    document.body.classList.remove(...classes);
+    // Base map style remains Division or Animus; body class controls UI tokens
+    document.body.classList.add(mapTheme === "division" ? "theme-division" : "theme-animus");
     if (mapInstanceRef.current) {
       mapInstanceRef.current.setOptions({
         styles: mapTheme === "division" ? divisionMapStyle : animusMapStyle,
