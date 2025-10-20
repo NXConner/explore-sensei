@@ -32,6 +32,8 @@ import { ScaleBar } from "@/components/hud/ScaleBar";
 import { ZoomIndicator } from "@/components/hud/ZoomIndicator";
 import { MiniMap } from "@/components/hud/MiniMap";
 import { SuitabilityOverlay } from "@/components/map/SuitabilityOverlay";
+import { HeatmapOverlay } from "@/components/map/HeatmapOverlay";
+import { RadialMenu } from "@/components/map/RadialMenu";
 import { SuitabilityOverlay } from "@/components/map/SuitabilityOverlay";
 
 // API keys are read dynamically to allow runtime updates via Settings
@@ -44,6 +46,7 @@ export interface MapContainerRef {
   handleToggleStreetView: () => void;
   toggleEmployeeTracking: () => void;
   toggleWeatherRadar: () => void;
+  handleTogglePulseScan: () => void;
   handleModeChange: (mode: DrawingMode) => void;
   handleClear: () => void;
   handleSave: () => void;
@@ -76,6 +79,8 @@ export const MapContainer = forwardRef<
   const [showDarkZones, setShowDarkZones] = useState(false);
   const [showSuitability, setShowSuitability] = useState(false);
   const [showPulseScan, setShowPulseScan] = useState(false);
+  const [showHeatmap, setShowHeatmap] = useState(false);
+  const [heatmapPoints, setHeatmapPoints] = useState<Array<{ lat: number; lng: number; weight?: number }>>([]);
   const [radarOpacity, setRadarOpacity] = useState(70);
   const [alertRadius, setAlertRadius] = useState(15);
   const [mapTheme, setMapTheme] = useState<MapTheme>(props.initialMapTheme || "division");
@@ -236,13 +241,25 @@ export const MapContainer = forwardRef<
   useEffect(() => {
     const onSuitability = () => setShowSuitability((v) => !v);
     const onPulse = () => setShowPulseScan((v) => !v);
+    const onHeat = () => setShowHeatmap((v) => !v);
     window.addEventListener('toggle-suitability', onSuitability as any);
     window.addEventListener('toggle-pulse-scan', onPulse as any);
+    window.addEventListener('toggle-heatmap', onHeat as any);
     return () => {
       window.removeEventListener('toggle-suitability', onSuitability as any);
       window.removeEventListener('toggle-pulse-scan', onPulse as any);
+      window.removeEventListener('toggle-heatmap', onHeat as any);
     };
   }, []);
+
+  // Build heatmap points from job sites as a placeholder; could be productivity/issue density
+  useEffect(() => {
+    if (!jobSites) return;
+    const pts = jobSites
+      .filter((s) => s.latitude && s.longitude)
+      .map((s) => ({ lat: Number(s.latitude), lng: Number(s.longitude), weight: Math.max(1, Math.min(5, (s.progress || 0) / 20)) }));
+    setHeatmapPoints(pts);
+  }, [jobSites]);
 
   const handleModeChange = (mode: DrawingMode) => {
     setActiveMode(mode);
@@ -915,6 +932,8 @@ export const MapContainer = forwardRef<
       <ZoomIndicator zoom={mapInstanceRef.current?.getZoom?.() || 0} />
       {/* MiniMap */}
       <MiniMap />
+      {/* Radial Menu (hold 'Q') */}
+      <RadialMenu onSelect={(mode) => handleModeChange(mode)} />
 
       <MeasurementDisplay distance={measurement.distance} area={measurement.area} />
       <MapVisibilityControls />
@@ -934,6 +953,10 @@ export const MapContainer = forwardRef<
       )}
       {!usingMapbox && showSuitability && (
         <SuitabilityOverlay map={mapInstanceRef.current} enabled={true} />
+      )}
+
+      {!usingMapbox && showHeatmap && (
+        <HeatmapOverlay map={mapInstanceRef.current} enabled={true} points={heatmapPoints} />
       )}
 
       {showPulseScan && (
