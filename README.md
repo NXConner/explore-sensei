@@ -96,15 +96,25 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # Google Maps API
 VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+VITE_GOOGLE_MAPS_API_KEY_ALT=
+
+# Mapbox Fallback
+VITE_MAPBOX_ACCESS_TOKEN=
 
 # Weather API
 VITE_OPENWEATHER_API_KEY=your_openweather_api_key
+
+# Parcels Overlay (raster tiles template)
+# e.g., https://your-arcgis-server/arcgis/rest/services/Parcels/MapServer/tile/{z}/{y}/{x}
+VITE_PARCELS_TILES_TEMPLATE=
 
 # AI Services
 VITE_AI_SERVICE_URL=your_ai_service_url
 VITE_AI_SERVICE_KEY=your_ai_service_key
 VITE_VALID_API_KEYS=comma,separated,keys
 ```
+
+You can also set the parcels template at runtime via the Settings UI; it saves under `aos_settings.providers.parcelsTilesTemplate` in `localStorage`.
 
 ## 🚀 **Development**
 

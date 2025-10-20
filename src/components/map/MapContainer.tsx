@@ -24,7 +24,7 @@ import { WeatherRadarLayer } from "@/components/weather/WeatherRadarLayer";
 import { DarkZoneLayer } from "@/components/map/DarkZoneLayer";
 import { RainRadarOverlay } from "@/components/weather/RainRadarOverlay";
 import { MapContext } from "./MapContext";
-<<<<<<< HEAD
+import { PulseScanOverlay } from "@/components/map/PulseScanOverlay";
 import {
   getGoogleMapsApiKey,
   getMapboxAccessToken,
@@ -36,11 +36,8 @@ import {
   getUSDA_NAIP_WmsUrl,
   getPatrickCountyWmsUrl,
   getPatrickCountyEsriFeatureUrl,
+  getParcelsTilesTemplate,
 } from "@/config/env";
-=======
-import { PulseScanOverlay } from "@/components/map/PulseScanOverlay";
-import { getGoogleMapsApiKey, getMapboxAccessToken, getPreferredMapProvider } from "@/config/env";
->>>>>>> origin/main
 import { logger } from "@/lib/monitoring";
 import { geocodeAddress, getDirections } from "@/lib/mapsClient";
 import { CornerBrackets } from "@/components/hud/CornerBrackets";
@@ -67,6 +64,7 @@ export interface MapContainerRef {
   handleToggleStreetView: () => void;
   toggleEmployeeTracking: () => void;
   toggleWeatherRadar: () => void;
+  toggleParcels: () => void;
   handleTogglePulseScan: () => void;
   handleModeChange: (mode: DrawingMode) => void;
   handleClear: () => void;
@@ -74,9 +72,8 @@ export interface MapContainerRef {
   getShowTraffic: () => boolean;
   getShowEmployeeTracking: () => boolean;
   getShowWeatherRadar: () => boolean;
-  getActiveMode: () => DrawingMode;
-  toggleParcels: () => void;
   getShowParcels: () => boolean;
+  getActiveMode: () => DrawingMode;
   setImagery: (mode: "none" | "naip" | "usgs") => void;
   getImagery: () => "none" | "naip" | "usgs";
 }
@@ -97,15 +94,20 @@ export const MapContainer = forwardRef<
   const searchMarkerRef = useRef<google.maps.Marker | null>(null);
   const routePolylineRef = useRef<google.maps.Polyline | null>(null);
   const routeCometRef = useRef<google.maps.Circle | null>(null);
+  const parcelsImageMapTypeRef = useRef<google.maps.ImageMapType | null>(null);
   const [showStreetView, setShowStreetView] = useState(false);
   const [showAIDetection, setShowAIDetection] = useState(false);
   const [showEmployeeTracking, setShowEmployeeTracking] = useState(false);
   const [showWeatherRadar, setShowWeatherRadar] = useState(false);
 <<<<<<< HEAD
+  const [showParcels, setShowParcels] = useState(false);
+=======
+<<<<<<< HEAD
   const [imagery, setImagery] = useState<"none" | "naip" | "usgs">("none");
   const leafletImageryRef = useRef<L.TileLayer | null>(null);
   const googleImageryRef = useRef<google.maps.ImageMapType | null>(null);
 =======
+>>>>>>> origin/main
   const [showDarkZones, setShowDarkZones] = useState(false);
   const [showSuitability, setShowSuitability] = useState(false);
   const [showPulseScan, setShowPulseScan] = useState(false);
@@ -135,6 +137,7 @@ export const MapContainer = forwardRef<
     handleToggleStreetView,
     toggleEmployeeTracking: () => setShowEmployeeTracking(!showEmployeeTracking),
     toggleWeatherRadar: () => setShowWeatherRadar(!showWeatherRadar),
+    toggleParcels: () => setShowParcels((v) => !v),
     handleModeChange,
     handleClear,
     handleSave,
@@ -142,6 +145,7 @@ export const MapContainer = forwardRef<
     getShowTraffic: () => trafficLayerRef.current?.getMap() != null,
     getShowEmployeeTracking: () => showEmployeeTracking,
     getShowWeatherRadar: () => showWeatherRadar,
+    getShowParcels: () => showParcels,
     getActiveMode: () => activeMode,
     setImagery: (mode: "none" | "naip" | "usgs") => setImagery(mode),
     getImagery: () => imagery,
@@ -715,6 +719,31 @@ export const MapContainer = forwardRef<
 
         map.on("load", () => {
           map.setFog({});
+          try {
+            const template = getParcelsTilesTemplate();
+            if (template) {
+              if (!map.getSource('parcels-source')) {
+                map.addSource('parcels-source', {
+                  type: 'raster',
+                  tiles: [template],
+                  tileSize: 256,
+                } as any);
+              }
+              if (!map.getLayer('parcels-layer')) {
+                map.addLayer({
+                  id: 'parcels-layer',
+                  type: 'raster',
+                  source: 'parcels-source',
+                  paint: { 'raster-opacity': 0.7 },
+                  layout: { visibility: showParcels ? 'visible' : 'none' },
+                } as any);
+              } else {
+                map.setLayoutProperty('parcels-layer', 'visibility', showParcels ? 'visible' : 'none');
+              }
+            }
+          } catch (e) {
+            logger.warn('Failed to configure parcels layer for Mapbox', { error: e });
+          }
         });
 
         if (navigator.geolocation) {
@@ -978,6 +1007,29 @@ export const MapContainer = forwardRef<
     };
   }, [mapTheme, configVersion]);
 
+  // Toggle Mapbox parcels layer visibility on state change
+  useEffect(() => {
+    if (!usingMapbox) return;
+    const map = mapboxInstanceRef.current;
+    if (!map) return;
+    try {
+      const hasSource = !!map.getSource('parcels-source');
+      const template = getParcelsTilesTemplate();
+      if (!hasSource && template) {
+        map.addSource('parcels-source', { type: 'raster', tiles: [template], tileSize: 256 } as any);
+      }
+      const hasLayer = !!map.getLayer('parcels-layer');
+      if (!hasLayer && map.getSource('parcels-source')) {
+        map.addLayer({ id: 'parcels-layer', type: 'raster', source: 'parcels-source', paint: { 'raster-opacity': 0.7 } } as any);
+      }
+      if (map.getLayer('parcels-layer')) {
+        map.setLayoutProperty('parcels-layer', 'visibility', showParcels ? 'visible' : 'none');
+      }
+    } catch (e) {
+      logger.warn('Failed to toggle parcels layer', { error: e });
+    }
+  }, [showParcels, usingMapbox]);
+
   // Apply theme class to body for CSS variables
   useEffect(() => {
     const classes = [
@@ -1124,6 +1176,60 @@ export const MapContainer = forwardRef<
       }
     });
   }, [measurements]);
+
+  // Handle Parcels overlay for Google Maps
+  useEffect(() => {
+    if (!mapInstanceRef.current || usingMapbox) return;
+    const template = getParcelsTilesTemplate();
+    if (!showParcels) {
+      try {
+        if (parcelsImageMapTypeRef.current) {
+          const idx = mapInstanceRef.current.overlayMapTypes.getArray().indexOf(parcelsImageMapTypeRef.current as any);
+          if (idx >= 0) mapInstanceRef.current.overlayMapTypes.removeAt(idx);
+          parcelsImageMapTypeRef.current = null;
+        }
+      } catch {}
+      return;
+    }
+
+    if (!template) {
+      toast({ title: "Parcels not configured", description: "Set VITE_PARCELS_TILES_TEMPLATE or Settings → providers.parcelsTilesTemplate.", variant: "destructive" });
+      setShowParcels(false);
+      return;
+    }
+
+    try {
+      const imageMapType = new google.maps.ImageMapType({
+        getTileUrl: (coord, zoom) => {
+          return template
+            .replace('{z}', String(zoom))
+            .replace('{x}', String(coord.x))
+            .replace('{y}', String(coord.y));
+        },
+        tileSize: new google.maps.Size(256, 256),
+        name: 'Parcels',
+        opacity: 0.7,
+        isPng: true,
+        maxZoom: 22,
+        minZoom: 0,
+      } as any);
+      parcelsImageMapTypeRef.current = imageMapType;
+      mapInstanceRef.current.overlayMapTypes.insertAt(0, imageMapType);
+    } catch (err) {
+      logger.warn('Failed to add parcels overlay', { error: err });
+      toast({ title: 'Parcels overlay failed', description: 'Could not add overlay', variant: 'destructive' });
+      setShowParcels(false);
+    }
+    return () => {
+      try {
+        if (mapInstanceRef.current && parcelsImageMapTypeRef.current) {
+          const idx = mapInstanceRef.current.overlayMapTypes.getArray().indexOf(parcelsImageMapTypeRef.current as any);
+          if (idx >= 0) mapInstanceRef.current.overlayMapTypes.removeAt(idx);
+        }
+        parcelsImageMapTypeRef.current = null;
+      } catch {}
+    };
+  }, [showParcels, usingMapbox]);
 
   // AI detection overlay: highlight asphalt area and display area label
   useEffect(() => {
