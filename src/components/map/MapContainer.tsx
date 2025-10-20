@@ -21,6 +21,7 @@ import { WeatherRadarLayer } from "@/components/weather/WeatherRadarLayer";
 import { DarkZoneLayer } from "@/components/map/DarkZoneLayer";
 import { RainRadarOverlay } from "@/components/weather/RainRadarOverlay";
 import { MapContext } from "./MapContext";
+import { PulseScanOverlay } from "@/components/map/PulseScanOverlay";
 import { getGoogleMapsApiKey, getMapboxAccessToken, getPreferredMapProvider } from "@/config/env";
 import { logger } from "@/lib/monitoring";
 import { geocodeAddress, getDirections } from "@/lib/mapsClient";
@@ -65,6 +66,7 @@ export const MapContainer = forwardRef<
   const streetViewRef = useRef<google.maps.StreetViewPanorama | null>(null);
   const searchMarkerRef = useRef<google.maps.Marker | null>(null);
   const routePolylineRef = useRef<google.maps.Polyline | null>(null);
+  const routeCometRef = useRef<google.maps.Circle | null>(null);
   const [showStreetView, setShowStreetView] = useState(false);
   const [showAIDetection, setShowAIDetection] = useState(false);
   const [showEmployeeTracking, setShowEmployeeTracking] = useState(false);
@@ -76,6 +78,7 @@ export const MapContainer = forwardRef<
   const [mapsUnavailable, setMapsUnavailable] = useState(false);
   const [usingMapbox, setUsingMapbox] = useState(false);
   const [configVersion, setConfigVersion] = useState(0);
+  const [showPulseScan, setShowPulseScan] = useState(false);
   const { data: jobSites } = useJobSites();
   const { measurement, setDrawingMode, clearDrawings } = useMapDrawing(mapInstanceRef.current);
   const [activeMode, setActiveMode] = useState<DrawingMode>(null);
@@ -92,6 +95,7 @@ export const MapContainer = forwardRef<
     handleModeChange,
     handleClear,
     handleSave,
+    handleTogglePulseScan: () => setShowPulseScan((v) => !v),
     getShowTraffic: () => trafficLayerRef.current?.getMap() != null,
     getShowEmployeeTracking: () => showEmployeeTracking,
     getShowWeatherRadar: () => showWeatherRadar,
@@ -231,6 +235,15 @@ export const MapContainer = forwardRef<
   const handleClear = () => {
     clearDrawings();
     setActiveMode(null);
+    try {
+      routePolylineRef.current?.setMap(null);
+      routePolylineRef.current = null;
+      if (routeCometRef.current) {
+        window.clearInterval((routeCometRef.current as any).__pulse);
+        routeCometRef.current.setMap(null);
+        routeCometRef.current = null;
+      }
+    } catch {}
   };
 
   const handleLocateMe = () => {
@@ -353,10 +366,41 @@ export const MapContainer = forwardRef<
       routePolylineRef.current = new google.maps.Polyline({
         path,
         strokeColor: "#00ffff",
-        strokeOpacity: 0.8,
+        strokeOpacity: 0.9,
         strokeWeight: 4,
         map: mapInstanceRef.current,
+        icons: [{
+          icon: { path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW, scale: 2, strokeOpacity: 0, fillOpacity: 0 },
+          offset: "0%",
+          repeat: "20px",
+        }],
       });
+
+      // Comet pulse traveling along route
+      try {
+        const comet = new google.maps.Circle({
+          radius: 8,
+          strokeColor: "#00ffff",
+          strokeOpacity: 0.0,
+          strokeWeight: 1,
+          fillColor: "#00ffff",
+          fillOpacity: 0.9,
+          map: mapInstanceRef.current,
+        });
+        routeCometRef.current = comet;
+        let i = 0;
+        const pts = path.map((p) => ({ lat: p.lat(), lng: p.lng() }));
+        const id = window.setInterval(() => {
+          if (!mapInstanceRef.current || !routeCometRef.current || pts.length === 0) return;
+          const idx = i % pts.length;
+          routeCometRef.current.setCenter(pts[idx]);
+          // pulse size
+          const r = 6 + (idx % 6);
+          routeCometRef.current.setRadius(r);
+          i += 2;
+        }, 60);
+        (comet as any).__pulse = id;
+      } catch {}
 
       const bounds = new google.maps.LatLngBounds();
       path.forEach((latLng) => bounds.extend(latLng));
@@ -844,6 +888,7 @@ export const MapContainer = forwardRef<
         radarAudioEnabled={uiSettings.radarAudioEnabled}
         radarAudioVolume={uiSettings.radarAudioVolume}
       />
+      <PulseScanOverlay enabled={showPulseScan} color={mapTheme === 'division' ? 'rgba(0,255,255,0.16)' : 'rgba(255,140,0,0.16)'} speed={4} />
 
       {/* HUD overlay elements */}
       <CornerBrackets />
