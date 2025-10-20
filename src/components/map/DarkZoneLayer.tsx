@@ -26,7 +26,7 @@ export const DarkZoneLayer: React.FC<DarkZoneLayerProps> = ({ map, onEnterZone, 
     queryKey: ["dark-zones"],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase.from("DarkZones").select("id,name,active,coordinates");
+        const { data, error } = await (supabase as any).from("DarkZones").select("id,name,active,coordinates");
         if (error) throw error;
         return (data as any[]).map((r) => ({
           id: r.id,

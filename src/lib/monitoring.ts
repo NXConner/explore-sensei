@@ -296,7 +296,7 @@ export class ErrorTracker {
     if (import.meta.env?.DEV) {
       try {
         // eslint-disable-next-line no-console
-        console.error('Error tracked:', error, this.sanitizeContext(context));
+        console.error('Error tracked:', error, context ?? {});
       } catch {}
     }
   }

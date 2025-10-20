@@ -99,21 +99,18 @@ export const MapContainer = forwardRef<
   const [showAIDetection, setShowAIDetection] = useState(false);
   const [showEmployeeTracking, setShowEmployeeTracking] = useState(false);
   const [showWeatherRadar, setShowWeatherRadar] = useState(false);
-<<<<<<< HEAD
   const [showParcels, setShowParcels] = useState(false);
-=======
-<<<<<<< HEAD
+
   const [imagery, setImagery] = useState<"none" | "naip" | "usgs">("none");
   const leafletImageryRef = useRef<L.TileLayer | null>(null);
   const googleImageryRef = useRef<google.maps.ImageMapType | null>(null);
-=======
->>>>>>> origin/main
+
   const [showDarkZones, setShowDarkZones] = useState(false);
   const [showSuitability, setShowSuitability] = useState(false);
   const [showPulseScan, setShowPulseScan] = useState(false);
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [heatmapPoints, setHeatmapPoints] = useState<Array<{ lat: number; lng: number; weight?: number }>>([]);
->>>>>>> origin/main
+
   const [radarOpacity, setRadarOpacity] = useState(70);
   const [alertRadius, setAlertRadius] = useState(15);
   const [mapTheme, setMapTheme] = useState<MapTheme>(props.initialMapTheme || "division");

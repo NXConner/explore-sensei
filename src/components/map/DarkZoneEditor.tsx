@@ -28,7 +28,7 @@ export const DarkZoneEditor: React.FC<DarkZoneEditorProps> = ({ map, onClose }) 
     // Load existing zones (server or local)
     (async () => {
       try {
-        const { data, error } = await supabase.from("DarkZones").select("id,name,active,coordinates");
+        const { data, error } = await (supabase as any).from("DarkZones").select("id,name,active,coordinates");
         if (!error && Array.isArray(data)) {
           setZones(
             data.map((z: any) => ({
@@ -79,9 +79,9 @@ export const DarkZoneEditor: React.FC<DarkZoneEditorProps> = ({ map, onClose }) 
   const saveToServer = async (zone: EditableZone) => {
     const coords = zone.path.map((p) => [p.lng, p.lat]);
     if (zone.id) {
-      await supabase.from("DarkZones").update({ name: zone.name, active: zone.active, coordinates: coords }).eq("id", zone.id);
+      await (supabase as any).from("DarkZones").update({ name: zone.name, active: zone.active, coordinates: coords }).eq("id", zone.id);
     } else {
-      const { data } = await supabase.from("DarkZones").insert({ name: zone.name, active: zone.active, coordinates: coords }).select("id").single();
+      const { data } = await (supabase as any).from("DarkZones").insert({ name: zone.name, active: zone.active, coordinates: coords }).select("id").single();
       zone.id = data?.id;
     }
   };
@@ -117,7 +117,7 @@ export const DarkZoneEditor: React.FC<DarkZoneEditorProps> = ({ map, onClose }) 
   const removeSelected = async () => {
     if (selected == null) return;
     const z = zones[selected];
-    if (z?.id) await supabase.from("DarkZones").delete().eq("id", z.id);
+    if (z?.id) await (supabase as any).from("DarkZones").delete().eq("id", z.id);
     const next = zones.filter((_, i) => i !== selected);
     setZones(next);
     saveLocal(next);
