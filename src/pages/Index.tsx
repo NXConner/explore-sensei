@@ -144,6 +144,7 @@ const Index = () => {
     showWeatherRadar: false,
     activeMode: null as DrawingMode,
     imagery: "none" as "none" | "naip" | "usgs",
+    showParcels: false,
   });
 
   // Load map theme from settings, default to division, and react to changes
@@ -175,6 +176,7 @@ const Index = () => {
           showWeatherRadar: mapContainerRef.current.getShowWeatherRadar(),
           activeMode: mapContainerRef.current.getActiveMode(),
           imagery: (mapContainerRef.current as any).getImagery?.() || "none",
+          showParcels: (mapContainerRef.current as any).getShowParcels?.() || false,
         });
       }
     }, 500);

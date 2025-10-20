@@ -32,6 +32,8 @@ import {
   getMapTilerApiKey,
   getUSGSImageryWmsUrl,
   getUSDA_NAIP_WmsUrl,
+  getPatrickCountyWmsUrl,
+  getPatrickCountyEsriFeatureUrl,
 } from "@/config/env";
 import { logger } from "@/lib/monitoring";
 import { geocodeAddress, getDirections } from "@/lib/mapsClient";
