@@ -15,6 +15,10 @@ Pavement Performance Suite (branded in UI as "Asphalt Overwatch") is an end‑to
   - Address geocoding and "fly to" search, routing (driving directions) with polyline overlay
   - Job site markers with clustering and info windows (status, progress, client)
   - Weather radar and rain overlays with configurable opacity and alert radius; alert info windows
+  - Pulse Scan overlay with POI highlighting; radial ring sliders to adjust opacity and intensity
+  - Suitability overlay driven by real OpenWeather data; adjustable thresholds in Settings
+  - Dark Zones layer with Editor (create/edit polygons, naming, role‑gated writes, import/export, local fallback)
+  - Audio cues for objective/hazard/scan complete with theme soundsets and master volume gating
   - Employee tracking layer (latest positions, summaries via Supabase)
   - Visibility/Enhance panel: brightness, contrast, sharpness, HDR, gamma, shadows, highlights with presets
   - AI surface area overlay injection and estimate handoff
@@ -118,6 +122,9 @@ Pavement Performance Suite (branded in UI as "Asphalt Overwatch") is an end‑to
   - Traffic layer toggle; Street View centered on current map center
   - Job site clustering with status‑colored markers and info windows
   - Weather radar and rain overlays with adjustable opacity and alert radius; click markers for details
+  - Pulse Scan with POI highlight sweep; ring sliders appear when active to tune opacity/intensity (persisted)
+  - Suitability tint using OpenWeather current/POP; thresholds configurable in Settings
+  - Dark Zones Editor from Right Sidebar; admins persist to Supabase, others can import/export JSON
   - Employee tracking layer shows latest positions and summaries; optional realtime subscribe
   - AI detection overlay: receipt of area sqft via event, renders circle overlay and info window; estimate workflow handoff
 - **State, settings, and persistence**
@@ -140,6 +147,8 @@ Pavement Performance Suite (branded in UI as "Asphalt Overwatch") is an end‑to
 ---
 
 ### Notes and Considerations
+- Respect prefers‑reduced‑motion, and expose Motion Reduction and Low Power Mode in Settings.
+- Provide color‑blind‑safe palette option in Themes; keep contrast high for on‑field sunlight readability.
 - All map features are provider‑aware: some advanced tools are disabled in Mapbox fallback.
 - Location privacy and battery impact should be documented for employee tracking; provide opt‑in and role‑based access.
 - For church workflows, prioritize readable overlays, ADA compliance, and printable plan views in exports.

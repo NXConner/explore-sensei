@@ -43,16 +43,25 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     soundVolume: 70,
     radarAudioEnabled: false,
     radarAudioVolume: 50,
+    // Pulse / Scan
+    pulseScanEnabled: false,
+    pulseHighlightPOIs: true,
+    ringControls: true,
+    reduceMotion: false,
+    lowPowerMode: false,
+    useCanvasFX: false,
     // Boot overlay
     bootOverlay: true,
     // Weather Alerts
     weatherAlertsEnabled: true,
     weatherAlertRadius: 15,
+    suitabilityThresholds: { minTempF: 55, maxTempF: 95, maxHumidity: 70, maxPrecipChance: 20 },
     // Themes & Wallpapers
     theme: "tactical-dark" as
       | "tactical-dark"
       | "light"
       | "high-contrast"
+      | "colorblind-safe"
       | "industry-blue"
       | "safety-green"
       | "construction"
@@ -67,6 +76,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
       // fidelity toggle: original-inspired vs faithful (close color matching)
     fidelityMode: "inspired" as "inspired" | "faithful",
     mapTheme: "division" as "division" | "animus",
+    preferredMapProvider: "auto" as "auto" | "google" | "mapbox" | "maplibre" | "leaflet",
     wallpaperUrl: "",
     wallpaperOpacity: 60,
     // Map defaults
@@ -85,7 +95,21 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
       googleGeneric?: string;
       mapbox?: string;
       openWeather?: string;
+      maptiler?: string;
     },
+    // Provider endpoints (persisted locally)
+    providers: {
+      patrickWms: "",
+      patrickEsriFeature: "",
+      usgsImageryWms: "",
+      usdaNaipWms: "",
+    } as {
+      patrickWms?: string;
+      patrickEsriFeature?: string;
+      usgsImageryWms?: string;
+      usdaNaipWms?: string;
+    },
+    soundset: "auto" as "auto" | "division" | "animus",
   });
 
   // Persist settings in localStorage
@@ -110,6 +134,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
         if (!merged.googleGeneric && found.googleGeneric) merged.googleGeneric = found.googleGeneric;
         if (!merged.mapbox && found.mapbox) merged.mapbox = found.mapbox;
         if (!merged.openWeather && found.openWeather) merged.openWeather = found.openWeather;
+        if (!merged.maptiler && found.maptiler) merged.maptiler = found.maptiler;
         return { ...prev, apiKeys: merged };
       });
     } catch {}
@@ -163,6 +188,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
             <TabsTrigger value="advanced">Advanced</TabsTrigger>
             <TabsTrigger value="api-keys">API Keys</TabsTrigger>
               <TabsTrigger value="roles">Roles</TabsTrigger>
+            <TabsTrigger value="pulse">Pulse</TabsTrigger>
           </TabsList>
             <TabsContent value="gamification" className="mt-0 space-y-6">
               <div className="tactical-panel p-4">
@@ -282,6 +308,32 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     className="mt-2"
                   />
                 </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs">Min Temperature (°F): {settings.suitabilityThresholds.minTempF}</Label>
+                    <Slider value={[settings.suitabilityThresholds.minTempF]}
+                      onValueChange={([val]) => setSettings((p) => ({ ...p, suitabilityThresholds: { ...p.suitabilityThresholds, minTempF: val } }))}
+                      min={30} max={80} step={1} className="mt-2" />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Max Temperature (°F): {settings.suitabilityThresholds.maxTempF}</Label>
+                    <Slider value={[settings.suitabilityThresholds.maxTempF]}
+                      onValueChange={([val]) => setSettings((p) => ({ ...p, suitabilityThresholds: { ...p.suitabilityThresholds, maxTempF: val } }))}
+                      min={70} max={110} step={1} className="mt-2" />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Max Humidity (%): {settings.suitabilityThresholds.maxHumidity}</Label>
+                    <Slider value={[settings.suitabilityThresholds.maxHumidity]}
+                      onValueChange={([val]) => setSettings((p) => ({ ...p, suitabilityThresholds: { ...p.suitabilityThresholds, maxHumidity: val } }))}
+                      min={40} max={100} step={1} className="mt-2" />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Max Precip Chance (%): {settings.suitabilityThresholds.maxPrecipChance}</Label>
+                    <Slider value={[settings.suitabilityThresholds.maxPrecipChance]}
+                      onValueChange={([val]) => setSettings((p) => ({ ...p, suitabilityThresholds: { ...p.suitabilityThresholds, maxPrecipChance: val } }))}
+                      min={0} max={100} step={5} className="mt-2" />
+                  </div>
+                </div>
               </div>
 
               <WeatherAlertLocationsManager />
@@ -298,6 +350,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     { id: "tactical-dark", label: "Tactical Dark", premium: false },
                     { id: "light", label: "Light", premium: false },
                     { id: "high-contrast", label: "High Contrast", premium: false },
+                    { id: "colorblind-safe", label: "Color-blind Safe", premium: false },
                     { id: "industry-blue", label: "Industry Blue", premium: false },
                     { id: "safety-green", label: "Safety Green", premium: false },
                     // Division-inspired collection
@@ -548,6 +601,35 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   </div>
                 </div>
               </div>
+
+              {/* Preferred Map Provider */}
+              <div className="tactical-panel p-4 space-y-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <Palette className="w-5 h-5 text-primary" />
+                  <Label>Preferred Map Provider</Label>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {([
+                    { id: "auto", label: "Auto" },
+                    { id: "google", label: "Google" },
+                    { id: "mapbox", label: "Mapbox" },
+                    { id: "maplibre", label: "MapLibre" },
+                    { id: "leaflet", label: "Leaflet" },
+                  ] as const).map((opt) => (
+                    <Button
+                      key={opt.id}
+                      variant={settings.preferredMapProvider === opt.id ? "default" : "outline"}
+                      onClick={() => setSettings((p) => ({ ...p, preferredMapProvider: opt.id }))}
+                      className="justify-start"
+                    >
+                      {opt.label}
+                    </Button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Auto uses Google if configured, else Mapbox/MapLibre fallback.
+                </p>
+              </div>
             </TabsContent>
 
             {/* Role Management (surface only) */}
@@ -759,6 +841,31 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     className="mt-2"
                   />
                 </div>
+
+                {/* Motion & Power */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Reduce Motion</Label>
+                      <p className="text-xs text-muted-foreground">Disable most animations</p>
+                    </div>
+                    <Switch checked={settings.reduceMotion} onCheckedChange={() => handleToggle('reduceMotion')} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Low Power Mode</Label>
+                      <p className="text-xs text-muted-foreground">Lighter visual effects</p>
+                    </div>
+                    <Switch checked={settings.lowPowerMode} onCheckedChange={() => handleToggle('lowPowerMode')} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Use Canvas FX</Label>
+                      <p className="text-xs text-muted-foreground">Experimental canvas renderer</p>
+                    </div>
+                    <Switch checked={settings.useCanvasFX} onCheckedChange={() => handleToggle('useCanvasFX')} />
+                  </div>
+                </div>
               </div>
             </TabsContent>
 
@@ -832,6 +939,57 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   />
                 </div>
               )}
+
+                {/* Soundset */}
+                <div className="mt-2">
+                  <Label className="text-xs">Theme Soundset</Label>
+                  <div className="flex gap-2 mt-1">
+                    {(["auto","division","animus"] as const).map((opt) => (
+                      <Button key={opt} size="sm" variant={settings.soundset === opt ? "default" : "outline"} onClick={() => setSettings((p) => ({ ...p, soundset: opt }))}>
+                        {opt.toUpperCase()}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* Pulse Scan */}
+            <TabsContent value="pulse" className="mt-0 space-y-6">
+              <div className="tactical-panel p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Enable Pulse Scan</Label>
+                    <p className="text-xs text-muted-foreground">Overlay sweep and POI highlights</p>
+                  </div>
+                  <Switch
+                    checked={settings.pulseScanEnabled}
+                    onCheckedChange={() => {
+                      handleToggle('pulseScanEnabled');
+                      try { window.dispatchEvent(new CustomEvent('toggle-pulse-scan')); } catch {}
+                    }}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Highlight POIs During Scan</Label>
+                    <p className="text-xs text-muted-foreground">Jobs and active alerts</p>
+                  </div>
+                  <Switch
+                    checked={settings.pulseHighlightPOIs}
+                    onCheckedChange={() => handleToggle('pulseHighlightPOIs')}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Show Ring Controls</Label>
+                    <p className="text-xs text-muted-foreground">Adjust opacity/intensity on-map</p>
+                  </div>
+                  <Switch
+                    checked={settings.ringControls}
+                    onCheckedChange={() => handleToggle('ringControls')}
+                  />
+                </div>
               </div>
             </TabsContent>
 
@@ -932,6 +1090,21 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                       className="mt-1"
                     />
                   </div>
+                <div>
+                  <Label className="text-xs">MapTiler API Key</Label>
+                  <Input
+                    type="password"
+                    placeholder="get from maptiler.com"
+                    value={settings.apiKeys?.maptiler || ""}
+                    onChange={(e) =>
+                      setSettings((p) => ({
+                        ...p,
+                        apiKeys: { ...(p.apiKeys || {}), maptiler: e.target.value },
+                      }))
+                    }
+                    className="mt-1"
+                  />
+                </div>
                   <div>
                     <Label className="text-xs">OpenWeather API Key</Label>
                     <Input
@@ -948,6 +1121,57 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     />
                   </div>
                 </div>
+              </div>
+
+              {/* Provider Endpoints */}
+              <div className="tactical-panel p-4 space-y-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <Settings className="w-5 h-5 text-primary" />
+                  <Label>Provider Endpoints</Label>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-xs">Patrick County Tile URL (ArcGIS MapServer tile)</Label>
+                    <Input
+                      type="url"
+                      placeholder="https://.../arcgis/rest/services/Parcels/MapServer/tile/{z}/{y}/{x}"
+                      value={settings.providers?.patrickWms || ""}
+                      onChange={(e) => setSettings((p) => ({ ...p, providers: { ...(p.providers||{}), patrickWms: e.target.value } }))}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Patrick County Feature Layer URL (ArcGIS FeatureServer)</Label>
+                    <Input
+                      type="url"
+                      placeholder="https://.../arcgis/rest/services/Parcels/FeatureServer/0"
+                      value={settings.providers?.patrickEsriFeature || ""}
+                      onChange={(e) => setSettings((p) => ({ ...p, providers: { ...(p.providers||{}), patrickEsriFeature: e.target.value } }))}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">USGS Imagery tile URL</Label>
+                    <Input
+                      type="url"
+                      placeholder="https://basemap.nationalmap.gov/.../USGSImageryOnly/MapServer/tile/{z}/{y}/{x}"
+                      value={settings.providers?.usgsImageryWms || ""}
+                      onChange={(e) => setSettings((p) => ({ ...p, providers: { ...(p.providers||{}), usgsImageryWms: e.target.value } }))}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">USDA NAIP tile URL</Label>
+                    <Input
+                      type="url"
+                      placeholder="https://services.nationalmap.gov/.../USGSNAIPPlus/MapServer/tile/{z}/{y}/{x}"
+                      value={settings.providers?.usdaNaipWms || ""}
+                      onChange={(e) => setSettings((p) => ({ ...p, providers: { ...(p.providers||{}), usdaNaipWms: e.target.value } }))}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">Values set here override environment variables on this device.</p>
               </div>
             </TabsContent>
           </ScrollArea>

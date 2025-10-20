@@ -144,6 +144,8 @@ const Index = () => {
     showWeatherRadar: false,
     showParcels: false,
     activeMode: null as DrawingMode,
+    imagery: "none" as "none" | "naip" | "usgs",
+    showParcels: false,
   });
 
   // Load map theme from settings, default to division, and react to changes
@@ -175,6 +177,8 @@ const Index = () => {
           showWeatherRadar: mapContainerRef.current.getShowWeatherRadar(),
           showParcels: mapContainerRef.current.getShowParcels(),
           activeMode: mapContainerRef.current.getActiveMode(),
+          imagery: (mapContainerRef.current as any).getImagery?.() || "none",
+          showParcels: (mapContainerRef.current as any).getShowParcels?.() || false,
         });
       }
     }, 500);
@@ -256,6 +260,10 @@ const Index = () => {
         onClear={() => mapContainerRef.current?.handleClear()}
         onSave={() => mapContainerRef.current?.handleSave()}
         onExport={() => setShowExport(true)}
+        onImageryChange={(mode) => (mapContainerRef.current as any)?.setImagery?.(mode)}
+        imagery={mapState.imagery}
+        onToggleParcels={() => (mapContainerRef.current as any)?.toggleParcels?.()}
+        showParcels={mapState.showParcels}
       />
 
       {/* KPI Ticker */}

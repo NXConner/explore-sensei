@@ -16,12 +16,17 @@ import {
   Trash2,
   Save,
   Download,
+  Pencil,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DrawingMode } from "@/hooks/useMapDrawing";
+<<<<<<< HEAD
 import { Waves, Radio, FlameKindling, Layers } from "lucide-react";
+=======
+import { Waves, Radio, FlameKindling } from "lucide-react";
+>>>>>>> origin/main
 
 interface RightSidebarProps {
   onAIClick: () => void;
@@ -35,8 +40,13 @@ interface RightSidebarProps {
   showEmployeeTracking?: boolean;
   onToggleWeatherRadar?: () => void;
   showWeatherRadar?: boolean;
+<<<<<<< HEAD
   onToggleParcels?: () => void;
   showParcels?: boolean;
+=======
+  onImageryChange?: (mode: "none" | "naip" | "usgs") => void;
+  imagery?: "none" | "naip" | "usgs";
+>>>>>>> origin/main
   onModeChange?: (mode: DrawingMode) => void;
   activeMode?: DrawingMode;
   onClear?: () => void;
@@ -63,6 +73,8 @@ export const RightSidebar = ({
   onClear,
   onSave,
   onExport,
+  onImageryChange,
+  imagery = "none",
 }: RightSidebarProps) => {
   const tools = [
     {
@@ -186,6 +198,7 @@ export const RightSidebar = ({
             </Button>
           )}
 
+<<<<<<< HEAD
           {onToggleParcels && (
             <Button
               variant={showParcels ? "default" : "ghost"}
@@ -198,6 +211,42 @@ export const RightSidebar = ({
             </Button>
           )}
 
+=======
+<<<<<<< HEAD
+          {onImageryChange && (
+            <>
+              <div className="h-px w-10 bg-primary/30 my-1" />
+              <Button
+                variant={imagery === "none" ? "default" : "ghost"}
+                size="sm"
+                className="w-12 h-12 p-0"
+                onClick={() => onImageryChange("none")}
+                title="Base Map"
+              >
+                BM
+              </Button>
+              <Button
+                variant={imagery === "naip" ? "default" : "ghost"}
+                size="sm"
+                className="w-12 h-12 p-0"
+                onClick={() => onImageryChange("naip")}
+                title="NAIP Imagery"
+              >
+                N
+              </Button>
+              <Button
+                variant={imagery === "usgs" ? "default" : "ghost"}
+                size="sm"
+                className="w-12 h-12 p-0"
+                onClick={() => onImageryChange("usgs")}
+                title="USGS Imagery"
+              >
+                U
+              </Button>
+            </>
+          )}
+=======
+>>>>>>> origin/main
           {/* Suitability Overlay (hazard/ok tint) */}
           <Button
             variant="ghost"
@@ -240,6 +289,20 @@ export const RightSidebar = ({
             <FlameKindling className="w-5 h-5" />
           </Button>
 
+          {/* Dark Zones Editor */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-12 h-12 p-0 hover:bg-red-500/20 hover:text-red-500 border border-transparent hover:border-red-500/50 transition-all"
+            onClick={() => {
+              const evt = new CustomEvent('open-dark-zone-editor', { detail: {} });
+              window.dispatchEvent(evt);
+            }}
+            title="Edit Dark Zones"
+          >
+            <Pencil className="w-5 h-5" />
+          </Button>
+
           {/* Suitability Overlay (hazard/ok tint) */}
           <Button
             variant="ghost"
@@ -267,6 +330,7 @@ export const RightSidebar = ({
           >
             <Radio className="w-5 h-5" />
           </Button>
+>>>>>>> origin/main
 
           {onModeChange && (
             <>
