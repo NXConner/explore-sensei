@@ -82,6 +82,18 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
       openWeather?: string;
       maptiler?: string;
     },
+    // Provider endpoints (persisted locally)
+    providers: {
+      patrickWms: "",
+      patrickEsriFeature: "",
+      usgsImageryWms: "",
+      usdaNaipWms: "",
+    } as {
+      patrickWms?: string;
+      patrickEsriFeature?: string;
+      usgsImageryWms?: string;
+      usdaNaipWms?: string;
+    },
   });
 
   // Persist settings in localStorage
@@ -933,6 +945,57 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     />
                   </div>
                 </div>
+              </div>
+
+              {/* Provider Endpoints */}
+              <div className="tactical-panel p-4 space-y-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <Settings className="w-5 h-5 text-primary" />
+                  <Label>Provider Endpoints</Label>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-xs">Patrick County Tile URL (ArcGIS MapServer tile)</Label>
+                    <Input
+                      type="url"
+                      placeholder="https://.../arcgis/rest/services/Parcels/MapServer/tile/{z}/{y}/{x}"
+                      value={settings.providers?.patrickWms || ""}
+                      onChange={(e) => setSettings((p) => ({ ...p, providers: { ...(p.providers||{}), patrickWms: e.target.value } }))}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Patrick County Feature Layer URL (ArcGIS FeatureServer)</Label>
+                    <Input
+                      type="url"
+                      placeholder="https://.../arcgis/rest/services/Parcels/FeatureServer/0"
+                      value={settings.providers?.patrickEsriFeature || ""}
+                      onChange={(e) => setSettings((p) => ({ ...p, providers: { ...(p.providers||{}), patrickEsriFeature: e.target.value } }))}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">USGS Imagery tile URL</Label>
+                    <Input
+                      type="url"
+                      placeholder="https://basemap.nationalmap.gov/.../USGSImageryOnly/MapServer/tile/{z}/{y}/{x}"
+                      value={settings.providers?.usgsImageryWms || ""}
+                      onChange={(e) => setSettings((p) => ({ ...p, providers: { ...(p.providers||{}), usgsImageryWms: e.target.value } }))}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">USDA NAIP tile URL</Label>
+                    <Input
+                      type="url"
+                      placeholder="https://services.nationalmap.gov/.../USGSNAIPPlus/MapServer/tile/{z}/{y}/{x}"
+                      value={settings.providers?.usdaNaipWms || ""}
+                      onChange={(e) => setSettings((p) => ({ ...p, providers: { ...(p.providers||{}), usdaNaipWms: e.target.value } }))}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">Values set here override environment variables on this device.</p>
               </div>
             </TabsContent>
           </ScrollArea>

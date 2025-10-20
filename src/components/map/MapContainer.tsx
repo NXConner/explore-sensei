@@ -30,6 +30,8 @@ import {
   getMapLibreStyleUrl,
   getBasemapPmtilesUrl,
   getMapTilerApiKey,
+  getUSGSImageryWmsUrl,
+  getUSDA_NAIP_WmsUrl,
 } from "@/config/env";
 import { logger } from "@/lib/monitoring";
 import { geocodeAddress, getDirections } from "@/lib/mapsClient";
@@ -78,6 +80,9 @@ export const MapContainer = forwardRef<
   const [showAIDetection, setShowAIDetection] = useState(false);
   const [showEmployeeTracking, setShowEmployeeTracking] = useState(false);
   const [showWeatherRadar, setShowWeatherRadar] = useState(false);
+  const [imagery, setImagery] = useState<"none" | "naip" | "usgs">("none");
+  const leafletImageryRef = useRef<L.TileLayer | null>(null);
+  const googleImageryRef = useRef<google.maps.ImageMapType | null>(null);
   const [radarOpacity, setRadarOpacity] = useState(70);
   const [alertRadius, setAlertRadius] = useState(15);
   const [mapTheme, setMapTheme] = useState<MapTheme>(props.initialMapTheme || "division");
@@ -104,6 +109,8 @@ export const MapContainer = forwardRef<
     getShowEmployeeTracking: () => showEmployeeTracking,
     getShowWeatherRadar: () => showWeatherRadar,
     getActiveMode: () => activeMode,
+    setImagery: (mode: "none" | "naip" | "usgs") => setImagery(mode),
+    getImagery: () => imagery,
   }));
 
   // UI settings loaded from SettingsModal persistence
@@ -308,6 +315,85 @@ export const MapContainer = forwardRef<
       });
     }
   };
+
+  // Apply imagery overlay for current provider
+  useEffect(() => {
+    const USGS = getUSGSImageryWmsUrl() ||
+      "https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}";
+    const NAIP = getUSDA_NAIP_WmsUrl() ||
+      "https://services.nationalmap.gov/arcgis/rest/services/USGSNAIPPlus/MapServer/tile/{z}/{y}/{x}";
+
+    const tileUrl = imagery === "usgs" ? USGS : imagery === "naip" ? NAIP : null;
+
+    // Google Maps path
+    if (!usingMapbox && mapInstanceRef.current) {
+      // Clear existing overlay
+      if (googleImageryRef.current) {
+        try {
+          const overlays = mapInstanceRef.current.overlayMapTypes;
+          for (let i = overlays.getLength() - 1; i >= 0; i--) {
+            overlays.removeAt(i);
+          }
+        } catch {}
+        googleImageryRef.current = null;
+      }
+      if (!tileUrl) return;
+      try {
+        const imt = new google.maps.ImageMapType({
+          getTileUrl: (coord: google.maps.Point, zoom: number) =>
+            tileUrl
+              .replace("{z}", String(zoom))
+              .replace("{x}", String(coord.x))
+              .replace("{y}", String(coord.y)),
+          tileSize: new google.maps.Size(256, 256),
+          name: imagery.toUpperCase(),
+        } as any);
+        mapInstanceRef.current.overlayMapTypes.push(imt);
+        googleImageryRef.current = imt;
+      } catch {}
+      return;
+    }
+
+    // MapLibre/Mapbox path
+    const gl = mapboxInstanceRef.current as any;
+    if (gl && typeof gl?.getStyle === "function" && typeof gl?.addSource === "function") {
+      const layerId = "imagery-layer";
+      const sourceId = "imagery-src";
+      try {
+        if (gl.getLayer(layerId)) gl.removeLayer(layerId);
+      } catch {}
+      try {
+        if (gl.getSource(sourceId)) gl.removeSource(sourceId);
+      } catch {}
+      if (!tileUrl) return;
+      try {
+        gl.addSource(sourceId, {
+          type: "raster",
+          tiles: [tileUrl],
+          tileSize: 256,
+          attribution: "USGS/USDA",
+        });
+        gl.addLayer({ id: layerId, type: "raster", source: sourceId, paint: { "raster-opacity": 0.85 } });
+      } catch {}
+      return;
+    }
+
+    // Leaflet path
+    const lf = mapboxInstanceRef.current as any;
+    if (lf && typeof lf?.addLayer === "function" && typeof lf?.eachLayer === "function") {
+      if (leafletImageryRef.current) {
+        try { lf.removeLayer(leafletImageryRef.current); } catch {}
+        leafletImageryRef.current = null;
+      }
+      if (!tileUrl) return;
+      try {
+        const layer = L.tileLayer(tileUrl, { opacity: 0.85, crossOrigin: true });
+        layer.addTo(lf);
+        leafletImageryRef.current = layer;
+      } catch {}
+      return;
+    }
+  }, [imagery, usingMapbox]);
 
   const handleAIDetect = () => {
     setShowAIDetection(true);
@@ -940,6 +1026,12 @@ export const MapContainer = forwardRef<
             alertRadius={alertRadius}
           />
         </>
+      )}
+      {/* Imagery toggle indicator (functional layers to be added in a dedicated overlay component) */}
+      {imagery !== "none" && (
+        <div className="absolute right-4 bottom-4 z-[500]">
+          <div className="tactical-panel text-xs">Imagery: {imagery.toUpperCase()}</div>
+        </div>
       )}
       <div
         ref={mapRef}

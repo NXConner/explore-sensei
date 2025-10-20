@@ -34,6 +34,8 @@ interface RightSidebarProps {
   showEmployeeTracking?: boolean;
   onToggleWeatherRadar?: () => void;
   showWeatherRadar?: boolean;
+  onImageryChange?: (mode: "none" | "naip" | "usgs") => void;
+  imagery?: "none" | "naip" | "usgs";
   onModeChange?: (mode: DrawingMode) => void;
   activeMode?: DrawingMode;
   onClear?: () => void;
@@ -58,6 +60,8 @@ export const RightSidebar = ({
   onClear,
   onSave,
   onExport,
+  onImageryChange,
+  imagery = "none",
 }: RightSidebarProps) => {
   const tools = [
     {
@@ -179,6 +183,39 @@ export const RightSidebar = ({
             >
               <Cloud className="w-5 h-5 text-sky-500" />
             </Button>
+          )}
+
+          {onImageryChange && (
+            <>
+              <div className="h-px w-10 bg-primary/30 my-1" />
+              <Button
+                variant={imagery === "none" ? "default" : "ghost"}
+                size="sm"
+                className="w-12 h-12 p-0"
+                onClick={() => onImageryChange("none")}
+                title="Base Map"
+              >
+                BM
+              </Button>
+              <Button
+                variant={imagery === "naip" ? "default" : "ghost"}
+                size="sm"
+                className="w-12 h-12 p-0"
+                onClick={() => onImageryChange("naip")}
+                title="NAIP Imagery"
+              >
+                N
+              </Button>
+              <Button
+                variant={imagery === "usgs" ? "default" : "ghost"}
+                size="sm"
+                className="w-12 h-12 p-0"
+                onClick={() => onImageryChange("usgs")}
+                title="USGS Imagery"
+              >
+                U
+              </Button>
+            </>
           )}
 
           {onModeChange && (
