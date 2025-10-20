@@ -1,6 +1,9 @@
 /// <reference types="google.maps" />
 import React, { useEffect, useRef, useState, forwardRef, useImperativeHandle, lazy, Suspense } from "react";
 import mapboxgl from "mapbox-gl";
+import maplibregl from "maplibre-gl";
+import L from "leaflet";
+import { Protocol as PMTilesProtocol } from "pmtiles";
 import { loadGoogleMaps } from "@/lib/googleMapsLoader";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import { useJobSites } from "@/hooks/useJobSites";
@@ -21,8 +24,23 @@ import { WeatherRadarLayer } from "@/components/weather/WeatherRadarLayer";
 import { DarkZoneLayer } from "@/components/map/DarkZoneLayer";
 import { RainRadarOverlay } from "@/components/weather/RainRadarOverlay";
 import { MapContext } from "./MapContext";
+<<<<<<< HEAD
+import {
+  getGoogleMapsApiKey,
+  getMapboxAccessToken,
+  getPreferredMapProvider,
+  getMapLibreStyleUrl,
+  getBasemapPmtilesUrl,
+  getMapTilerApiKey,
+  getUSGSImageryWmsUrl,
+  getUSDA_NAIP_WmsUrl,
+  getPatrickCountyWmsUrl,
+  getPatrickCountyEsriFeatureUrl,
+} from "@/config/env";
+=======
 import { PulseScanOverlay } from "@/components/map/PulseScanOverlay";
 import { getGoogleMapsApiKey, getMapboxAccessToken, getPreferredMapProvider } from "@/config/env";
+>>>>>>> origin/main
 import { logger } from "@/lib/monitoring";
 import { geocodeAddress, getDirections } from "@/lib/mapsClient";
 import { CornerBrackets } from "@/components/hud/CornerBrackets";
@@ -57,6 +75,10 @@ export interface MapContainerRef {
   getShowEmployeeTracking: () => boolean;
   getShowWeatherRadar: () => boolean;
   getActiveMode: () => DrawingMode;
+  toggleParcels: () => void;
+  getShowParcels: () => boolean;
+  setImagery: (mode: "none" | "naip" | "usgs") => void;
+  getImagery: () => "none" | "naip" | "usgs";
 }
 
 export const MapContainer = forwardRef<
@@ -65,7 +87,7 @@ export const MapContainer = forwardRef<
 >((props, ref) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const mapboxInstanceRef = useRef<mapboxgl.Map | null>(null);
+  const mapboxInstanceRef = useRef<any | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
   const clustererRef = useRef<MarkerClusterer | null>(null);
   const trafficLayerRef = useRef<google.maps.TrafficLayer | null>(null);
@@ -79,11 +101,17 @@ export const MapContainer = forwardRef<
   const [showAIDetection, setShowAIDetection] = useState(false);
   const [showEmployeeTracking, setShowEmployeeTracking] = useState(false);
   const [showWeatherRadar, setShowWeatherRadar] = useState(false);
+<<<<<<< HEAD
+  const [imagery, setImagery] = useState<"none" | "naip" | "usgs">("none");
+  const leafletImageryRef = useRef<L.TileLayer | null>(null);
+  const googleImageryRef = useRef<google.maps.ImageMapType | null>(null);
+=======
   const [showDarkZones, setShowDarkZones] = useState(false);
   const [showSuitability, setShowSuitability] = useState(false);
   const [showPulseScan, setShowPulseScan] = useState(false);
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [heatmapPoints, setHeatmapPoints] = useState<Array<{ lat: number; lng: number; weight?: number }>>([]);
+>>>>>>> origin/main
   const [radarOpacity, setRadarOpacity] = useState(70);
   const [alertRadius, setAlertRadius] = useState(15);
   const [mapTheme, setMapTheme] = useState<MapTheme>(props.initialMapTheme || "division");
@@ -115,6 +143,8 @@ export const MapContainer = forwardRef<
     getShowEmployeeTracking: () => showEmployeeTracking,
     getShowWeatherRadar: () => showWeatherRadar,
     getActiveMode: () => activeMode,
+    setImagery: (mode: "none" | "naip" | "usgs") => setImagery(mode),
+    getImagery: () => imagery,
   }));
 
   // UI settings loaded from SettingsModal persistence
@@ -438,6 +468,85 @@ export const MapContainer = forwardRef<
     }
   };
 
+  // Apply imagery overlay for current provider
+  useEffect(() => {
+    const USGS = getUSGSImageryWmsUrl() ||
+      "https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}";
+    const NAIP = getUSDA_NAIP_WmsUrl() ||
+      "https://services.nationalmap.gov/arcgis/rest/services/USGSNAIPPlus/MapServer/tile/{z}/{y}/{x}";
+
+    const tileUrl = imagery === "usgs" ? USGS : imagery === "naip" ? NAIP : null;
+
+    // Google Maps path
+    if (!usingMapbox && mapInstanceRef.current) {
+      // Clear existing overlay
+      if (googleImageryRef.current) {
+        try {
+          const overlays = mapInstanceRef.current.overlayMapTypes;
+          for (let i = overlays.getLength() - 1; i >= 0; i--) {
+            overlays.removeAt(i);
+          }
+        } catch {}
+        googleImageryRef.current = null;
+      }
+      if (!tileUrl) return;
+      try {
+        const imt = new google.maps.ImageMapType({
+          getTileUrl: (coord: google.maps.Point, zoom: number) =>
+            tileUrl
+              .replace("{z}", String(zoom))
+              .replace("{x}", String(coord.x))
+              .replace("{y}", String(coord.y)),
+          tileSize: new google.maps.Size(256, 256),
+          name: imagery.toUpperCase(),
+        } as any);
+        mapInstanceRef.current.overlayMapTypes.push(imt);
+        googleImageryRef.current = imt;
+      } catch {}
+      return;
+    }
+
+    // MapLibre/Mapbox path
+    const gl = mapboxInstanceRef.current as any;
+    if (gl && typeof gl?.getStyle === "function" && typeof gl?.addSource === "function") {
+      const layerId = "imagery-layer";
+      const sourceId = "imagery-src";
+      try {
+        if (gl.getLayer(layerId)) gl.removeLayer(layerId);
+      } catch {}
+      try {
+        if (gl.getSource(sourceId)) gl.removeSource(sourceId);
+      } catch {}
+      if (!tileUrl) return;
+      try {
+        gl.addSource(sourceId, {
+          type: "raster",
+          tiles: [tileUrl],
+          tileSize: 256,
+          attribution: "USGS/USDA",
+        });
+        gl.addLayer({ id: layerId, type: "raster", source: sourceId, paint: { "raster-opacity": 0.85 } });
+      } catch {}
+      return;
+    }
+
+    // Leaflet path
+    const lf = mapboxInstanceRef.current as any;
+    if (lf && typeof lf?.addLayer === "function" && typeof lf?.eachLayer === "function") {
+      if (leafletImageryRef.current) {
+        try { lf.removeLayer(leafletImageryRef.current); } catch {}
+        leafletImageryRef.current = null;
+      }
+      if (!tileUrl) return;
+      try {
+        const layer = L.tileLayer(tileUrl, { opacity: 0.85, crossOrigin: true });
+        layer.addTo(lf);
+        leafletImageryRef.current = layer;
+      } catch {}
+      return;
+    }
+  }, [imagery, usingMapbox]);
+
   const handleAIDetect = () => {
     setShowAIDetection(true);
   };
@@ -578,6 +687,8 @@ export const MapContainer = forwardRef<
     const preference = getPreferredMapProvider();
     const forceMapbox = preference === "mapbox";
     const forceGoogle = preference === "google";
+    const forceMapLibre = preference === "maplibre";
+    const forceLeaflet = preference === "leaflet";
     const noGoogleKey = !currentGoogleKey || currentGoogleKey === "undefined";
     const initializeMapboxFallback = async () => {
       setUsingMapbox(true);
@@ -622,6 +733,90 @@ export const MapContainer = forwardRef<
         setMapsUnavailable(true);
       }
     };
+
+    const initializeMapLibre = async () => {
+      setUsingMapbox(true);
+      setMapsUnavailable(false);
+      if (!mapRef.current || mapboxInstanceRef.current) return;
+      try {
+        const protocol = new PMTilesProtocol();
+        maplibregl.addProtocol("pmtiles", protocol.tile);
+        const defaultCenter: [number, number] = [-80.2715, 36.6904];
+        const styleUrl = getMapLibreStyleUrl();
+        const pmtilesUrl = getBasemapPmtilesUrl();
+        const maptilerKey = getMapTilerApiKey();
+        const style: any = styleUrl
+          ? styleUrl
+          : pmtilesUrl
+          ? {
+              version: 8,
+              glyphs: "https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf",
+              sources: {
+                protomaps: { type: "vector", url: `pmtiles://${pmtilesUrl}` },
+              },
+              layers: [
+                { id: "land", type: "fill", source: "protomaps", "source-layer": "landuse", paint: { "fill-color": "#0b0b0b" } },
+                { id: "water", type: "fill", source: "protomaps", "source-layer": "water", paint: { "fill-color": "#0a1a2a" } },
+                { id: "roads", type: "line", source: "protomaps", "source-layer": "roads", paint: { "line-color": "#7f8c8d", "line-width": 1 } },
+                { id: "boundaries", type: "line", source: "protomaps", "source-layer": "boundaries", paint: { "line-color": "#4b5563", "line-width": 0.5 } },
+                { id: "places", type: "symbol", source: "protomaps", "source-layer": "places", layout: { "text-field": ["get", "name"], "text-size": 12 }, paint: { "text-color": "#d1d5db" } },
+              ],
+            }
+          : maptilerKey
+          ? `https://api.maptiler.com/maps/streets-v2/style.json?key=${maptilerKey}`
+          : "https://demotiles.maplibre.org/style.json";
+
+        const map = new maplibregl.Map({
+          container: mapRef.current,
+          style,
+          center: defaultCenter,
+          zoom: 12,
+        });
+        mapboxInstanceRef.current = map;
+      } catch (e) {
+        logger.warn("Failed to initialize MapLibre", { error: e });
+        setMapsUnavailable(true);
+      }
+    };
+
+    const initializeLeaflet = async () => {
+      setUsingMapbox(true);
+      setMapsUnavailable(false);
+      if (!mapRef.current || mapboxInstanceRef.current) return;
+      try {
+        const map = L.map(mapRef.current).setView([36.6904, -80.2715], 12);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+          attribution: "© OpenStreetMap contributors",
+        }).addTo(map);
+        mapboxInstanceRef.current = map;
+      } catch (e) {
+        logger.warn("Failed to initialize Leaflet", { error: e });
+        setMapsUnavailable(true);
+      }
+    };
+
+    if (forceMapLibre) {
+      initializeMapLibre();
+
+      return () => {
+        if (mapboxInstanceRef.current) {
+          try { mapboxInstanceRef.current.remove(); } catch {}
+          mapboxInstanceRef.current = null;
+        }
+      };
+    }
+
+    if (forceLeaflet) {
+      initializeLeaflet();
+
+      return () => {
+        if (mapboxInstanceRef.current) {
+          try { mapboxInstanceRef.current.remove(); } catch {}
+          mapboxInstanceRef.current = null;
+        }
+      };
+    }
 
     if (forceMapbox || (preference !== "google" && noGoogleKey)) {
       initializeMapboxFallback();
@@ -1037,6 +1232,14 @@ export const MapContainer = forwardRef<
           />
         </>
       )}
+<<<<<<< HEAD
+      {/* Imagery toggle indicator (functional layers to be added in a dedicated overlay component) */}
+      {imagery !== "none" && (
+        <div className="absolute right-4 bottom-4 z-[500]">
+          <div className="tactical-panel text-xs">Imagery: {imagery.toUpperCase()}</div>
+        </div>
+      )}
+=======
       {!usingMapbox && showSuitability && (
         <SuitabilityOverlay
           map={mapInstanceRef.current}
@@ -1079,6 +1282,7 @@ export const MapContainer = forwardRef<
           }}
         />
       )}
+>>>>>>> origin/main
       <div
         ref={mapRef}
         className="absolute inset-0 w-full h-full map-container"
