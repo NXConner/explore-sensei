@@ -323,6 +323,7 @@ export const RightSidebar = ({
                   className="w-12 h-12 p-0 hover:bg-green-500/20 hover:text-green-500 border border-transparent hover:border-green-500/50 transition-all"
                   onClick={onSave}
                   title="Save Measurement"
+                >
                   <Save className="w-5 h-5 text-green-500" />
                 </Button>
               )}
