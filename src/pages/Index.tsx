@@ -246,6 +246,8 @@ const Index = () => {
         onExport={() => setShowExport(true)}
         onImageryChange={(mode) => (mapContainerRef.current as any)?.setImagery?.(mode)}
         imagery={mapState.imagery}
+        onToggleParcels={() => (mapContainerRef.current as any)?.toggleParcels?.()}
+        showParcels={mapState.showParcels}
       />
 
       {/* KPI Ticker */}
