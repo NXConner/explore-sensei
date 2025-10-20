@@ -143,3 +143,11 @@ Pavement Performance Suite (branded in UI as "Asphalt Overwatch") is an end‑to
 - All map features are provider‑aware: some advanced tools are disabled in Mapbox fallback.
 - Location privacy and battery impact should be documented for employee tracking; provide opt‑in and role‑based access.
 - For church workflows, prioritize readable overlays, ADA compliance, and printable plan views in exports.
+
+### Parcels Overlay
+- Toggle via Right Sidebar “Parcels” button.
+- Works on Google Maps (ImageMapType overlay) and Mapbox (raster layer).
+- Configure tiles template via:
+  - localStorage key saved by Settings UI: `aos_settings.providers.parcelsTilesTemplate`
+  - or environment variable: `VITE_PARCELS_TILES_TEMPLATE`
+- Supported placeholders: `{z}`, `{x}`, `{y}`
