@@ -16,3 +16,13 @@ services:
     environment:
       - NODE_ENV=production
     depends_on: []
+  mlapi:
+    build:
+      context: ./ml
+    environment:
+      - ASPHALT_MODEL_PATH=/models/asphalt-yolov8s-seg.pt
+      - PIXELS_PER_FOOT=3.0
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/models

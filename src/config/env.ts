@@ -201,6 +201,27 @@ export function getPatrickCountyEsriFeatureUrl(): string | undefined {
   return value?.trim() || undefined;
 }
 
+// ML API URL getter: localStorage override -> env -> default
+export function getMlApiUrl(): string | undefined {
+  try {
+    const ls = readLocalStorageApiKey(["providers", "mlapiUrl"]);
+    if (ls) return ls;
+  } catch {}
+  const candidates = [
+    (import.meta as any).env.VITE_MLAPI_URL as string | undefined,
+    (import.meta as any).env.VITE_ASPHALT_ML_URL as string | undefined,
+  ];
+  for (const value of candidates) {
+    if (typeof value !== "string") continue;
+    const normalized = value.trim().replace(/^['"]|['"]$/g, "");
+    if (!normalized) continue;
+    const lower = normalized.toLowerCase();
+    if (lower === "undefined" || lower === "null") continue;
+    return normalized;
+  }
+  return undefined;
+}
+
 // Provider preferences for server-side utilities (geocode/routing/elevation)
 export type GeocoderProvider = "google" | "nominatim";
 export type RoutingProvider = "google" | "osrm";
