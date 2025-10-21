@@ -1,0 +1,39 @@
+[project]
+name = "pavement-mlapi"
+version = "0.1.0"
+description = "ML service for asphalt detection/segmentation and area estimation"
+authors = [{ name = "Explore Sensei" }]
+requires-python = ">=3.10"
+readme = "README.md"
+
+[project.urls]
+Homepage = "https://github.com/explore-sensei/pavement-performance-suite"
+
+[project.dependencies]
+fastapi = "^0.115.5"
+uvicorn = {version = "^0.32.0", extras=["standard"]}
+# CPU-only Torch; replace with CUDA wheels when available in deployment
+# Torch versions chosen for Python 3.10/3.11 compatibility; may be overridden
+torch = "^2.4.1"
+torchvision = "^0.19.1"
+ultralytics = "^8.3.61"
+opencv-python-headless = "^4.10.0.84"
+Pillow = "^10.4.0"
+numpy = "^2.1.3"
+shapely = "^2.0.6"
+scikit-image = "^0.24.0"
+# tiling and large image inference
+sahi = "^0.11.19"
+# optional for Label Studio import/export
+pyyaml = "^6.0.2"
+
+[tool.uvicorn]
+factory = false
+host = "0.0.0.0"
+port = 8000
+
+[tool.black]
+line-length = 100
+
+[tool.isort]
+profile = "black"

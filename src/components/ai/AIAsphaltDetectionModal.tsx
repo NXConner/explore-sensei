@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { exportAIReportToPDF } from "@/lib/pdfExport";
 import { logger } from "@/lib/monitoring";
-import { getGoogleMapsApiKey } from "@/config/env";
+import { getGoogleMapsApiKey, getMlApiUrl } from "@/config/env";
 import { useMap } from "@/components/map/MapContext";
 import { LoadingSpinner, LoadingOverlay } from "@/components/ui/LoadingSpinner";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
@@ -83,6 +83,8 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
   const [showOverlayEditor, setShowOverlayEditor] = useState(false);
   const [editedAreas, setEditedAreas] = useState<AsphaltArea[]>([]);
   const { map } = useMap();
+  const [analysisBackend, setAnalysisBackend] = useState<"mlapi" | "supabase" | null>(null);
+  const [pixelsPerFoot, setPixelsPerFoot] = useState<number | undefined>(undefined);
 
   const analyzeImage = async (imageDataUrl: string) => {
     try {
@@ -93,22 +95,48 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
 
       logger.debug("Calling AI analysis function...", { source: "AIAsphaltDetectionModal" });
 
-      const { data, error: functionError } = await supabase.functions.invoke("analyze-asphalt", {
-        body: { imageData: imageDataUrl },
-      });
+      // Prefer ML API if configured
+      const mlUrl = getMlApiUrl();
+      let usedBackend: "mlapi" | "supabase" = "supabase";
+      let finalData: any = null;
 
-      setProgress(90);
-
-      if (functionError) {
-        throw functionError;
+      if (mlUrl) {
+        try {
+          setProgress(30);
+          const resp = await fetch(`${mlUrl.replace(/\/$/, "")}/infer`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ imageBase64: imageDataUrl, pixelsPerFoot })
+          });
+          if (resp.ok) {
+            const json = await resp.json();
+            if (json?.success) {
+              finalData = json;
+              usedBackend = "mlapi";
+            }
+          }
+        } catch (err) {
+          logger.warn?.("ML API call failed, falling back", { err });
+        }
       }
 
-      if (!data?.success) {
-        throw new Error(data?.error || "Analysis failed");
+      if (!finalData) {
+        const { data, error: functionError } = await supabase.functions.invoke("analyze-asphalt", {
+          body: { imageData: imageDataUrl },
+        });
+        if (functionError) {
+          throw functionError;
+        }
+        if (!data?.success) {
+          throw new Error(data?.error || "Analysis failed");
+        }
+        finalData = data;
+        usedBackend = "supabase";
       }
 
       setProgress(100);
-      setResults(data.analysis);
+      setResults(finalData.analysis);
+      setAnalysisBackend(usedBackend);
 
       // Broadcast overlay event for map visualization (area circle)
       try {
@@ -121,7 +149,7 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
 
       toast({
         title: "Analysis Complete",
-        description: `Surface condition: ${data.analysis.condition}. Confidence: ${data.analysis.confidence_score}%`,
+        description: `Surface condition: ${finalData.analysis.condition}. Confidence: ${finalData.analysis.confidence_score}% (${usedBackend})`,
       });
     } catch (err: unknown) {
       logger.error("Analysis error", { error: err });
@@ -217,7 +245,8 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
       setProgress(10);
       toast({ title: "Capturing Map View", description: "Fetching static map image..." });
 
-      const staticUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoom}&size=800x600&maptype=satellite&scale=2&key=${apiKey}`;
+      const scale = 2; // we request scale=2 in Static Maps
+      const staticUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoom}&size=800x600&maptype=satellite&scale=${scale}&key=${apiKey}`;
       // Note: Static Maps requires billing; if watermark appears, notify user
 
       const resp = await fetch(staticUrl);
@@ -229,6 +258,15 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
         reader.onerror = reject;
         reader.readAsDataURL(blob);
       });
+
+      // Estimate pixels-per-foot using Web Mercator resolution
+      try {
+        const earthCircumferenceM = 40075016.686; // meters
+        const mPerPx = Math.cos((lat * Math.PI) / 180) * earthCircumferenceM / (256 * Math.pow(2, zoom) * scale);
+        const ftPerPx = mPerPx * 3.28084;
+        const ppf = 1 / ftPerPx;
+        setPixelsPerFoot(ppf);
+      } catch {}
 
       setSelectedImage(dataUrl);
       await analyzeImage(dataUrl);
