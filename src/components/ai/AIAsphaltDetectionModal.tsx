@@ -140,7 +140,7 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
 
       // Broadcast overlay event for map visualization (area circle)
       try {
-        const areaSqFt = Number(data?.analysis?.area_sqft || 0);
+        const areaSqFt = Number(finalData?.analysis?.area_sqft || 0);
         if (areaSqFt > 0) {
           const evt = new CustomEvent("ai-detection-overlay", { detail: { areaSqFt } });
           window.dispatchEvent(evt);
