@@ -18,6 +18,8 @@ import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { AnimatedDiv, HoverAnimation } from "@/components/ui/Animations";
 import { AsphaltOverlayViewer } from "./AsphaltOverlayViewer";
 import { AsphaltOverlayEditor } from "./AsphaltOverlayEditor";
+import { saveDetection } from "@/lib/asphaltDetections";
+import { type StaticMapContext } from "@/lib/geoTransform";
 
 interface AIAsphaltDetectionModalProps {
   isOpen: boolean;
@@ -85,6 +87,8 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
   const { map } = useMap();
   const [analysisBackend, setAnalysisBackend] = useState<"mlapi" | "supabase" | null>(null);
   const [pixelsPerFoot, setPixelsPerFoot] = useState<number | undefined>(undefined);
+  const [staticCtx, setStaticCtx] = useState<StaticMapContext | null>(null);
+  const [imageDims, setImageDims] = useState<{ width: number; height: number } | null>(null);
 
   const analyzeImage = async (imageDataUrl: string) => {
     try {
@@ -258,6 +262,19 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
         reader.onerror = reject;
         reader.readAsDataURL(blob);
       });
+
+      // Load to get intrinsic dimensions
+      try {
+        const img = new Image();
+        const dims: { width: number; height: number } = await new Promise((resolve, reject) => {
+          img.onload = () => resolve({ width: img.width, height: img.height });
+          img.onerror = reject;
+          img.src = dataUrl;
+        });
+        setImageDims(dims);
+        // Save static map context for pixel->latlng conversion
+        setStaticCtx({ center: { lat, lng }, zoom, width: dims.width, height: dims.height, scale });
+      } catch {}
 
       // Estimate pixels-per-foot using Web Mercator resolution
       try {
@@ -473,6 +490,38 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
                   >
                     Generate Estimate
                   </Button>
+                  {results && (
+                    <Button
+                      variant="default"
+                      className="flex-1"
+                      onClick={async () => {
+                        try {
+                          if (!results) return;
+                          const center = map?.getCenter?.();
+                          const zoom = map?.getZoom?.();
+                          const ctx = staticCtx || (center && zoom && imageDims
+                            ? { center: { lat: center.lat(), lng: center.lng() }, zoom, width: imageDims.width, height: imageDims.height, scale: 2 }
+                            : null);
+                          const saved = await saveDetection({
+                            source: selectedImage ? "map_view" : "upload",
+                            imageWidth: imageDims?.width,
+                            imageHeight: imageDims?.height,
+                            mapLat: center?.lat?.(),
+                            mapLng: center?.lng?.(),
+                            mapZoom: zoom,
+                            analysis: { ...results, asphalt_areas: editedAreas.length ? editedAreas : results.asphalt_areas },
+                            staticMapCtx: ctx || undefined,
+                          });
+                          toast({ title: "Detection Saved", description: "AI overlay saved and synced across devices." });
+                          try { window.dispatchEvent(new CustomEvent('ai-detection-saved', { detail: { id: saved?.id } })); } catch {}
+                        } catch (e: any) {
+                          toast({ title: "Save Failed", description: e?.message || "Could not save detection.", variant: "destructive" });
+                        }
+                      }}
+                    >
+                      Save Overlay
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     className="flex-1"

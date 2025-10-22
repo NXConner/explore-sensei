@@ -25,6 +25,7 @@ import { DarkZoneLayer } from "@/components/map/DarkZoneLayer";
 import { RainRadarOverlay } from "@/components/weather/RainRadarOverlay";
 import { MapContext } from "./MapContext";
 import { PulseScanOverlay } from "@/components/map/PulseScanOverlay";
+import { AsphaltDetectionsLayer } from "./AsphaltDetectionsLayer";
 import {
   getGoogleMapsApiKey,
   getMapboxAccessToken,
@@ -1333,6 +1334,9 @@ export const MapContainer = forwardRef<
             alertRadius={alertRadius}
           />
         </>
+      )}
+      {!usingMapbox && (
+        <AsphaltDetectionsLayer map={mapInstanceRef.current} />
       )}
       {/* Imagery toggle indicator (functional layers to be added in a dedicated overlay component) */}
       {imagery !== "none" && (
