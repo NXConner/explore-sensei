@@ -1,12 +1,27 @@
+# Dependencies
 node_modules
+bun.lockb
+
+# Builds and caches
+dist
+.build
+.next
+.cache
+.vite
+coverage
+lighthouse-report.html
+
+# Local env
+.env
+.env.*
+!.env.example
+
+# VCS
 .git
 .gitignore
-dist
-Dockerfile
-npm-debug.log
-.vscode
-.idea
-.env*
-**/.husky/**
-**/screenshots/**
-**/coverage/**
+.github/
+
+# OS/Editor
+.DS_Store
+*.swp
+*.log

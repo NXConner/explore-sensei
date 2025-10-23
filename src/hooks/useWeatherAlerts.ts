@@ -5,11 +5,23 @@ import { logger } from "@/lib/monitoring";
 interface WeatherAlert {
   id: string;
   type: "storm" | "rain" | "wind" | "tornado";
-  severity: "low" | "medium" | "high" | "extreme";
+  severity: "low" | "medium" | "high" | "critical" | "extreme";
   message: string;
   location: { lat: number; lng: number };
   radius: number; // in miles
   expires: Date;
+}
+
+export function mapWeatherAlertRow(row: any): WeatherAlert {
+  return {
+    id: row.id,
+    type: (row.type || 'storm') as WeatherAlert["type"],
+    severity: (row.severity || 'medium') as WeatherAlert["severity"],
+    message: row.title ? `${row.title}: ${row.message}` : row.message,
+    location: { lat: row.location?.lat ?? 0, lng: row.location?.lng ?? 0 },
+    radius: Number(row.radius ?? 10),
+    expires: new Date(row.end_time || Date.now()),
+  };
 }
 
 export const useWeatherAlerts = () => {
@@ -24,15 +36,7 @@ export const useWeatherAlerts = () => {
           .order("created_at", { ascending: false });
 
         if (error) throw error;
-        const alerts: WeatherAlert[] = (data || []).map((row: any) => ({
-          id: row.id,
-          type: (row.type || 'storm') as WeatherAlert["type"],
-          severity: (row.severity || 'medium') as WeatherAlert["severity"],
-          message: row.title ? `${row.title}: ${row.message}` : row.message,
-          location: { lat: row.location?.lat ?? 0, lng: row.location?.lng ?? 0 },
-          radius: Number(row.radius ?? 10),
-          expires: new Date(row.end_time || Date.now())
-        }));
+        const alerts: WeatherAlert[] = (data || []).map((row: any) => mapWeatherAlertRow(row));
         return alerts;
       } catch (err) {
         logger.warn('weather_alerts query failed', { error: err });

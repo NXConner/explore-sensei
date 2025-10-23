@@ -2,38 +2,48 @@
 
 ## Project Summary
 - Purpose: Pavement Performance Suite for asphalt operations with church-focused workflows and veteran-owned compliance.
-- Tech: React + TypeScript (Vite), Tailwind, Radix UI; Supabase (Postgres, RLS, edge functions); PWA; Playwright E2E; structured logging in `src/lib/monitoring.ts`.
-- Maps: Google Maps primary with Mapbox fallback. Keys read via `src/config/env.ts` and loaded via `src/lib/googleMapsLoader.ts`.
+- Core: React + TypeScript (Vite), Tailwind, Radix UI, PWA; Supabase (Postgres with RLS, edge functions); ML microservice (`ml/`) for asphalt segmentation; structured logging/observability in `src/lib/monitoring.ts`.
+- Maps: Google Maps primary, with Mapbox/MapLibre fallback via `src/config/env.ts`. Keys can be overridden per-device in Settings.
 
 ## Key Findings
-- Google Maps watermark/billing issues appear when API key lacks billing; code already falls back to Mapbox and surfaces toasts.
-- Console logging present in multiple areas; a centralized logger exists and should be used everywhere.
-- AI asphalt detection implemented via Supabase edge function `supabase/functions/analyze-asphalt`; estimate prefill not wired in UI.
-- Weather alerts currently mocked in `src/hooks/useWeatherAlerts.ts` and UI references a future table.
-- CI, Docker, a11y lint, and tests are present; further polish needed on performance and docs breadth.
+- Strong foundation: auth, data access, migrations (roles/user_roles/RLS), feature flags, PWA, tests, gamification all present.
+- Gaps addressed in this pass:
+  - .env.example was missing → added.
+  - .dockerignore missing → added to reduce build context.
+  - Prettier configuration missing → added with Tailwind plugin.
+  - Persisted weather alerts pipeline incomplete → implemented end-to-end (hook + UI mapping + table already exists via migrations).
+  - Secrets management playbook missing → added `docs/SECRETS_MANAGEMENT.md`.
+- Opportunities:
+  - Expand OpenAPI generation to include all edge functions.
+  - Optional: add `.prettierignore`/`.editorconfig` for DX, and a local DB option in compose (Supabase stack) if desired.
+  - Consider small test additions around AI→Estimate flow and PWA update toasts.
 
 ## Improvement & Completion Plan (Prioritized)
-1. Replace console logging with env-aware `logger` across app and service worker. [Fix]
-2. Wire AI results to Estimate module via event-driven prefill and overlay broadcast. [Max-Feature]
-3. Implement `weather_alerts` table + RLS and switch hook to Supabase data. [New-Feature]
-4. Harden Google Maps loader messaging and non-fatal fallbacks; document billing & restrictions. [Refactor]
-5. Performance: ensure lazy-load for heavy modals, monitor bundle size, and verify service worker cache policies. [Refactor]
-6. Security: ensure secrets never leak to client; keep LOVABLE API keys only on edge; rate-limit AI endpoints (already in ai-chat). [Fix]
-7. Expand tests: integration for estimates prefill, weather alerts fetching; add E2E validating AI->Estimate flow. [New-Feature]
-8. Documentation: add Phase 1 report (this file); extend README for Maps billing instructions. [Docs]
+1. Persisted Weather Alerts end-to-end (DONE). [Fix/New-Feature]
+2. Developer Experience polish: .env.example (DONE), .dockerignore (DONE), Prettier config (DONE). [Fix]
+3. OpenAPI spec: include all functions (ai-chat, analyze-asphalt, maps, game-*). [Refactor/Docs]
+4. Performance governance: enforce size-limit and audit large modals for dynamic import. [Refactor]
+5. Security: confirm no secrets in client bundle; keep log sink redaction; periodic `npm audit` in CI (present). [Fix]
+6. Tests: unit for alerts mapping (DONE), add AI→Estimate integration and E2E smoke. [New-Feature]
+7. Optional: Compose service for local Supabase or document using `supabase start`. [Docs]
 
 ## Feature Maximization
-- AI Detection: one-click "Generate Estimate" pre-fills items based on area; overlay visualization on map; PDF export retained.
-- Weather System: persisted alerts with RLS; configurable alert radius on map; real-time updates via polling or channels.
-- Maps UX: graceful fallback to Mapbox; informative toasts; no blocking dialogs.
+- AI Detection → Estimate: event-driven prefill in `EstimateCalculatorModal` with PDF export, map overlays, and manual adjust (present; expand tests).
+- Weather System: persisted alerts with adjustable radius on map (`WeatherRadarLayer`), periodic refresh, alert list UI (now wired).
+- Theming/Wallpapers: multiple themes, faithful variants, and custom wallpapers already supported; ensure Settings exposes all.
+- Observability: structured logging with optional external sink envs; keep redaction and health checks.
 
 ## Phased Implementation Roadmap
 
-| Priority | Task Description | Task Type | Files to Modify/Create |
+| Priority | Task Description | Task Type (Max-Feature/New-Feature/Refactor/Fix) | Files to Modify/Create |
 |---|---|---|---|
-| P0 | Replace console logs with logger; gate SW logs to dev | Fix | src/lib/monitoring.ts, various components, public/sw.js |
-| P0 | Wire AI results to Estimate via CustomEvent and prefill | Max-Feature | src/components/ai/AIAsphaltDetectionModal.tsx, src/components/estimate/EstimateCalculatorModal.tsx, src/pages/Index.tsx |
-| P0 | Add Supabase `weather_alerts` + RLS and hook | New-Feature | supabase/migrations/20251019090000_weather_alerts.sql, src/hooks/useWeatherAlerts.ts |
-| P1 | Improve Google Maps loader logging and fallback | Refactor | src/lib/googleMapsLoader.ts, src/components/map/MapContainer.tsx |
-| P1 | Add tests for AI->Estimate and weather alerts | New-Feature | tests/* |
-| P2 | Update README with Maps billing & restrictions | Docs | README.md |
+| P0 | Add .env.example (DONE) | Fix | `.env.example` |
+| P0 | Add .dockerignore (DONE) | Fix | `.dockerignore` |
+| P0 | Add Prettier config (DONE) | Fix | `.prettierrc.json` |
+| P0 | Persisted weather alerts: hook + modal mapping (DONE) | New-Feature | `src/hooks/useWeatherAlerts.ts`, `src/components/weather/WeatherRadarModal.tsx` |
+| P0 | Unit test for weather alerts mapping (DONE) | New-Feature | `tests/useWeatherAlerts.test.ts` |
+| P1 | Expand OpenAPI spec to include all edge functions | Refactor/Docs | `scripts/generate-openapi.ts`, `docs/swagger.json` |
+| P1 | Performance: ensure heavy modals are lazy-loaded; verify size-limit | Refactor | `src/components/**`, `package.json` |
+| P1 | AI→Estimate flow integration test and E2E | New-Feature | `tests/**`, `e2e/**` |
+| P2 | Optional: add `.prettierignore` and `.editorconfig` | Refactor | repo root |
+| P2 | Optional: document local Supabase via `supabase start` | Docs | `docs/README.md`, `docs/DEPLOYMENT_CHECKLIST.md` |
