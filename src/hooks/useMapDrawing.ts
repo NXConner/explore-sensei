@@ -117,6 +117,41 @@ export const useMapDrawing = (map: google.maps.Map | null) => {
     setMeasurement({});
   }, []);
 
+  const getMeasurementGeoJSON = useCallback((): any | null => {
+    const shape = currentShapeRef.current as any;
+    if (!shape) return null;
+    // Polyline => LineString of [lng,lat]
+    if (typeof google !== 'undefined' && shape instanceof google.maps.Polyline) {
+      try {
+        const path = shape.getPath()?.getArray?.() || [];
+        const coords = path.map((p: google.maps.LatLng) => [p.lng(), p.lat()]);
+        if (coords.length >= 2) return { type: 'LineString', coordinates: coords };
+      } catch {}
+    }
+    // Circle => center point (area derived from measurement.value elsewhere)
+    if (typeof google !== 'undefined' && shape instanceof google.maps.Circle) {
+      try {
+        const c = shape.getCenter?.();
+        if (!c) return null;
+        return { type: 'Point', coordinates: [c.lng(), c.lat()] };
+      } catch {}
+    }
+    // Rectangle => center point
+    if (typeof google !== 'undefined' && shape instanceof google.maps.Rectangle) {
+      try {
+        const b = shape.getBounds?.();
+        const ne = b?.getNorthEast?.();
+        const sw = b?.getSouthWest?.();
+        if (!ne || !sw) return null;
+        const lat = (ne.lat() + sw.lat()) / 2;
+        const lng = (ne.lng() + sw.lng()) / 2;
+        return { type: 'Point', coordinates: [lng, lat] };
+      } catch {}
+    }
+    // Marker or unknown => null
+    return null;
+  }, []);
+
   const calculateDistance = useCallback((path: google.maps.LatLng[]) => {
     let totalDistance = 0;
     for (let i = 0; i < path.length - 1; i++) {
@@ -148,5 +183,6 @@ export const useMapDrawing = (map: google.maps.Map | null) => {
     calculateDistance,
     calculateArea,
     measurement,
+    getMeasurementGeoJSON,
   };
 };
