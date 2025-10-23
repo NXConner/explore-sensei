@@ -12,7 +12,7 @@ const jobStatuses = [
 
 export const JobStatusLegend = () => {
   return (
-    <Card className="absolute right-4 top-[calc(4rem+12rem+0.5rem)] z-[970] p-2 bg-background/80 backdrop-blur-sm border-primary/30 rounded hud-element w-[200px]">
+    <Card className="absolute right-16 top-[calc(4rem+12rem+0.5rem)] z-[970] p-2 bg-background/80 backdrop-blur-sm border-primary/30 rounded hud-element w-[200px]">
       <div className="text-xs font-bold mb-2 text-primary">JOB STATUS</div>
       <div className="grid grid-cols-2 gap-1">
         {jobStatuses.map((item) => (

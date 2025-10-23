@@ -1688,8 +1688,8 @@ export const MapContainer = forwardRef<
         }}
       />
       {usingMapbox && (
-        <div className="absolute left-4 bottom-4 z-[500]">
-          <div className="tactical-panel max-w-md text-sm">
+        <div className="absolute left-1/2 bottom-[48px] -translate-x-1/2 z-[500]">
+          <div className="tactical-panel max-w-md text-sm text-center">
             Mapbox fallback active. Advanced tools are disabled without Google Maps.
           </div>
         </div>
