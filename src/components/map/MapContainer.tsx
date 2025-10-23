@@ -1455,7 +1455,7 @@ export const MapContainer = forwardRef<
       measurements.forEach((m) => {
         if (!m.geojson) return;
         if (m.type === 'distance' && Array.isArray(m.geojson.coordinates)) {
-          const path = (m.geojson.coordinates as number[][]).map((c) => [c[1], c[0]]);
+          const path: [number, number][] = (m.geojson.coordinates as number[][]).map((c) => [c[1], c[0]] as [number, number]);
           L.polyline(path, { color: '#00ff00', weight: 3, opacity: 0.7 }).addTo(group);
         } else if (m.type === 'area' && Array.isArray(m.geojson.coordinates)) {
           const center = [m.geojson.coordinates[1], m.geojson.coordinates[0]] as [number, number];

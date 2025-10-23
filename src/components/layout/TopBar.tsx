@@ -146,8 +146,12 @@ export const TopBar = ({
     };
     update();
     el.addEventListener("scroll", update);
-    const ro = new (window as any).ResizeObserver?.(update) || null;
-    if (ro) ro.observe(el);
+    let ro: ResizeObserver | null = null;
+    const RO = (window as any).ResizeObserver as typeof ResizeObserver | undefined;
+    if (typeof RO === "function") {
+      ro = new RO(update);
+      ro.observe(el);
+    }
     window.addEventListener("resize", update);
     return () => {
       el.removeEventListener("scroll", update);

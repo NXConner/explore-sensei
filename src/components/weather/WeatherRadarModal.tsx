@@ -164,10 +164,11 @@ export const WeatherRadarModal: React.FC<WeatherRadarModalProps> = ({ onClose })
         const parts = msg.split(':');
         const title = parts.length > 1 ? parts[0] : 'Weather Alert';
         const description = parts.length > 1 ? parts.slice(1).join(':').trim() : msg;
-        const sev = (a.severity || 'medium') as WeatherAlert['severity'];
+        const sevRaw = String(a.severity || 'medium').toLowerCase();
+        const sev = sevRaw as WeatherAlert['severity'];
         return {
           id: a.id,
-          type: (sev === 'high' || sev === 'critical' || sev === 'extreme' ? 'warning' : 'advisory') as WeatherAlert['type'],
+          type: (sevRaw === 'high' || sevRaw === 'critical' || sevRaw === 'extreme' ? 'warning' : 'advisory') as WeatherAlert['type'],
           severity: sev,
           title,
           description,

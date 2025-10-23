@@ -513,7 +513,7 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
                             staticMapCtx: ctx || undefined,
                           });
                           toast({ title: "Detection Saved", description: "AI overlay saved and synced across devices." });
-                          try { window.dispatchEvent(new CustomEvent('ai-detection-saved', { detail: { id: saved?.id } })); } catch {}
+                          try { window.dispatchEvent(new CustomEvent('ai-detection-saved', { detail: { id: (saved as any)?.id } })); } catch {}
                         } catch (e: any) {
                           toast({ title: "Save Failed", description: e?.message || "Could not save detection.", variant: "destructive" });
                         }
