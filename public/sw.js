@@ -11,14 +11,18 @@ const STATIC_ASSETS = [
   '/icons/icon-512x512.png'
 ];
 
-// API endpoints to cache
+// API endpoints to cache (align with Supabase REST and ML API)
+const SUPABASE_HOST_MATCH = /https:\/\/[^.]+\.supabase\.co\//;
 const API_CACHE_PATTERNS = [
   /\/api\/jobs/,
   /\/api\/time-entries/,
   /\/api\/vehicles/,
   /\/api\/invoices/,
   /\/api\/weather/,
-  /\/api\/route-optimization/
+  /\/api\/route-optimization/,
+  SUPABASE_HOST_MATCH, // Supabase REST (tables, auth)
+  /\/functions\/v1\//, // Supabase Edge Functions
+  /:\/\/.*:\\d{2,5}\/$/.source // placeholder; will not match
 ];
 
 // Install event - cache static assets
@@ -125,7 +129,10 @@ function isStaticAsset(request) {
 // Check if request is for API
 function isAPIRequest(request) {
   const url = new URL(request.url);
-  return API_CACHE_PATTERNS.some(pattern => pattern.test(url.pathname));
+  return API_CACHE_PATTERNS.some((pattern) => {
+    if (pattern instanceof RegExp) return pattern.test(url.href) || pattern.test(url.pathname);
+    return false;
+  });
 }
 
 // Check if request is navigation

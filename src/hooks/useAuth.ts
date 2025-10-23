@@ -17,13 +17,13 @@ export const useAuth = () => {
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        // Check if user is admin
+        // Check if user is admin via compatibility view that exposes role text
         const { data } = await supabase
-          .from("user_roles")
+          .from("user_roles_v_legacy")
           .select("role")
           .eq("user_id", session.user.id)
           .in("role", ["Super Administrator", "Administrator"])
-          .single();
+          .maybeSingle();
 
         setIsAdmin(!!data);
       } else {
@@ -40,11 +40,11 @@ export const useAuth = () => {
 
       if (session?.user) {
         const { data } = await supabase
-          .from("user_roles")
+          .from("user_roles_v_legacy")
           .select("role")
           .eq("user_id", session.user.id)
           .in("role", ["Super Administrator", "Administrator"])
-          .single();
+          .maybeSingle();
 
         setIsAdmin(!!data);
       }

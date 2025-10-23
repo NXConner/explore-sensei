@@ -25,7 +25,6 @@ ALTER TABLE public.ai_jobs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ai_site_analysis ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.alerts ENABLE ROW LEVEL SECURITY;
 
--- Create roles table if it doesn't exist
 CREATE TABLE IF NOT EXISTS public.roles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL UNIQUE,
@@ -35,6 +34,7 @@ CREATE TABLE IF NOT EXISTS public.roles (
 );
 
 -- Create user_roles table if it doesn't exist
+-- Normalize to roles/role_id model; create compatibility view to support legacy code that selects role text
 CREATE TABLE IF NOT EXISTS public.user_roles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -43,9 +43,19 @@ CREATE TABLE IF NOT EXISTS public.user_roles (
   UNIQUE(user_id, role_id)
 );
 
+-- Backwards-compatible view exposing (user_id, role) text column for existing queries
+CREATE OR REPLACE VIEW public.user_roles_v_legacy AS
+SELECT ur.id,
+       ur.user_id,
+       r.name AS role,
+       ur.created_at
+FROM public.user_roles ur
+JOIN public.roles r ON r.id = ur.role_id;
+
 -- Enable RLS on new tables
 ALTER TABLE public.roles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
+GRANT SELECT ON public.user_roles_v_legacy TO anon, authenticated;
 
 -- Insert default roles
 INSERT INTO public.roles (name, description, permissions) VALUES

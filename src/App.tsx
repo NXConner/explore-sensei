@@ -13,11 +13,14 @@ import { initAnalytics, trackPageView } from "@/lib/analytics";
 import { GamificationProvider } from "@/context/GamificationContext";
 import { applySavedThemeFromLocalStorage, listenForThemeChanges } from "@/lib/theme";
 import { ProtectedFeature } from "@/components/ProtectedFeature";
+import { usePWA } from "@/hooks/usePWA";
 
 const queryClient = new QueryClient();
 
 const AnalyticsListener = () => {
   const location = useLocation();
+  // Register PWA and surface update toasts globally
+  usePWA();
   useEffect(() => {
     initAnalytics();
   }, []);

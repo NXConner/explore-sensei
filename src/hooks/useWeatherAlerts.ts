@@ -16,12 +16,6 @@ export const useWeatherAlerts = () => {
   return useQuery({
     queryKey: ["weather-alerts"],
     queryFn: async (): Promise<WeatherAlert[]> => {
-      // TODO: weather_alerts table needs to be created in database
-      // Temporarily returning empty array until table is created
-      logger.warn('weather_alerts table not yet created, returning empty array');
-      return [];
-      
-      /* Uncomment when weather_alerts table is created:
       try {
         const { data, error } = await supabase
           .from("weather_alerts")
@@ -41,11 +35,10 @@ export const useWeatherAlerts = () => {
         }));
         return alerts;
       } catch (err) {
-        logger.warn('Falling back to mocked weather alerts', { error: err });
+        logger.warn('weather_alerts query failed', { error: err });
         return [];
       }
-      */
     },
-    refetchInterval: 300000, // Refetch every 5 minutes
+    refetchInterval: 300000,
   });
 };
