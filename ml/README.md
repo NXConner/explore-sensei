@@ -53,3 +53,9 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 - Train with Ultralytics YOLOv8-seg. Use SAHI for large orthophotos.
 
 See `training/` for scripts.
+
+## Recommended Models & Repositories
+
+For cracks, potholes, markings, layouts, and pooling, see the curated guide:
+
+`docs/ML_RECOMMENDED_MODELS.md`
