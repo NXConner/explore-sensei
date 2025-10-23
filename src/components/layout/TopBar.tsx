@@ -1,3 +1,4 @@
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Activity, Calendar, Users, Truck, DollarSign, User, Briefcase, Clock, Camera, HardHat, FileText, ClipboardList, Shield, Wallet, BookOpen, Calculator, Route, LogOut, TrendingUp, MessageSquare, Zap, FolderOpen, Receipt, Cloud, MapPin, Play, Tv, Trophy, Eye, Settings, Medal, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
@@ -76,25 +77,91 @@ export const TopBar = ({
   ];
 
   // Filter modules by role; clients (Viewer) get a Client Portal entry only
-  const modules = (() => {
-    if (!role || role === "Viewer") {
-      return [
-        { id: "client-portal", icon: Tv, label: "CLIENT" },
-      ];
+  const modules = useMemo(() => {
+    // Only restrict when role is explicitly Viewer. While loading (undefined), show all.
+    if (role === "Viewer") {
+      return [{ id: "client-portal", icon: Tv, label: "CLIENT" }];
     }
     if (role === "Operator") {
-      return allModules.filter((m) => [
-        "dashboard","jobs","time","photos","equipment","route","clients","documents","eod-playback","enhance","weather","settings","chat","export"
-      ].includes(m.id));
+      return allModules.filter((m) => (
+        [
+          "dashboard",
+          "jobs",
+          "time",
+          "photos",
+          "equipment",
+          "route",
+          "clients",
+          "documents",
+          "eod-playback",
+          "enhance",
+          "weather",
+          "settings",
+          "chat",
+          "export",
+        ] as string[]
+      ).includes(m.id));
     }
     if (role === "Manager") {
-      return allModules.filter((m) => [
-        "dashboard","jobs","schedule","route","clients","invoicing","estimate","documents","receipts","fleet","photos","enhance","weather","settings","hr","hr_compliance","veteran","business","analytics","automation","export"
-      ].includes(m.id));
+      return allModules.filter((m) => (
+        [
+          "dashboard",
+          "jobs",
+          "schedule",
+          "route",
+          "clients",
+          "invoicing",
+          "estimate",
+          "documents",
+          "receipts",
+          "fleet",
+          "photos",
+          "enhance",
+          "weather",
+          "settings",
+          "hr",
+          "hr_compliance",
+          "veteran",
+          "business",
+          "analytics",
+          "automation",
+          "export",
+        ] as string[]
+      ).includes(m.id));
     }
-    // Admins see everything
     return allModules;
-  })();
+  }, [role]);
+
+  // Horizontal scroll helpers for the module ribbon
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const update = () => {
+      setCanScrollLeft(el.scrollLeft > 0);
+      setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+    };
+    update();
+    el.addEventListener("scroll", update);
+    const ro = new (window as any).ResizeObserver?.(update) || null;
+    if (ro) ro.observe(el);
+    window.addEventListener("resize", update);
+    return () => {
+      el.removeEventListener("scroll", update);
+      if (ro) ro.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+
+  const scrollByAmount = (dir: "left" | "right") => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const amount = Math.max(240, Math.floor(el.clientWidth * 0.5));
+    el.scrollBy({ left: dir === "left" ? -amount : amount, behavior: "smooth" });
+  };
 
   return (
     <div className="absolute top-0 left-0 right-0 z-[1000] hud-element animate-fade-in">
@@ -127,42 +194,70 @@ export const TopBar = ({
           </a>
         </div>
 
-        {/* Module Buttons - scrollable */}
-        <div className="flex gap-1 md:gap-2 overflow-x-auto w-full md:flex-1 scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent pb-1 md:pb-0 scrollbar-hover-visible" role="navigation" aria-label="Primary">
-          {modules.map((module) => {
-            const Icon = module.icon;
-            return (
-              <Button
-                key={module.id}
-                onClick={() => {
-                  if (module.id === "client-portal") {
-                    window.location.href = "/client";
-                  } else if (module.id === "enhance") {
-                    try {
-                      const evt = new Event('toggle-enhance-panel');
-                      window.dispatchEvent(evt);
-                    } catch {}
-                  } else if (module.id === "analytics" && onShowAnalytics) {
-                    onShowAnalytics();
-                  } else if (module.id === "chat" && onShowChat) {
-                    onShowChat();
-                  } else if (module.id === "automation" && onShowAutomation) {
-                    onShowAutomation();
-                  } else if (module.id === "business" && onShowBusinessHub) {
-                    onShowBusinessHub();
-                  } else {
-                    onModuleClick(module.id);
-                  }
-                }}
-                variant="ghost"
-                size="sm"
-                className="flex items-center gap-1 md:gap-2 text-[10px] md:text-xs font-bold uppercase tracking-wider hover:bg-primary/20 hover:text-primary border border-transparent hover:border-primary/50 transition-all whitespace-nowrap px-2 md:px-3 hover-scale"
-              >
-                <Icon className="w-3 h-3 md:w-4 md:h-4" />
-                <span className="hidden sm:inline">{module.label}</span>
-              </Button>
-            );
-          })}
+        {/* Module Buttons - scrollable with controls */}
+        <div className="relative w-full md:flex-1">
+          {/* Left scroll button */}
+          <button
+            type="button"
+            aria-label="Scroll left"
+            onClick={() => scrollByAmount("left")}
+            className={`hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-[1] h-7 w-7 items-center justify-center rounded bg-background/80 border border-primary/30 hover:bg-primary/10 transition-opacity ${canScrollLeft ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+          >
+            ‹
+          </button>
+
+          {/* Scroll container */}
+          <div
+            ref={scrollRef}
+            className="flex gap-1 md:gap-2 overflow-x-auto overflow-y-hidden w-full scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent pb-1 md:pb-0"
+            role="navigation"
+            aria-label="Primary"
+          >
+            {modules.map((module) => {
+              const Icon = module.icon;
+              return (
+                <Button
+                  key={module.id}
+                  onClick={() => {
+                    if (module.id === "client-portal") {
+                      window.location.href = "/client";
+                    } else if (module.id === "enhance") {
+                      try {
+                        const evt = new Event('toggle-enhance-panel');
+                        window.dispatchEvent(evt);
+                      } catch {}
+                    } else if (module.id === "analytics" && onShowAnalytics) {
+                      onShowAnalytics();
+                    } else if (module.id === "chat" && onShowChat) {
+                      onShowChat();
+                    } else if (module.id === "automation" && onShowAutomation) {
+                      onShowAutomation();
+                    } else if (module.id === "business" && onShowBusinessHub) {
+                      onShowBusinessHub();
+                    } else {
+                      onModuleClick(module.id);
+                    }
+                  }}
+                  variant="ghost"
+                  size="sm"
+                  className="flex items-center gap-1 md:gap-2 text-[10px] md:text-xs font-bold uppercase tracking-wider hover:bg-primary/20 hover:text-primary border border-transparent hover:border-primary/50 transition-all whitespace-nowrap px-2 md:px-3 hover-scale"
+                >
+                  <Icon className="w-3 h-3 md:w-4 md:h-4" />
+                  <span className="hidden sm:inline">{module.label}</span>
+                </Button>
+              );
+            })}
+          </div>
+
+          {/* Right scroll button */}
+          <button
+            type="button"
+            aria-label="Scroll right"
+            onClick={() => scrollByAmount("right")}
+            className={`hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-[1] h-7 w-7 items-center justify-center rounded bg-background/80 border border-primary/30 hover:bg-primary/10 transition-opacity ${canScrollRight ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+          >
+            ›
+          </button>
         </div>
 
         {/* User Profile - visible on desktop */}
