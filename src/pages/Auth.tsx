@@ -77,10 +77,10 @@ export default function Auth() {
       // Get user role after successful login
       if (data.user) {
         const { data: userRole } = await supabase
-          .from("user_roles")
+          .from("user_roles_v_legacy")
           .select("role")
           .eq("user_id", data.user.id)
-          .single();
+          .maybeSingle();
 
         track("auth_login_success", { role: userRole?.role });
         toast({
@@ -125,10 +125,18 @@ export default function Auth() {
 
       // Assign role to user if signup was successful
       if (data.user) {
-        await supabase.from("user_roles").insert({
-          user_id: data.user.id,
-          role: selectedRole as any,
-        });
+        // Insert using normalized roles model (roles + user_roles.role_id)
+        const { data: roleRow } = await supabase
+          .from("roles")
+          .select("id")
+          .eq("name", selectedRole)
+          .maybeSingle();
+        if (roleRow?.id) {
+          await supabase.from("user_roles").insert({
+            user_id: data.user.id,
+            role_id: roleRow.id,
+          } as any);
+        }
       }
 
       track("auth_signup_success", { role: selectedRole });

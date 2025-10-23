@@ -39,7 +39,7 @@ export const useUserRole = () => {
           return;
         }
         const { data, error } = await supabase
-          .from("user_roles")
+          .from("user_roles_v_legacy")
           .select("role")
           .eq("user_id", user.id);
         if (error) throw error;

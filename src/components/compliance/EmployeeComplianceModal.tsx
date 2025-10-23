@@ -86,11 +86,11 @@ export const EmployeeComplianceModal = ({ onClose }: EmployeeComplianceModalProp
     if (!user) return;
 
     const { data } = await (supabase as any)
-      .from("user_roles")
+      .from("user_roles_v_legacy")
       .select("role")
       .eq("user_id", user.id)
       .in("role", ["Super Administrator", "Administrator"])
-      .single();
+      .maybeSingle();
 
     setIsAdmin(!!data);
   };

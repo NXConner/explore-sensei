@@ -114,6 +114,14 @@ VITE_AI_SERVICE_KEY=your_ai_service_key
 VITE_VALID_API_KEYS=comma,separated,keys
 ```
 
+### Maps billing and keys
+- Google Maps requires an API key with billing enabled for advanced tiles and Static Maps. Without billing, Google may watermark or throttle tiles. The app will gracefully fall back to Mapbox/MapLibre when Google fails, but some tools are disabled without Google.
+- You can override keys per-device in Settings → API Keys; overrides are stored locally in `localStorage`.
+
+### PWA install and updates
+- The web app is a Progressive Web App (PWA). A service worker caches an offline shell and key APIs.
+- You can install the app from your browser (Add to Home Screen). When a new version is available, you’ll receive an in-app toast to update.
+
 You can also set the parcels template at runtime via the Settings UI; it saves under `aos_settings.providers.parcelsTilesTemplate` in `localStorage`.
 
 ## 🚀 **Development**
@@ -187,6 +195,7 @@ src/
 - AI Assistant: Trigger asphalt detection from the map; export measurements to estimates.
 - Finance: Generate invoices from completed jobs; export PDFs from the Finance module.
 - Themes: Switch themes in Settings; upload wallpaper images and tune opacity for readability.
+- PWA: Install on mobile/desktop; updates prompt via toast. Offline mode supports key screens.
 - Accessibility: Keyboard nav and a11y checks are enforced; use semantic labels where prompted.
 
 Tips
@@ -214,6 +223,15 @@ npm run test              # Unit tests
 npm run test:e2e          # E2E tests
 npm run test:coverage    # Coverage report
 ```
+
+### **Performance & Load**
+- Run the included k6 script to smoke test critical flows:
+
+```bash
+npx k6 run scripts/loadtest.k6.js
+```
+
+Configure base URLs via environment variables in the script as needed.
 
 ## 🔒 **Security**
 

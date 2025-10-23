@@ -20,15 +20,15 @@ create policy if not exists "dz_read_auth" on public."DarkZones"
 
 create policy if not exists "dz_insert_admin" on public."DarkZones"
   for insert to authenticated with check (exists (
-    select 1 from public.user_roles ur where ur.user_id = auth.uid() and ur.role in ('Administrator','Super Administrator')
+    select 1 from public.user_roles_v_legacy ur where ur.user_id = auth.uid() and ur.role in ('Administrator','Super Administrator')
   ));
 
 create policy if not exists "dz_update_admin" on public."DarkZones"
   for update to authenticated using (exists (
-    select 1 from public.user_roles ur where ur.user_id = auth.uid() and ur.role in ('Administrator','Super Administrator')
+    select 1 from public.user_roles_v_legacy ur where ur.user_id = auth.uid() and ur.role in ('Administrator','Super Administrator')
   ));
 
 create policy if not exists "dz_delete_admin" on public."DarkZones"
   for delete to authenticated using (exists (
-    select 1 from public.user_roles ur where ur.user_id = auth.uid() and ur.role in ('Administrator','Super Administrator')
+    select 1 from public.user_roles_v_legacy ur where ur.user_id = auth.uid() and ur.role in ('Administrator','Super Administrator')
   ));

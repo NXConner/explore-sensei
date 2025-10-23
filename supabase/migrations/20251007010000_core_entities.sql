@@ -310,6 +310,13 @@ CREATE TABLE IF NOT EXISTS public.user_roles (
   UNIQUE (user_id, role)
 );
 ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
+-- Ensure compatibility view exists for code paths selecting textual role
+CREATE OR REPLACE VIEW public.user_roles_v_legacy AS
+SELECT ur.id,
+       ur.user_id,
+       (ur.role)::text AS role,
+       ur.created_at
+FROM public.user_roles ur;
 
 CREATE OR REPLACE FUNCTION public.has_role(_user_id UUID, _role public.app_role)
 RETURNS BOOLEAN
