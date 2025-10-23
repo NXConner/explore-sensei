@@ -212,8 +212,8 @@ const Index = () => {
       className="relative h-screen w-full overflow-hidden bg-background"
       data-testid="root-shell"
     >
-      {/* Objective Ribbon */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 z-[960] mt-2">
+      {/* Objective Ribbon - moved to sit under TopBar */}
+      <div className="absolute left-1/2 -translate-x-1/2 z-[960] top-[56px]">
         <div className="hud-element px-4 py-2 text-xs flex items-center gap-3">
           <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
           <span className="uppercase tracking-widest">Active Mission</span>
@@ -266,11 +266,8 @@ const Index = () => {
       {/* KPI Ticker */}
       <KPITicker />
 
-      {/* Job Status Legend */}
+      {/* Job Status Legend now sits under MiniMap (top-right) */}
       <JobStatusLegend />
-
-      {/* Clock In/Out Status */}
-      <ClockInStatus />
 
       {/* AI Assistant */}
       {showAI && <AIAssistant onClose={() => setShowAI(false)} />}

@@ -342,6 +342,17 @@ All colors MUST be HSL.
     background: transparent;
   }
 
+  /* Show scrollbar only on hover to indicate scrollability */
+  .scrollbar-hover-visible::-webkit-scrollbar {
+    height: 0px;
+    width: 0px;
+    transition: height 0.15s ease, width 0.15s ease;
+  }
+  .scrollbar-hover-visible:hover::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+  }
+
   /* Enhanced animations */
   @keyframes shimmer {
     0% {

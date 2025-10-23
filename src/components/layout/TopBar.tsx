@@ -1,4 +1,4 @@
-import { Activity, Calendar, Users, Truck, DollarSign, User, Briefcase, Clock, Camera, HardHat, FileText, ClipboardList, Shield, Wallet, BookOpen, Calculator, Route, LogOut, TrendingUp, MessageSquare, Zap, FolderOpen, Receipt, Cloud, MapPin, Play, Tv, Trophy } from "lucide-react";
+import { Activity, Calendar, Users, Truck, DollarSign, User, Briefcase, Clock, Camera, HardHat, FileText, ClipboardList, Shield, Wallet, BookOpen, Calculator, Route, LogOut, TrendingUp, MessageSquare, Zap, FolderOpen, Receipt, Cloud, MapPin, Play, Tv, Trophy, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { useNavigate } from "react-router-dom";
@@ -58,6 +58,8 @@ export const TopBar = ({
     { id: "contracts", icon: FileText, label: "CONTRACTS" },
     { id: "receipts", icon: Receipt, label: "RECEIPTS" },
     { id: "eod-playback", icon: Play, label: "EOD" },
+    // UI controls exposed as navigation items
+    { id: "enhance", icon: Eye, label: "ENHANCE" },
   ];
 
   // Filter modules by role; clients (Viewer) get a Client Portal entry only
@@ -69,12 +71,12 @@ export const TopBar = ({
     }
     if (role === "Operator") {
       return allModules.filter((m) => [
-        "dashboard","jobs","time","photos","equipment","route","clients","documents","eod-playback"
+        "dashboard","jobs","time","photos","equipment","route","clients","documents","eod-playback","enhance"
       ].includes(m.id));
     }
     if (role === "Manager") {
       return allModules.filter((m) => [
-        "dashboard","jobs","schedule","route","clients","invoicing","estimate","documents","receipts","fleet","photos"
+        "dashboard","jobs","schedule","route","clients","invoicing","estimate","documents","receipts","fleet","photos","enhance"
       ].includes(m.id));
     }
     // Admins see everything
@@ -113,7 +115,7 @@ export const TopBar = ({
         </div>
 
         {/* Module Buttons - scrollable */}
-        <div className="flex gap-1 md:gap-2 overflow-x-auto w-full md:flex-1 scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent pb-1 md:pb-0 hover:scrollbar-thumb-primary/50">
+        <div className="flex gap-1 md:gap-2 overflow-x-auto w-full md:flex-1 scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent pb-1 md:pb-0 scrollbar-hover-visible" role="navigation" aria-label="Primary">
           {modules.map((module) => {
             const Icon = module.icon;
             return (
@@ -122,6 +124,11 @@ export const TopBar = ({
                 onClick={() => {
                   if (module.id === "client-portal") {
                     window.location.href = "/client";
+                  } else if (module.id === "enhance") {
+                    try {
+                      const evt = new Event('toggle-enhance-panel');
+                      window.dispatchEvent(evt);
+                    } catch {}
                   } else {
                     onModuleClick(module.id);
                   }
