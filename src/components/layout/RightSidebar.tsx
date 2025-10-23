@@ -92,7 +92,7 @@ export const RightSidebar = ({
   ];
 
   return (
-    <div className="absolute right-0 top-16 bottom-16 w-16 z-[900] hud-element border-l border-primary/30 flex flex-col">
+    <div className="absolute right-0 top-16 bottom-16 w-12 z-[900] hud-element border-l border-primary/30 flex flex-col">
       <ScrollArea className="flex-1 h-full">
         <div className="flex flex-col items-center gap-2 p-2">
           {/* AI & Settings */}
