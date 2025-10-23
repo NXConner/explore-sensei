@@ -18,7 +18,7 @@ export const useAuth = () => {
 
       if (session?.user) {
         // Check if user is admin via compatibility view that exposes role text
-        const { data } = await supabase
+        const { data } = await (supabase as any)
           .from("user_roles_v_legacy")
           .select("role")
           .eq("user_id", session.user.id)
@@ -39,7 +39,7 @@ export const useAuth = () => {
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        const { data } = await supabase
+        const { data } = await (supabase as any)
           .from("user_roles_v_legacy")
           .select("role")
           .eq("user_id", session.user.id)
