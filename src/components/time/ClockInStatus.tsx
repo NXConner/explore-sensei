@@ -9,7 +9,10 @@ import { EODSummaryModal } from "@/components/gamification/EODSummaryModal";
 import { useGamificationToggle } from "@/context/GamificationContext";
 import { logger } from "@/lib/monitoring";
 
-export const ClockInStatus = () => {
+type Variant = "default" | "compact";
+
+export const ClockInStatus = (props: { inline?: boolean; variant?: Variant }) => {
+  const { inline = false, variant = "default" } = props || {} as any;
   const [isClockedIn, setIsClockedIn] = useState(false);
   const [clockInTime, setClockInTime] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState("00:00:00");
@@ -99,7 +102,9 @@ export const ClockInStatus = () => {
       <EODSummaryModal awarded={awardedPoints} onClose={() => setShowSummary(false)} />
     )}
     <Card
-      className={`absolute right-16 top-16 z-[950] h-9 px-3 flex items-center backdrop-blur-sm border-2 transition-colors ${
+      className={`${
+        inline ? "" : "absolute right-16 top-16 z-[950]"
+      } ${variant === 'compact' ? 'h-8' : 'h-9'} px-3 flex items-center backdrop-blur-sm border-2 transition-colors ${
         isClockedIn
           ? "bg-green-500/10 border-green-500"
           : "bg-red-500/10 border-red-500"
@@ -123,7 +128,7 @@ export const ClockInStatus = () => {
           size="icon"
           variant={isClockedIn ? "destructive" : "default"}
           onClick={handleClockToggle}
-          className="ml-2 h-6 w-6"
+          className={`ml-2 ${variant === 'compact' ? 'h-6 w-6' : 'h-7 w-7'}`}
         >
           {isClockedIn ? <LogOut className="w-3 h-3" /> : <LogIn className="w-3 h-3" />}
         </Button>

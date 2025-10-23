@@ -1,9 +1,11 @@
 import React from "react";
-import { TrendingUp, TrendingDown, DollarSign, Truck, Users, Calendar } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, Truck, Users, Calendar, AlertTriangle, Cloud, HardHat, Wrench, Shield, FileText, ClipboardList, Package } from "lucide-react";
 import { useKPIData } from "@/hooks/useKPIData";
+import { useWeatherAlerts } from "@/hooks/useWeatherAlerts";
 
 export const KPITicker = () => {
   const { data: kpiData } = useKPIData();
+  const { data: alerts } = useWeatherAlerts();
 
   const kpis = [
     {
@@ -36,11 +38,22 @@ export const KPITicker = () => {
     },
   ];
 
+  const extras = [
+    { label: "Alerts", value: String(alerts?.length || 0), change: alerts?.length ? "!" : "0", trend: alerts && alerts.length > 0 ? "down" : "up", icon: AlertTriangle },
+    { label: "Weather Cells", value: String((kpiData as any)?.weatherCells || 0), change: "+1", trend: "down", icon: Cloud },
+    { label: "Incidents", value: String((kpiData as any)?.safetyIncidents || 0), change: "0", trend: "up", icon: Shield },
+    { label: "POs Open", value: String((kpiData as any)?.purchaseOrdersOpen || 0), change: "+2", trend: "up", icon: FileText },
+    { label: "Reports Due", value: String((kpiData as any)?.reportsDue || 0), change: "-1", trend: "up", icon: ClipboardList },
+    { label: "Equipment Down", value: String((kpiData as any)?.equipmentDown || 0), change: "+1", trend: "down", icon: Wrench },
+    { label: "Crews Onsite", value: String((kpiData as any)?.crewsOnsite || 0), change: "+1", trend: "up", icon: HardHat },
+    { label: "Orders", value: String((kpiData as any)?.materialOrders || 0), change: "+4", trend: "up", icon: Package },
+  ];
+
   return (
     <div className="absolute bottom-0 left-0 right-0 z-[1000] hud-element border-t border-primary/30 overflow-hidden">
       <div className="flex animate-marquee">
         {/* Duplicate KPIs for continuous scroll */}
-        {[...kpis, ...kpis].map((kpi, idx) => (
+        {[...kpis, ...extras, ...kpis, ...extras].map((kpi, idx) => (
           <div
             key={`${kpi.label}-${idx}`}
             className="flex items-center gap-3 px-8 py-2 flex-shrink-0"

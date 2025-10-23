@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Crosshair, Minus, Circle, Square, Ruler, Trash2, Plus, MapPin, ChevronLeft, ChevronRight, Search, Eye } from "lucide-react";
+import { Crosshair, Minus, Circle, Square, Ruler, Trash2, Plus, MapPin, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { useMap } from "@/components/map/MapContext";
 import { useMapDrawing, DrawingMode } from "@/hooks/useMapDrawing";
 import { useJobSites } from "@/hooks/useJobSites";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
+import { ClockInStatus } from "@/components/time/ClockInStatus";
 
 export const LeftSidebar = () => {
   const { map } = useMap();
@@ -22,8 +23,8 @@ export const LeftSidebar = () => {
     darkZones: false,
     equipment: true,
   });
+  // Enhance button moved to TopBar; keep state in case other panels listen
   const [enhanceOpen, setEnhanceOpen] = useState(false);
-
   React.useEffect(() => {
     const handler = (e: any) => setEnhanceOpen(!!e?.detail?.open);
     window.addEventListener('enhance-panel-state', handler as any);
@@ -99,20 +100,10 @@ export const LeftSidebar = () => {
         >
           <ChevronLeft className="w-4 h-4" />
         </Button>
-        {/* Enhance button placed in sidebar */}
-        <Button
-          onClick={() => {
-            const evt = new Event('toggle-enhance-panel');
-            window.dispatchEvent(evt);
-          }}
-          variant={enhanceOpen ? "default" : "ghost"}
-          size="sm"
-          className="h-8 px-2 gap-1"
-          title="Visibility Controls"
-        >
-          <Eye className="w-4 h-4" />
-          <span className="text-xs">Enhance</span>
-        </Button>
+        {/* Clock in/out control relocated here */}
+        <div className="ml-auto">
+          <ClockInStatus inline variant="compact" />
+        </div>
       </div>
 
       <ScrollArea className="flex-1 h-full">
@@ -162,7 +153,7 @@ export const LeftSidebar = () => {
               <Plus className="w-3 h-3" />
             </Button>
           </div>
-          <div className="space-y-2 max-h-48 overflow-y-auto">
+          <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent scrollbar-hover-visible">
             {activeJobs.map((job) => (
               <div
                 key={job.id}
