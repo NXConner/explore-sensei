@@ -30,6 +30,8 @@ export const JobForm = ({ job, onSave, onCancel }: JobFormProps) => {
   const [endDate, setEndDate] = useState(job?.end_date?.split("T")[0] || "");
   const [budget, setBudget] = useState(job?.budget?.toString() || "");
   const [location, setLocation] = useState(job?.location || "");
+  const [latitude, setLatitude] = useState<number | undefined>(job?.latitude);
+  const [longitude, setLongitude] = useState<number | undefined>(job?.longitude);
   const [clientId, setClientId] = useState(job?.client_id || "");
   const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -40,6 +42,22 @@ export const JobForm = ({ job, onSave, onCancel }: JobFormProps) => {
   useEffect(() => {
     fetchClients();
   }, []);
+
+  // Auto-fill from map selection broadcasts
+  useEffect(() => {
+    const onSelected = (e: Event) => {
+      const detail = (e as CustomEvent).detail || {};
+      if (!detail) return;
+      try {
+        if (detail.address && typeof detail.address === "string") setLocation(detail.address);
+        if (typeof detail.lat === "number") setLatitude(detail.lat);
+        if (typeof detail.lng === "number") setLongitude(detail.lng);
+        toast({ title: "Address from map", description: detail.address || `${detail.lat?.toFixed?.(6)}, ${detail.lng?.toFixed?.(6)}` });
+      } catch {}
+    };
+    window.addEventListener("map-location-selected", onSelected as any);
+    return () => window.removeEventListener("map-location-selected", onSelected as any);
+  }, [toast]);
 
   const fetchClients = async () => {
     const { data } = await supabase.from("clients").select("id, name").order("name");
@@ -59,6 +77,8 @@ export const JobForm = ({ job, onSave, onCancel }: JobFormProps) => {
       end_date: endDate || null,
       budget: budget ? parseFloat(budget) : null,
       location,
+      latitude: typeof latitude === "number" ? latitude : null,
+      longitude: typeof longitude === "number" ? longitude : null,
       client_id: clientId || null,
     };
 

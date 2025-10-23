@@ -40,7 +40,7 @@ import {
   getParcelsTilesTemplate,
 } from "@/config/env";
 import { logger } from "@/lib/monitoring";
-import { geocodeAddress, getDirections } from "@/lib/mapsClient";
+import { geocodeAddress, getDirections, reverseGeocode } from "@/lib/mapsClient";
 import { CornerBrackets } from "@/components/hud/CornerBrackets";
 import { CompassRose } from "@/components/hud/CompassRose";
 import { CoordinateDisplay } from "@/components/hud/CoordinateDisplay";
@@ -93,9 +93,15 @@ export const MapContainer = forwardRef<
   const aiOverlayRef = useRef<google.maps.Circle | null>(null);
   const streetViewRef = useRef<google.maps.StreetViewPanorama | null>(null);
   const searchMarkerRef = useRef<google.maps.Marker | null>(null);
+  const selectionMarkerRef = useRef<google.maps.Marker | null>(null);
   const routePolylineRef = useRef<google.maps.Polyline | null>(null);
   const routeCometRef = useRef<google.maps.Circle | null>(null);
   const parcelsImageMapTypeRef = useRef<google.maps.ImageMapType | null>(null);
+  // Fallback map helpers (Mapbox/MapLibre/Leaflet)
+  const fallbackSelectionMarkerRef = useRef<any | null>(null);
+  const mapboxJobMarkersRef = useRef<any[]>([]);
+  const leafletJobLayerRef = useRef<any | null>(null);
+  const leafletMeasurementsLayerRef = useRef<any | null>(null);
   const [showStreetView, setShowStreetView] = useState(false);
   const [showAIDetection, setShowAIDetection] = useState(false);
   const [showEmployeeTracking, setShowEmployeeTracking] = useState(false);
@@ -119,7 +125,7 @@ export const MapContainer = forwardRef<
   const [usingMapbox, setUsingMapbox] = useState(false);
   const [configVersion, setConfigVersion] = useState(0);
   const { data: jobSites } = useJobSites();
-  const { measurement, setDrawingMode, clearDrawings } = useMapDrawing(mapInstanceRef.current);
+  const { measurement, setDrawingMode, clearDrawings, getMeasurementGeoJSON } = useMapDrawing(mapInstanceRef.current);
   const [activeMode, setActiveMode] = useState<DrawingMode>(null);
   const { toast } = useToast();
   const { measurements } = useMapMeasurements();
@@ -371,6 +377,64 @@ export const MapContainer = forwardRef<
       .map((s) => ({ lat: Number(s.latitude), lng: Number(s.longitude), weight: Math.max(1, Math.min(5, (s.progress || 0) / 20)) }));
     setHeatmapPoints(pts);
   }, [jobSites]);
+
+  // Add job site markers for Mapbox/MapLibre/Leaflet fallbacks
+  useEffect(() => {
+    if (!usingMapbox || !jobSites) return;
+    const gl: any = mapboxInstanceRef.current;
+    if (!gl) return;
+
+    // Clear previous markers/overlays
+    try {
+      mapboxJobMarkersRef.current.forEach((m) => m?.remove?.());
+    } catch {}
+    mapboxJobMarkersRef.current = [];
+    try {
+      if (leafletJobLayerRef.current) {
+        gl.removeLayer(leafletJobLayerRef.current);
+        leafletJobLayerRef.current = null;
+      }
+    } catch {}
+
+    // Mapbox/MapLibre path
+    if (gl && typeof gl.getStyle === 'function') {
+      jobSites.forEach((site) => {
+        if (!site.latitude || !site.longitude) return;
+        const color = site.status === 'In Progress' ? '#ff8c00' : '#00aaff';
+        let marker: any = null;
+        try {
+          marker = new (mapboxgl as any).Marker({ color })
+            .setLngLat([site.longitude, site.latitude])
+            .addTo(gl);
+        } catch {
+          try {
+            marker = new (maplibregl as any).Marker({ color })
+              .setLngLat([site.longitude, site.latitude])
+              .addTo(gl);
+          } catch {}
+        }
+        if (marker) mapboxJobMarkersRef.current.push(marker);
+      });
+      return;
+    }
+
+    // Leaflet path
+    if (gl && typeof gl.addLayer === 'function' && typeof gl.eachLayer === 'function') {
+      const group = L.layerGroup();
+      jobSites.forEach((site) => {
+        if (!site.latitude || !site.longitude) return;
+        L.circleMarker([site.latitude, site.longitude], {
+          radius: 6,
+          color: '#ffffff',
+          weight: 2,
+          fillColor: '#00aaff',
+          fillOpacity: 1,
+        }).addTo(group);
+      });
+      group.addTo(gl);
+      leafletJobLayerRef.current = group;
+    }
+  }, [jobSites, usingMapbox]);
 
   const handleModeChange = (mode: DrawingMode) => {
     setActiveMode(mode);
@@ -654,16 +718,14 @@ export const MapContainer = forwardRef<
 
     try {
       const center = mapInstanceRef.current?.getCenter();
+      const geometry = getMeasurementGeoJSON?.() || (center
+        ? { type: "Point", coordinates: [center.lng(), center.lat()] }
+        : null);
       const { error } = await supabase.from("Mapmeasurements").insert({
         type: measurement.distance ? "distance" : "area",
         value: measurement.distance || measurement.area,
         unit: measurement.distance ? "meters" : "square_meters",
-        geojson: center
-          ? {
-              type: "Point",
-              coordinates: [center.lng(), center.lat()],
-            }
-          : null,
+        geojson: geometry,
       });
 
       if (error) throw error;
@@ -741,6 +803,33 @@ export const MapContainer = forwardRef<
           } catch (e) {
             logger.warn('Failed to configure parcels layer for Mapbox', { error: e });
           }
+          // Click to select (Mapbox GL)
+          try {
+            map.on('click', async (e: any) => {
+              try {
+                const lng = e?.lngLat?.lng;
+                const lat = e?.lngLat?.lat;
+                if (typeof lat !== 'number' || typeof lng !== 'number') return;
+                const data = await reverseGeocode(lat, lng, 'nominatim');
+                const best = (data as any)?.results?.[0];
+                const address: string = best?.formatted_address || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                try { fallbackSelectionMarkerRef.current?.remove?.(); } catch {}
+                try {
+                  fallbackSelectionMarkerRef.current = new mapboxgl.Marker({ color: '#00d1ff' })
+                    .setLngLat([lng, lat])
+                    .addTo(map);
+                } catch {}
+                try {
+                  const detail = { lat, lng, address, provider: (data as any)?.provider, placeId: best?.place_id };
+                  window.dispatchEvent(new CustomEvent('map-location-selected', { detail }));
+                  try { localStorage.setItem('aos_last_selected_location', JSON.stringify(detail)); } catch {}
+                } catch {}
+                toast({ title: 'Location selected', description: address });
+              } catch (err) {
+                logger.warn('Mapbox click reverse geocode failed', { error: err });
+              }
+            });
+          } catch {}
         });
 
         if (navigator.geolocation) {
@@ -799,6 +888,36 @@ export const MapContainer = forwardRef<
           zoom: 12,
         });
         mapboxInstanceRef.current = map;
+        try {
+          map.on('load', () => {
+            try {
+              map.on('click', async (e: any) => {
+                try {
+                  const lng = e?.lngLat?.lng;
+                  const lat = e?.lngLat?.lat;
+                  if (typeof lat !== 'number' || typeof lng !== 'number') return;
+                  const data = await reverseGeocode(lat, lng, 'nominatim');
+                  const best = (data as any)?.results?.[0];
+                  const address: string = best?.formatted_address || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                  try { fallbackSelectionMarkerRef.current?.remove?.(); } catch {}
+                  try {
+                    fallbackSelectionMarkerRef.current = new (maplibregl as any).Marker({ color: '#00d1ff' })
+                      .setLngLat([lng, lat])
+                      .addTo(map);
+                  } catch {}
+                  try {
+                    const detail = { lat, lng, address, provider: (data as any)?.provider, placeId: best?.place_id };
+                    window.dispatchEvent(new CustomEvent('map-location-selected', { detail }));
+                    try { localStorage.setItem('aos_last_selected_location', JSON.stringify(detail)); } catch {}
+                  } catch {}
+                  toast({ title: 'Location selected', description: address });
+                } catch (err) {
+                  logger.warn('MapLibre click reverse geocode failed', { error: err });
+                }
+              });
+            } catch {}
+          });
+        } catch {}
       } catch (e) {
         logger.warn("Failed to initialize MapLibre", { error: e });
         setMapsUnavailable(true);
@@ -816,6 +935,30 @@ export const MapContainer = forwardRef<
           attribution: "© OpenStreetMap contributors",
         }).addTo(map);
         mapboxInstanceRef.current = map;
+        try {
+          map.on('click', async (e: any) => {
+            try {
+              const lat = e?.latlng?.lat;
+              const lng = e?.latlng?.lng;
+              if (typeof lat !== 'number' || typeof lng !== 'number') return;
+              const data = await reverseGeocode(lat, lng, 'nominatim');
+              const best = (data as any)?.results?.[0];
+              const address: string = best?.formatted_address || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+              try { if (fallbackSelectionMarkerRef.current) { (map as any).removeLayer(fallbackSelectionMarkerRef.current); } } catch {}
+              try {
+                fallbackSelectionMarkerRef.current = L.marker([lat, lng], { title: address }).addTo(map as any);
+              } catch {}
+              try {
+                const detail = { lat, lng, address, provider: (data as any)?.provider, placeId: best?.place_id };
+                window.dispatchEvent(new CustomEvent('map-location-selected', { detail }));
+                try { localStorage.setItem('aos_last_selected_location', JSON.stringify(detail)); } catch {}
+              } catch {}
+              toast({ title: 'Location selected', description: address });
+            } catch (err) {
+              logger.warn('Leaflet click reverse geocode failed', { error: err });
+            }
+          });
+        } catch {}
       } catch (e) {
         logger.warn("Failed to initialize Leaflet", { error: e });
         setMapsUnavailable(true);
@@ -959,6 +1102,50 @@ export const MapContainer = forwardRef<
           }
 
           trafficLayerRef.current = new google.maps.TrafficLayer();
+
+          // Map click handler: reverse geocode -> drop marker -> broadcast event
+          try {
+            mapInstanceRef.current.addListener("click", async (e: google.maps.MapMouseEvent) => {
+              try {
+                const lat = e.latLng?.lat();
+                const lng = e.latLng?.lng();
+                if (typeof lat !== "number" || typeof lng !== "number") return;
+
+                // Reverse geocode via Supabase edge function (google/nominatim)
+                const data = await reverseGeocode(lat, lng);
+                const best = (data as any)?.results?.[0];
+                const address: string = best?.formatted_address || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+
+                // Drop or move selection marker
+                if (selectionMarkerRef.current) selectionMarkerRef.current.setMap(null);
+                selectionMarkerRef.current = new google.maps.Marker({
+                  position: { lat, lng },
+                  map: mapInstanceRef.current!,
+                  title: address,
+                  animation: google.maps.Animation.DROP,
+                  icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 10,
+                    fillColor: "#00d1ff",
+                    fillOpacity: 1,
+                    strokeColor: "#ffffff",
+                    strokeWeight: 2,
+                  },
+                });
+
+                // Broadcast to the app so forms can auto-fill
+                try {
+                  const detail = { lat, lng, address, provider: (data as any)?.provider, placeId: best?.place_id };
+                  window.dispatchEvent(new CustomEvent("map-location-selected", { detail }));
+                  try { localStorage.setItem('aos_last_selected_location', JSON.stringify(detail)); } catch {}
+                } catch {}
+
+                toast({ title: "Location selected", description: address });
+              } catch (err) {
+                logger.warn("Map click reverse geocode failed", { error: err });
+              }
+            });
+          } catch {}
 
           // Detect unauthorized/dev-only overlay and auto-fallback to Mapbox
           setTimeout(() => {
@@ -1110,6 +1297,45 @@ export const MapContainer = forwardRef<
     }
   }, [jobSites]);
 
+  // Add job site markers for Mapbox/MapLibre/Leaflet fallbacks
+  useEffect(() => {
+    if (!usingMapbox || !jobSites) return;
+    const gl: any = mapboxInstanceRef.current;
+    if (!gl) return;
+
+    // Clear previous markers/overlays
+    try { mapboxJobMarkersRef.current.forEach((m) => m?.remove?.()); } catch {}
+    mapboxJobMarkersRef.current = [];
+    try { if (leafletJobLayerRef.current) { gl.removeLayer(leafletJobLayerRef.current); leafletJobLayerRef.current = null; } } catch {}
+
+    // Mapbox/MapLibre path
+    if (gl && typeof gl.getStyle === 'function') {
+      jobSites.forEach((site) => {
+        if (!site.latitude || !site.longitude) return;
+        const color = site.status === 'In Progress' ? '#ff8c00' : '#00aaff';
+        let marker: any = null;
+        try {
+          marker = new (mapboxgl as any).Marker({ color }).setLngLat([site.longitude, site.latitude]).addTo(gl);
+        } catch {
+          try { marker = new (maplibregl as any).Marker({ color }).setLngLat([site.longitude, site.latitude]).addTo(gl); } catch {}
+        }
+        if (marker) mapboxJobMarkersRef.current.push(marker);
+      });
+      return;
+    }
+
+    // Leaflet path
+    if (gl && typeof gl.addLayer === 'function' && typeof gl.eachLayer === 'function') {
+      const group = L.layerGroup();
+      jobSites.forEach((site) => {
+        if (!site.latitude || !site.longitude) return;
+        L.circleMarker([site.latitude, site.longitude], { radius: 6, color: '#ffffff', weight: 2, fillColor: '#00aaff', fillOpacity: 1 }).addTo(group);
+      });
+      group.addTo(gl);
+      leafletJobLayerRef.current = group;
+    }
+  }, [jobSites, usingMapbox]);
+
   // Display saved measurements on map (Google Maps only)
   useEffect(() => {
     if (!mapInstanceRef.current || !measurements || usingMapbox) return;
@@ -1173,6 +1399,73 @@ export const MapContainer = forwardRef<
       }
     });
   }, [measurements]);
+
+  // Display saved measurements on Mapbox/MapLibre/Leaflet fallbacks
+  useEffect(() => {
+    if (!usingMapbox || !measurements) return;
+    const gl: any = mapboxInstanceRef.current;
+    if (!gl) return;
+
+    // Mapbox GL / MapLibre path
+    if (gl && typeof gl.getStyle === 'function' && typeof gl.addSource === 'function') {
+      const featureCollection: any = { type: 'FeatureCollection', features: [] as any[] };
+      measurements.forEach((m) => {
+        if (!m.geojson) return;
+        if (m.type === 'distance' && Array.isArray(m.geojson.coordinates)) {
+          featureCollection.features.push({ type: 'Feature', geometry: { type: 'LineString', coordinates: m.geojson.coordinates }, properties: { id: m.id } });
+        } else if (m.type === 'area' && Array.isArray(m.geojson.coordinates)) {
+          featureCollection.features.push({ type: 'Feature', geometry: { type: 'Point', coordinates: m.geojson.coordinates }, properties: { id: m.id } });
+        }
+      });
+      const ensure = () => {
+        try {
+          const src = gl.getSource('measurements-source');
+          if (src) {
+            (src as any).setData(featureCollection);
+          } else {
+            gl.addSource('measurements-source', { type: 'geojson', data: featureCollection });
+            if (!gl.getLayer('measurements-line')) {
+              gl.addLayer({ id: 'measurements-line', type: 'line', source: 'measurements-source', filter: ['==', ['geometry-type'], 'LineString'], paint: { 'line-color': '#00ff00', 'line-width': 3, 'line-opacity': 0.7 } } as any);
+            }
+            if (!gl.getLayer('measurements-points')) {
+              gl.addLayer({ id: 'measurements-points', type: 'circle', source: 'measurements-source', filter: ['==', ['geometry-type'], 'Point'], paint: { 'circle-color': '#0088ff', 'circle-radius': 6, 'circle-opacity': 0.6 } } as any);
+            }
+          }
+        } catch (e) {
+          // Style may not be ready
+        }
+      };
+      if (typeof gl.isStyleLoaded === 'function' && !gl.isStyleLoaded()) {
+        gl.once?.('load', ensure);
+      } else {
+        ensure();
+      }
+      return;
+    }
+
+    // Leaflet path
+    if (gl && typeof gl.addLayer === 'function' && typeof gl.eachLayer === 'function') {
+      try {
+        if (leafletMeasurementsLayerRef.current) {
+          gl.removeLayer(leafletMeasurementsLayerRef.current);
+          leafletMeasurementsLayerRef.current = null;
+        }
+      } catch {}
+      const group = L.layerGroup();
+      measurements.forEach((m) => {
+        if (!m.geojson) return;
+        if (m.type === 'distance' && Array.isArray(m.geojson.coordinates)) {
+          const path = (m.geojson.coordinates as number[][]).map((c) => [c[1], c[0]]);
+          L.polyline(path, { color: '#00ff00', weight: 3, opacity: 0.7 }).addTo(group);
+        } else if (m.type === 'area' && Array.isArray(m.geojson.coordinates)) {
+          const center = [m.geojson.coordinates[1], m.geojson.coordinates[0]] as [number, number];
+          L.circle(center, { radius: Math.sqrt(m.value / Math.PI), color: '#0088ff', opacity: 0.7, weight: 2, fillOpacity: 0.2 }).addTo(group);
+        }
+      });
+      group.addTo(gl);
+      leafletMeasurementsLayerRef.current = group;
+    }
+  }, [measurements, usingMapbox]);
 
   // Handle Parcels overlay for Google Maps
   useEffect(() => {
