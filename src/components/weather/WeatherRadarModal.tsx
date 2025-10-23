@@ -16,6 +16,7 @@ import { LoadingOverlay } from '@/components/ui/LoadingSpinner';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { HoverAnimation } from '@/components/ui/Animations';
 import { useJobSites } from '@/hooks/useJobSites';
+import { useWeatherAlerts as usePersistedWeatherAlerts } from '@/hooks/useWeatherAlerts';
 
 interface WeatherAlert {
   id: string;
@@ -89,6 +90,7 @@ export const WeatherRadarModal: React.FC<WeatherRadarModalProps> = ({ onClose })
   
   const { toast } = useToast();
   const { data: jobSites } = useJobSites();
+  const { data: persistedAlerts } = usePersistedWeatherAlerts();
 
   useEffect(() => {
     fetchWeatherData();
@@ -139,42 +141,7 @@ export const WeatherRadarModal: React.FC<WeatherRadarModalProps> = ({ onClose })
         setWeatherData(weatherResults);
       }
 
-      // TODO: Fetch weather alerts from persisted table (table needs to be created first)
-      // Temporarily disabled until weather_alerts table is created
-      logger.warn('weather_alerts table not yet created, skipping fetch');
-      
-      /* Uncomment when weather_alerts table is created:
-      try {
-        const { data: alertsData, error: alertsError } = await supabase
-          .from('weather_alerts')
-          .select('id, type, severity, title, message, location, start_time, end_time, created_at')
-          .gte('end_time', new Date().toISOString())
-          .order('created_at', { ascending: false });
-
-        if (!alertsError && Array.isArray(alertsData)) {
-          const mapped: WeatherAlert[] = alertsData.map((row: any) => ({
-            id: row.id,
-            type: (row.type || 'advisory') as WeatherAlert['type'],
-            severity: (row.severity || 'medium') as WeatherAlert['severity'],
-            title: row.title || 'Weather Alert',
-            description: row.message || '',
-            affected_areas: row.location
-              ? [
-                  typeof row.location === 'string'
-                    ? row.location
-                    : `${row.location?.lat ?? '0'}, ${row.location?.lng ?? '0'}`,
-                ]
-              : ['N/A'],
-            start_time: row.start_time || row.created_at,
-            end_time: row.end_time || row.created_at,
-            created_at: row.created_at,
-          }));
-          setAlerts(mapped);
-        }
-      } catch (err) {
-        logger.warn('Failed to fetch weather alerts', { error: err });
-      }
-      */
+      // Persisted alerts will be applied via the effect below
 
     } catch (error) {
       logger.error('Error fetching weather data', { error });
@@ -187,6 +154,38 @@ export const WeatherRadarModal: React.FC<WeatherRadarModalProps> = ({ onClose })
       setIsLoading(false);
     }
   };
+
+  // Apply persisted weather alerts from database when available
+  useEffect(() => {
+    try {
+      if (!persistedAlerts) return;
+      const mapped: WeatherAlert[] = persistedAlerts.map((a: any) => {
+        const msg: string = String(a.message || 'Weather alert');
+        const parts = msg.split(':');
+        const title = parts.length > 1 ? parts[0] : 'Weather Alert';
+        const description = parts.length > 1 ? parts.slice(1).join(':').trim() : msg;
+        const sev = (a.severity || 'medium') as WeatherAlert['severity'];
+        return {
+          id: a.id,
+          type: (sev === 'high' || sev === 'critical' || sev === 'extreme' ? 'warning' : 'advisory') as WeatherAlert['type'],
+          severity: sev,
+          title,
+          description,
+          affected_areas: [
+            a.location?.lat != null && a.location?.lng != null
+              ? `${a.location.lat}, ${a.location.lng}`
+              : 'N/A',
+          ],
+          start_time: new Date().toISOString(),
+          end_time: (a.expires instanceof Date ? a.expires : new Date(a.expires)).toISOString(),
+          created_at: new Date().toISOString(),
+        } as WeatherAlert;
+      });
+      setAlerts(mapped);
+    } catch (err) {
+      logger.warn('Failed to apply persisted weather alerts', { error: err });
+    }
+  }, [persistedAlerts]);
 
   const generateForecast = (): WeatherForecast[] => {
     const forecast = [];
@@ -270,6 +269,7 @@ export const WeatherRadarModal: React.FC<WeatherRadarModalProps> = ({ onClose })
 
   const getAlertColor = (severity: string) => {
     switch (severity) {
+      case 'extreme':
       case 'critical': return 'bg-red-600';
       case 'high': return 'bg-orange-500';
       case 'medium': return 'bg-yellow-500';
