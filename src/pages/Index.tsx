@@ -207,6 +207,35 @@ const Index = () => {
     }
   }, [activeModule, pendingEstimateFromAI]);
 
+  // Map navigation module IDs to corresponding modal toggles when selected from TopBar
+  useEffect(() => {
+    if (!activeModule) return;
+    switch (activeModule) {
+      case 'settings':
+        setShowSettings(true);
+        setActiveModule(null);
+        break;
+      case 'weather':
+        setShowWeatherRadar(true);
+        setActiveModule(null);
+        break;
+      case 'screensaver':
+        setShowScreensaver(true);
+        setActiveModule(null);
+        break;
+      case 'export':
+        setShowExport(true);
+        setActiveModule(null);
+        break;
+      case 'veteran':
+        setShowVeteran(true);
+        setActiveModule(null);
+        break;
+      default:
+        break;
+    }
+  }, [activeModule]);
+
   return (
     <div
       className="relative h-screen w-full overflow-hidden bg-background"

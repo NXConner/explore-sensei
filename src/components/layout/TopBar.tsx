@@ -1,4 +1,4 @@
-import { Activity, Calendar, Users, Truck, DollarSign, User, Briefcase, Clock, Camera, HardHat, FileText, ClipboardList, Shield, Wallet, BookOpen, Calculator, Route, LogOut, TrendingUp, MessageSquare, Zap, FolderOpen, Receipt, Cloud, MapPin, Play, Tv, Trophy, Eye } from "lucide-react";
+import { Activity, Calendar, Users, Truck, DollarSign, User, Briefcase, Clock, Camera, HardHat, FileText, ClipboardList, Shield, Wallet, BookOpen, Calculator, Route, LogOut, TrendingUp, MessageSquare, Zap, FolderOpen, Receipt, Cloud, MapPin, Play, Tv, Trophy, Eye, Settings, Medal, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { useNavigate } from "react-router-dom";
@@ -60,6 +60,19 @@ export const TopBar = ({
     { id: "eod-playback", icon: Play, label: "EOD" },
     // UI controls exposed as navigation items
     { id: "enhance", icon: Eye, label: "ENHANCE" },
+    // Newly exposed utility/navigation entries
+    { id: "settings", icon: Settings, label: "SETTINGS" },
+    { id: "weather", icon: Cloud, label: "WEATHER" },
+    { id: "hr", icon: User, label: "HR" },
+    { id: "hr_compliance", icon: Shield, label: "COMPLIANCE" },
+    { id: "veteran", icon: Medal, label: "VETERAN" },
+    { id: "screensaver", icon: Tv, label: "SCREEN" },
+    { id: "export", icon: Download, label: "EXPORT" },
+    // Shortcuts for premium/auxiliary features (also present at right side)
+    { id: "analytics", icon: TrendingUp, label: "ANALYTICS" },
+    { id: "chat", icon: MessageSquare, label: "CHAT" },
+    { id: "automation", icon: Zap, label: "AUTOMATE" },
+    { id: "business", icon: Briefcase, label: "BUSINESS" },
   ];
 
   // Filter modules by role; clients (Viewer) get a Client Portal entry only
@@ -71,12 +84,12 @@ export const TopBar = ({
     }
     if (role === "Operator") {
       return allModules.filter((m) => [
-        "dashboard","jobs","time","photos","equipment","route","clients","documents","eod-playback","enhance"
+        "dashboard","jobs","time","photos","equipment","route","clients","documents","eod-playback","enhance","weather","settings","chat","export"
       ].includes(m.id));
     }
     if (role === "Manager") {
       return allModules.filter((m) => [
-        "dashboard","jobs","schedule","route","clients","invoicing","estimate","documents","receipts","fleet","photos","enhance"
+        "dashboard","jobs","schedule","route","clients","invoicing","estimate","documents","receipts","fleet","photos","enhance","weather","settings","hr","hr_compliance","veteran","business","analytics","automation","export"
       ].includes(m.id));
     }
     // Admins see everything
@@ -129,6 +142,14 @@ export const TopBar = ({
                       const evt = new Event('toggle-enhance-panel');
                       window.dispatchEvent(evt);
                     } catch {}
+                  } else if (module.id === "analytics" && onShowAnalytics) {
+                    onShowAnalytics();
+                  } else if (module.id === "chat" && onShowChat) {
+                    onShowChat();
+                  } else if (module.id === "automation" && onShowAutomation) {
+                    onShowAutomation();
+                  } else if (module.id === "business" && onShowBusinessHub) {
+                    onShowBusinessHub();
                   } else {
                     onModuleClick(module.id);
                   }
