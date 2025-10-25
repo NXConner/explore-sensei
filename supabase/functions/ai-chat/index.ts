@@ -49,7 +49,63 @@ serve(async (req) => {
   }
 
   try {
-    const { messages } = await req.json();
+    // 1. Parse and validate input
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch (e) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON in request body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { messages } = requestBody;
+
+    // Validate messages structure
+    if (!Array.isArray(messages)) {
+      return new Response(
+        JSON.stringify({ error: 'Messages must be an array' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (messages.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'At least one message is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (messages.length > 50) {
+      return new Response(
+        JSON.stringify({ error: 'Maximum 50 messages allowed per conversation' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate each message
+    for (const msg of messages) {
+      if (!msg.role || !msg.content) {
+        return new Response(
+          JSON.stringify({ error: 'Each message must have role and content' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      if (!['user', 'assistant', 'system'].includes(msg.role)) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid message role - must be user, assistant, or system' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      if (typeof msg.content !== 'string' || msg.content.length > 10000) {
+        return new Response(
+          JSON.stringify({ error: 'Message content must be a string with max 10,000 characters' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {
@@ -62,7 +118,7 @@ serve(async (req) => {
       throw new Error('Supabase environment not configured');
     }
 
-    // Require authenticated caller and apply per-user rate limiting
+    // 2. Require authenticated caller and check role
     const authHeader = req.headers.get('Authorization') ?? '';
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       global: { headers: { Authorization: authHeader } },
@@ -71,13 +127,42 @@ serve(async (req) => {
     const user = userRes?.user ?? null;
     if (!user) {
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ error: 'Authentication required' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Hourly rate limit
-    const limit = parseInt(Deno.env.get('AI_CHAT_HOURLY_LIMIT') ?? '60');
+    // Check user role for authorization (viewers can't use AI chat)
+    const { data: roleData } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (!roleData) {
+      return new Response(
+        JSON.stringify({ error: 'No role assigned - please contact administrator' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Viewers don't get AI chat access
+    if (roleData.role === 'Viewer') {
+      return new Response(
+        JSON.stringify({ error: 'AI chat requires Operator role or higher' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // 3. Role-based rate limiting
+    const rateLimits: Record<string, number> = {
+      'Super Administrator': 500,
+      'Administrator': 200,
+      'Manager': 100,
+      'Operator': 50,
+      'Viewer': 0
+    };
+    const limit = rateLimits[roleData.role] || parseInt(Deno.env.get('AI_CHAT_HOURLY_LIMIT') ?? '60');
     const now = new Date();
     const hourStart = new Date(now);
     hourStart.setMinutes(0, 0, 0);
@@ -123,23 +208,28 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
+      // Log full error server-side only
+      console.error("AI gateway error (server-side only):", response.status, errorText, "User:", user.id);
 
+      // Return sanitized error messages to client
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
+          JSON.stringify({ error: "Rate limit exceeded - please try again in a moment" }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
 
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: "AI credits depleted. Please contact administrator." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          JSON.stringify({ error: "AI service temporarily unavailable - please contact support" }),
+          { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
 
-      throw new Error(`AI gateway error: ${response.status}`);
+      return new Response(
+        JSON.stringify({ error: "AI chat temporarily unavailable - please try again", code: 'AI_ERROR' }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
     const data = await response.json();
@@ -149,9 +239,16 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("chat error:", error);
+    // Log full error server-side only
+    console.error("chat error (server-side only):", error);
+    
+    // Return sanitized error to client
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+      JSON.stringify({ 
+        error: "Chat service temporarily unavailable - please try again",
+        code: 'INTERNAL_ERROR',
+        timestamp: new Date().toISOString()
+      }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }

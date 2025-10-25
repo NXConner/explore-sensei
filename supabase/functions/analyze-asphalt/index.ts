@@ -1,9 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Input validation constants
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
+const ALLOWED_IMAGE_FORMATS = ['image/png', 'image/jpeg', 'image/jpg'];
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -11,10 +16,93 @@ serve(async (req) => {
   }
 
   try {
-    const { imageData } = await req.json();
+    // 1. Verify authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    if (!imageData) {
-      throw new Error("No image data provided");
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid authentication' }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // 2. Check user role for authorization
+    const { data: roleData } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .in('role', ['Super Administrator', 'Administrator', 'Manager', 'Operator'])
+      .maybeSingle();
+
+    if (!roleData) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Insufficient permissions - AI analysis requires Operator role or higher' }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // 3. Parse and validate input
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch (e) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid JSON in request body' }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { imageData } = requestBody;
+
+    // 4. Validate image data
+    if (!imageData || typeof imageData !== 'string') {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Image data is required and must be a string' }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!imageData.startsWith('data:image/')) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid image data format - must be a data URI' }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Check size limit
+    if (imageData.length > MAX_IMAGE_SIZE) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: `Image too large - maximum size is ${MAX_IMAGE_SIZE / (1024 * 1024)}MB` 
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate image format
+    const formatMatch = imageData.match(/^data:(image\/[a-z]+);/);
+    if (!formatMatch || !ALLOWED_IMAGE_FORMATS.includes(formatMatch[1])) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: `Unsupported image format - allowed formats: ${ALLOWED_IMAGE_FORMATS.join(', ')}` 
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -110,17 +198,37 @@ Return your analysis as a JSON object with this structure:
 
     if (!response.ok) {
       const errorText = await response.text();
-      // deno-lint-ignore no-console
-      console.error("AI API error:", response.status, errorText);
+      // Log full error server-side only
+      console.error("AI API error (server-side only):", response.status, errorText, "User:", user.id);
 
+      // Return sanitized error messages to client
       if (response.status === 429) {
-        throw new Error("Rate limit exceeded. Please try again in a moment.");
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: 'Rate limit exceeded - please try again in a moment' 
+          }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
       if (response.status === 402) {
-        throw new Error("AI credits depleted. Please add credits to continue.");
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: 'AI service temporarily unavailable - please contact support' 
+          }),
+          { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
 
-      throw new Error(`AI analysis failed: ${errorText}`);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'AI analysis failed - please try again or contact support',
+          code: 'AI_ERROR'
+        }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const data = await response.json();
@@ -180,12 +288,16 @@ Return your analysis as a JSON object with this structure:
       },
     });
   } catch (error: any) {
-    // deno-lint-ignore no-console
-    console.error("Error in analyze-asphalt function:", error);
+    // Log full error server-side only
+    console.error("Error in analyze-asphalt function (server-side only):", error);
+    
+    // Return sanitized error to client
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message || "Analysis failed",
+        error: "Image analysis temporarily unavailable - please try again",
+        code: 'INTERNAL_ERROR',
+        timestamp: new Date().toISOString()
       }),
       {
         status: 500,
