@@ -298,6 +298,39 @@ export const MapContainer = forwardRef<
     return () => window.removeEventListener('toggle-dark-zones', handler as any);
   }, []);
 
+  // Bridge window events for new horizontal ops bar
+  useEffect(() => {
+    const onGeocode = (e: any) => {
+      const q = e?.detail?.query;
+      if (typeof q === 'string' && q.trim()) {
+        try { handleGeocode(q.trim()); } catch {}
+      }
+    };
+    const onSetMode = (e: any) => {
+      const mode = e?.detail?.mode as DrawingMode;
+      try { handleModeChange(mode); } catch {}
+    };
+    const onClear = () => { try { handleClear(); } catch {} };
+    const onToggleTraffic = () => { try { handleToggleTraffic(); } catch {} };
+    const onToggleWeather = () => { try { setShowWeatherRadar((v) => !v); } catch {} };
+    const onToggleEmployee = () => { try { setShowEmployeeTracking((v) => !v); } catch {} };
+
+    window.addEventListener('geocode-address', onGeocode as any);
+    window.addEventListener('set-drawing-mode', onSetMode as any);
+    window.addEventListener('clear-drawings', onClear as any);
+    window.addEventListener('toggle-traffic', onToggleTraffic as any);
+    window.addEventListener('toggle-weather-radar', onToggleWeather as any);
+    window.addEventListener('toggle-employee-tracking', onToggleEmployee as any);
+    return () => {
+      window.removeEventListener('geocode-address', onGeocode as any);
+      window.removeEventListener('set-drawing-mode', onSetMode as any);
+      window.removeEventListener('clear-drawings', onClear as any);
+      window.removeEventListener('toggle-traffic', onToggleTraffic as any);
+      window.removeEventListener('toggle-weather-radar', onToggleWeather as any);
+      window.removeEventListener('toggle-employee-tracking', onToggleEmployee as any);
+    };
+  }, []);
+
   // Listen for Suitability / Pulse Scan toggles
   useEffect(() => {
     const onSuitability = () => setShowSuitability((v) => {
