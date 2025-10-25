@@ -10,7 +10,9 @@ import { useJobSites } from "@/hooks/useJobSites";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
 import { ClockInStatus } from "@/components/time/ClockInStatus";
 
-export const LeftSidebar = () => {
+type LeftSidebarProps = { side?: "left" | "right" };
+
+export const LeftSidebar = ({ side = "left" }: LeftSidebarProps) => {
   const { map } = useMap();
   const { setDrawingMode, clearDrawings, initializeDrawingManager } = useMapDrawing(map);
   const { data: jobSites } = useJobSites();
@@ -74,21 +76,25 @@ export const LeftSidebar = () => {
 
   if (isMinimized) {
     return (
-      <div className="absolute left-0 top-16 bottom-16 w-12 z-[900] hud-element border-r border-primary/30 flex items-center justify-center">
+      <div className={`absolute ${side === 'left' ? 'left-0 border-r' : 'right-0 border-l'} top-16 bottom-16 w-12 z-[900] hud-element border-primary/30 flex items-center justify-center`}>
         <Button
           onClick={() => setIsMinimized(false)}
           variant="ghost"
           size="sm"
           className="h-12 w-10"
         >
-          <ChevronRight className="w-5 h-5" />
+          {side === 'left' ? (
+            <ChevronRight className="w-5 h-5" />
+          ) : (
+            <ChevronLeft className="w-5 h-5" />
+          )}
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="absolute left-0 top-16 bottom-16 w-72 z-[900] hud-element border-r border-primary/30 flex flex-col">
+    <div className={`absolute ${side === 'left' ? 'left-0 border-r' : 'right-0 border-l'} top-16 bottom-16 w-72 z-[900] hud-element border-primary/30 flex flex-col`}>
       {/* Minimize Button */}
       <div className="flex items-center justify-between p-2 border-b border-primary/30 flex-shrink-0">
         <Button
@@ -98,7 +104,11 @@ export const LeftSidebar = () => {
           className="h-8 w-8 p-0"
           title="Minimize"
         >
-          <ChevronLeft className="w-4 h-4" />
+          {side === 'left' ? (
+            <ChevronLeft className="w-4 h-4" />
+          ) : (
+            <ChevronRight className="w-4 h-4" />
+          )}
         </Button>
         {/* Clock in/out control relocated here */}
         <div className="ml-auto">

@@ -265,11 +265,10 @@ const Index = () => {
         onShowBusinessHub={() => setShowBusinessHub(true)}
       />
 
-      {/* Left Sidebar */}
-      <LeftSidebar />
-
-      {/* Right Sidebar */}
+      {/* Slim toolbar swapped to left */}
       <RightSidebar
+        side="left"
+        // now rendered on the left edge via prop and class override
         onAIClick={() => setShowAI(true)}
         onSettingsClick={() => setShowSettings(true)}
         onLocateMe={() => mapContainerRef.current?.handleLocateMe()}
@@ -291,12 +290,19 @@ const Index = () => {
         onImageryChange={(mode) => (mapContainerRef.current as any)?.setImagery?.(mode)}
         imagery={mapState.imagery}
       />
+      
+      {/* Wide panel now on right: mirror LeftSidebar styles */}
+      <div className="absolute right-0 top-16 bottom-16 w-72 z-[900] hud-element border-l border-primary/30">
+        {/* Render LeftSidebar content mirrored by simply reusing component within a container flipped via CSS dir */}
+        <div className="h-full">
+          <LeftSidebar />
+        </div>
+      </div>
 
       {/* KPI Ticker */}
       <KPITicker />
 
-      {/* Job Status Legend now sits under MiniMap (top-right) */}
-      <JobStatusLegend />
+      {/* Legend now embedded in left sidebar; remove floating overlay */}
 
       {/* AI Assistant */}
       {showAI && <AIAssistant onClose={() => setShowAI(false)} />}

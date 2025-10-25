@@ -10,9 +10,14 @@ const jobStatuses = [
   { status: "Cancelled", color: "bg-red-500", count: 0 },
 ];
 
-export const JobStatusLegend = () => {
-  return (
-    <Card className="absolute right-12 top-[calc(4rem+12rem)] z-[970] p-2 bg-background/80 backdrop-blur-sm border-primary/30 rounded hud-element w-48">
+type JobStatusLegendProps = {
+  variant?: "overlay" | "embedded";
+  className?: string;
+};
+
+export const JobStatusLegend = ({ variant = "overlay", className }: JobStatusLegendProps) => {
+  const content = (
+    <>
       <div className="text-xs font-bold mb-2 text-primary">JOB STATUS</div>
       <div className="grid grid-cols-2 gap-1">
         {jobStatuses.map((item) => (
@@ -25,6 +30,20 @@ export const JobStatusLegend = () => {
           </div>
         ))}
       </div>
+    </>
+  );
+
+  if (variant === "embedded") {
+    return (
+      <Card className={(className ? className + " " : "") + "p-2 bg-background/60 border-primary/30 rounded w-full"}>
+        {content}
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="absolute right-12 top-[calc(4rem+12rem)] z-[970] p-2 bg-background/80 backdrop-blur-sm border-primary/30 rounded hud-element w-48">
+      {content}
     </Card>
   );
 };

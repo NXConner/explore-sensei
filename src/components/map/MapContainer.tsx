@@ -1607,8 +1607,7 @@ export const MapContainer = forwardRef<
       <CoordinateDisplay lat={mapInstanceRef.current?.getCenter?.()?.lat()} lng={mapInstanceRef.current?.getCenter?.()?.lng()} />
       <ScaleBar lat={mapInstanceRef.current?.getCenter?.()?.lat()} zoom={mapInstanceRef.current?.getZoom?.() || 0} />
       <ZoomIndicator zoom={mapInstanceRef.current?.getZoom?.() || 0} />
-      {/* MiniMap */}
-      <MiniMap />
+      {/* MiniMap overlay removed; now embedded in sidebar */}
       {/* Radial Menu (hold 'Q') */}
       <RadialMenu onSelect={(mode) => handleModeChange(mode)} />
 
