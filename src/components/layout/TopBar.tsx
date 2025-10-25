@@ -168,7 +168,7 @@ export const TopBar = ({
   };
 
   return (
-    <div className="absolute top-0 left-0 right-0 z-[1000] hud-element animate-fade-in">
+    <div className="absolute top-0 left-0 right-0 z-[1000] hud-element animate-fade-in top-bar">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between p-2 md:p-3 gap-2 border-b border-primary/30">
         {/* Top row on mobile: Logo and Profile */}
         <div className="flex items-center justify-between w-full md:w-auto flex-shrink-0">
