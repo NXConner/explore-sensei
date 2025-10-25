@@ -1687,7 +1687,7 @@ export const MapContainer = forwardRef<
         }}
       />
       {usingMapbox && (
-        <div className="absolute left-1/2 bottom-[48px] -translate-x-1/2 z-[500]">
+        <div className="absolute left-1/2 top-[calc(56px+8px)] -translate-x-1/2 z-[500]">
           <div className="tactical-panel max-w-md text-sm text-center">
             Mapbox fallback active. Advanced tools are disabled without Google Maps.
           </div>
@@ -1700,7 +1700,7 @@ export const MapContainer = forwardRef<
         />
       )}
       {mapsUnavailable && (
-        <div className="absolute inset-0 flex items-center justify-center z-[500]">
+        <div className="absolute left-1/2 top-[56px] -translate-x-1/2 z-[500]">
           <div className="tactical-panel max-w-md text-center">
             <h3 className="text-lg font-bold mb-2">Map preview disabled</h3>
             <p className="text-sm text-muted-foreground">

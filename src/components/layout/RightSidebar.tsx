@@ -101,8 +101,10 @@ export const RightSidebar = ({
       }
       aria-label={isLeft ? "Left Slim Toolbar" : "Right Slim Toolbar"}
     >
-      <ScrollArea className="flex-1 h-full">
-        <div className="flex flex-col items-center gap-2 p-2">
+      {/* Left-side scrollbar when toolbar is on the left */}
+      <ScrollArea className={`flex-1 h-full ${isLeft ? "scrollbar-left" : ""}`}>
+        {/* Center icons within the available height */}
+        <div className="min-h-full flex flex-col items-center justify-center gap-2 p-2">
           {/* MiniMap and Legend moved to Right (wide) sidebar under Map Tools */}
           {/* AI & Settings */}
           <Button

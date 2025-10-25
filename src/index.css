@@ -363,6 +363,14 @@ All colors MUST be HSL.
     width: 6px;
   }
 
+  /* Position vertical scrollbar on the left side */
+  .scrollbar-left {
+    direction: rtl;
+  }
+  .scrollbar-left > * {
+    direction: ltr;
+  }
+
   /* Enhanced animations */
   @keyframes shimmer {
     0% {

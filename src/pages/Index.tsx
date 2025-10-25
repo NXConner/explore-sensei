@@ -241,7 +241,37 @@ const Index = () => {
       className="relative h-screen w-full overflow-hidden bg-background"
       data-testid="root-shell"
     >
-      {/* Objective Ribbon - moved to sit under TopBar */}
+      {/* Thin Bottom Bar placed above KPI ticker; replicate TopBar modules minus AOS icon and text */}
+      <div className="absolute bottom-12 left-0 right-0 h-12 z-[980] hud-element border-t border-primary/30">
+        <div className="flex h-full items-center gap-1 px-2 overflow-x-auto scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent">
+          {(
+            [
+              "dashboard","jobs","time","photos","equipment","invoicing","field-reports","safety","catalog","estimate","route","schedule","clients","fleet","finance","payroll","documents","contracts","receipts","eod-playback","enhance","settings","weather","hr","hr_compliance","veteran","screensaver","export","analytics","chat","automation","business",
+            ] as string[]
+          ).map((id) => (
+            id === "enhance" ? (
+              <button
+                key={id}
+                className="text-[10px] uppercase tracking-wider px-2 py-1 hover:bg-primary/20 hover:text-primary border border-transparent hover:border-primary/50 transition-all"
+                onClick={() => {
+                  try { window.dispatchEvent(new Event('toggle-enhance-panel')); } catch {}
+                }}
+              >
+                ENHANCE
+              </button>
+            ) : (
+              <button
+                key={id}
+                className="text-[10px] uppercase tracking-wider px-2 py-1 hover:bg-primary/20 hover:text-primary border border-transparent hover:border-primary/50 transition-all"
+                onClick={() => setActiveModule(id)}
+              >
+                {id.replace("-"," ")}
+              </button>
+            )
+          ))}
+        </div>
+      </div>
+      {/* Objective Ribbon - ensure it sits directly under TopBar */}
       <div className="absolute left-1/2 -translate-x-1/2 z-[960] top-[56px]">
         <div className="hud-element px-4 py-2 text-xs flex items-center gap-3">
           <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />

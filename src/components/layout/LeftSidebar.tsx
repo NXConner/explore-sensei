@@ -116,7 +116,7 @@ export const LeftSidebar = ({ side = "left" }: LeftSidebarProps) => {
         </Button>
       </div>
 
-      <ScrollArea className="flex-1 h-full">
+      <ScrollArea className={`flex-1 h-full ${side === 'left' ? 'scrollbar-left' : ''}`}>
         {/* Address Search */}
         <div className="tactical-panel m-2 p-4">
           <h3 className="text-xs font-bold text-primary mb-3">ADDRESS SEARCH</h3>
@@ -158,7 +158,8 @@ export const LeftSidebar = ({ side = "left" }: LeftSidebarProps) => {
         {/* Embedded Mini Map and Legend under Map Tools for right sidebar */}
         {side === 'right' && (
           <div className="m-2">
-            <MiniMap variant="embedded" className="h-28 w-full" />
+            {/* Ensure square mini map (same width and height) */}
+            <MiniMap variant="embedded" className="w-full aspect-square" />
             <div className="mt-2">
               <JobStatusLegend variant="embedded" className="w-full" />
             </div>
