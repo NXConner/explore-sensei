@@ -303,8 +303,18 @@ All colors MUST be HSL.
 
   /* HUD Element */
   .hud-element {
+    /* Black base, translucent, keep blur */
     @apply border border-primary/50 bg-black/60 backdrop-blur-sm;
     box-shadow: 0 0 20px rgba(255, 140, 0, 0.2);
+  }
+
+  /* Ensure all sidebars and bars inherit the black translucent base */
+  .tactical-panel,
+  [data-sidebar="sidebar"],
+  .top-bar,
+  .map-toolbar,
+  .objective-ribbon {
+    @apply bg-black/60 backdrop-blur-sm;
   }
 }
 
