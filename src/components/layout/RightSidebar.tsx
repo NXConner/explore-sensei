@@ -23,8 +23,6 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DrawingMode } from "@/hooks/useMapDrawing";
 import { Waves, Radio, FlameKindling, Layers } from "lucide-react";
-import { MiniMap } from "@/components/hud/MiniMap";
-import { JobStatusLegend } from "@/components/map/JobStatusLegend";
 
 interface RightSidebarProps {
   side?: "left" | "right";
@@ -101,16 +99,11 @@ export const RightSidebar = ({
       className={
         `absolute ${isLeft ? "left-0 border-r" : "right-0 border-l"} top-16 bottom-16 w-12 z-[900] hud-element border-primary/30 flex flex-col`
       }
+      aria-label={isLeft ? "Left Slim Toolbar" : "Right Slim Toolbar"}
     >
       <ScrollArea className="flex-1 h-full">
         <div className="flex flex-col items-center gap-2 p-2">
-          {isLeft && (
-            <div className="w-full flex flex-col items-center gap-2 mb-1">
-              <MiniMap variant="embedded" className="h-24" />
-              <JobStatusLegend variant="embedded" className="w-full" />
-              <div className="h-px w-10 bg-primary/30" />
-            </div>
-          )}
+          {/* MiniMap and Legend moved to Right (wide) sidebar under Map Tools */}
           {/* AI & Settings */}
           <Button
             onClick={onAIClick}

@@ -293,9 +293,9 @@ const Index = () => {
       
       {/* Wide panel now on right: mirror LeftSidebar styles */}
       <div className="absolute right-0 top-16 bottom-16 w-72 z-[900] hud-element border-l border-primary/30">
-        {/* Render LeftSidebar content mirrored by simply reusing component within a container flipped via CSS dir */}
+        {/* Render LeftSidebar content as right sidebar with correct behaviors */}
         <div className="h-full">
-          <LeftSidebar />
+          <LeftSidebar side="right" />
         </div>
       </div>
 

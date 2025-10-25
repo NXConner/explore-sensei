@@ -9,6 +9,8 @@ import { useMapDrawing, DrawingMode } from "@/hooks/useMapDrawing";
 import { useJobSites } from "@/hooks/useJobSites";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
 import { ClockInStatus } from "@/components/time/ClockInStatus";
+import { MiniMap } from "@/components/hud/MiniMap";
+import { JobStatusLegend } from "@/components/map/JobStatusLegend";
 
 type LeftSidebarProps = { side?: "left" | "right" };
 
@@ -83,11 +85,8 @@ export const LeftSidebar = ({ side = "left" }: LeftSidebarProps) => {
           size="sm"
           className="h-12 w-10"
         >
-          {side === 'left' ? (
-            <ChevronRight className="w-5 h-5" />
-          ) : (
-            <ChevronLeft className="w-5 h-5" />
-          )}
+          {/* Always use > icon per spec when minimized stub is visible */}
+          <ChevronRight className="w-5 h-5" />
         </Button>
       </div>
     );
@@ -97,23 +96,24 @@ export const LeftSidebar = ({ side = "left" }: LeftSidebarProps) => {
     <div className={`absolute ${side === 'left' ? 'left-0 border-r' : 'right-0 border-l'} top-16 bottom-16 w-72 z-[900] hud-element border-primary/30 flex flex-col`}>
       {/* Minimize Button */}
       <div className="flex items-center justify-between p-2 border-b border-primary/30 flex-shrink-0">
+        {/* Clock in/out on the left per request */}
+        <div className="mr-2">
+          <ClockInStatus inline variant="compact" />
+        </div>
         <Button
           onClick={() => setIsMinimized(true)}
           variant="ghost"
           size="sm"
-          className="h-8 w-8 p-0"
+          className="h-8 w-8 p-0 ml-auto"
           title="Minimize"
         >
-          {side === 'left' ? (
-            <ChevronLeft className="w-4 h-4" />
-          ) : (
+          {/* Use > on right sidebar, < on left sidebar */}
+          {side === 'right' ? (
             <ChevronRight className="w-4 h-4" />
+          ) : (
+            <ChevronLeft className="w-4 h-4" />
           )}
         </Button>
-        {/* Clock in/out control relocated here */}
-        <div className="ml-auto">
-          <ClockInStatus inline variant="compact" />
-        </div>
       </div>
 
       <ScrollArea className="flex-1 h-full">
@@ -154,6 +154,16 @@ export const LeftSidebar = ({ side = "left" }: LeftSidebarProps) => {
             ))}
           </div>
         </div>
+
+        {/* Embedded Mini Map and Legend under Map Tools for right sidebar */}
+        {side === 'right' && (
+          <div className="m-2">
+            <MiniMap variant="embedded" className="h-28 w-full" />
+            <div className="mt-2">
+              <JobStatusLegend variant="embedded" className="w-full" />
+            </div>
+          </div>
+        )}
 
         {/* Active Job Sites */}
         <div className="tactical-panel m-2 p-4">
