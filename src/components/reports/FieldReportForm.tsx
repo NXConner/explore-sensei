@@ -68,27 +68,47 @@ export const FieldReportForm = ({ onSave, onCancel }: FieldReportFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!workPerformed) {
+    // Validate and sanitize input data
+    const formData = {
+      reportDate,
+      jobId: jobId || undefined,
+      employeeId: employeeId || undefined,
+      weatherConditions,
+      temperature,
+      workPerformed,
+      hoursWorked,
+      progressPercentage,
+      issuesEncountered,
+      safetyNotes,
+    };
+
+    const { validateFormData, fieldReportSchema } = await import('@/lib/formValidation');
+    const validation = validateFormData(fieldReportSchema, formData);
+
+    if (validation.success === false) {
+      const firstError = Object.values(validation.errors)[0];
       toast({
-        title: "Error",
-        description: "Please describe work performed",
+        title: "Validation Error",
+        description: String(firstError),
         variant: "destructive",
       });
       return;
     }
 
+    // Type guard ensures we have validated data
+    const validData = validation.data;
     const { error } = await supabase.from("daily_field_reports").insert([
       {
-        report_date: reportDate,
-        job_id: jobId || null,
-        employee_id: employeeId || null,
-        weather_conditions: weatherConditions || null,
-        temperature: temperature ? parseFloat(temperature) : null,
-        work_performed: workPerformed,
-        hours_worked: hoursWorked ? parseFloat(hoursWorked) : null,
-        progress_percentage: progressPercentage ? parseInt(progressPercentage) : null,
-        issues_encountered: issuesEncountered || null,
-        safety_notes: safetyNotes || null,
+        report_date: validData.reportDate,
+        job_id: validData.jobId || null,
+        employee_id: validData.employeeId || null,
+        weather_conditions: validData.weatherConditions || null,
+        temperature: validData.temperature,
+        work_performed: validData.workPerformed,
+        hours_worked: validData.hoursWorked,
+        progress_percentage: validData.progressPercentage,
+        issues_encountered: validData.issuesEncountered || null,
+        safety_notes: validData.safetyNotes || null,
       } as any,
     ]);
 

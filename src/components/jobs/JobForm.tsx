@@ -69,17 +69,48 @@ export const JobForm = ({ job, onSave, onCancel }: JobFormProps) => {
     e.preventDefault();
     setLoading(true);
 
-    const jobData = {
+    // Validate and sanitize input data
+    const formData = {
       title,
       description,
-      status,
-      start_date: startDate,
-      end_date: endDate || null,
-      budget: budget ? parseFloat(budget) : null,
       location,
-      latitude: typeof latitude === "number" ? latitude : null,
-      longitude: typeof longitude === "number" ? longitude : null,
-      client_id: clientId || null,
+      status,
+      startDate,
+      endDate: endDate || undefined,
+      budget,
+      clientId: clientId || undefined,
+      latitude,
+      longitude,
+    };
+
+    // Import validation at top of file after other imports
+    const { validateFormData, jobFormSchema } = await import('@/lib/formValidation');
+    const validation = validateFormData(jobFormSchema, formData);
+
+    if (validation.success === false) {
+      const firstError = Object.values(validation.errors)[0];
+      toast({
+        title: "Validation Error",
+        description: String(firstError),
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
+    // Type guard ensures we have validated data
+    const validData = validation.data;
+    const jobData = {
+      title: validData.title,
+      description: validData.description,
+      status: validData.status,
+      start_date: validData.startDate,
+      end_date: validData.endDate || null,
+      budget: validData.budget,
+      location: validData.location,
+      latitude: validData.latitude || null,
+      longitude: validData.longitude || null,
+      client_id: validData.clientId || null,
     };
 
     const isUpdate = Boolean(job);
