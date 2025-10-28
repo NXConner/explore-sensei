@@ -62,21 +62,35 @@ export const EquipmentAssignmentForm = ({ onSave, onCancel }: EquipmentAssignmen
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!assetType || !assignedTo) {
+    // Validate input data
+    const formData = {
+      assetType,
+      assignedTo,
+      jobId,
+      conditionOut,
+      notes,
+    };
+
+    const { validateFormData, equipmentAssignmentSchema } = await import('@/lib/formValidation');
+    const validation = validateFormData(equipmentAssignmentSchema, formData);
+
+    if (validation.success === false) {
+      const firstError = Object.values(validation.errors)[0];
       toast({
-        title: "Error",
-        description: "Please fill in required fields",
+        title: "Validation Error",
+        description: String(firstError),
         variant: "destructive",
       });
       return;
     }
 
+    const validData = validation.data;
     const { error } = await supabase.from("asset_assignments").insert({
-      asset_type: assetType,
-      assigned_to: assignedTo,
-      job_id: jobId || null,
-      condition_out: conditionOut || null,
-      notes: notes || null,
+      asset_type: validData.assetType,
+      assigned_to: validData.assignedTo,
+      job_id: validData.jobId || null,
+      condition_out: validData.conditionOut || null,
+      notes: validData.notes || null,
     });
 
     if (error) {
@@ -87,6 +101,11 @@ export const EquipmentAssignmentForm = ({ onSave, onCancel }: EquipmentAssignmen
       });
       return;
     }
+
+    toast({
+      title: "Success",
+      description: "Equipment assigned successfully",
+    });
 
     onSave();
   };

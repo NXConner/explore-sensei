@@ -66,25 +66,42 @@ export const SafetyIncidentForm = ({ onSave, onCancel }: SafetyIncidentFormProps
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!incidentType || !description) {
+    // Validate input data
+    const formData = {
+      incidentDate,
+      jobId,
+      employeeId,
+      incidentType,
+      severity,
+      description,
+      location,
+      immediateAction,
+    };
+
+    const { validateFormData, safetyIncidentSchema } = await import('@/lib/formValidation');
+    const validation = validateFormData(safetyIncidentSchema, formData);
+
+    if (validation.success === false) {
+      const firstError = Object.values(validation.errors)[0];
       toast({
-        title: "Error",
-        description: "Please fill in required fields",
+        title: "Validation Error",
+        description: String(firstError),
         variant: "destructive",
       });
       return;
     }
 
+    const validData = validation.data;
     const { error } = await supabase.from("safety_incidents").insert([
       {
-        incident_date: incidentDate,
-        job_id: jobId || null,
-        employee_id: employeeId || null,
-        incident_type: incidentType,
-        severity,
-        description,
-        location: location || null,
-        immediate_action: immediateAction || null,
+        incident_date: validData.incidentDate,
+        job_id: validData.jobId || null,
+        employee_id: validData.employeeId || null,
+        incident_type: validData.incidentType,
+        severity: validData.severity,
+        description: validData.description,
+        location: validData.location || null,
+        immediate_action: validData.immediateAction || null,
         status: "open",
       } as any,
     ]);
@@ -97,6 +114,11 @@ export const SafetyIncidentForm = ({ onSave, onCancel }: SafetyIncidentFormProps
       });
       return;
     }
+
+    toast({
+      title: "Success",
+      description: "Safety incident reported successfully",
+    });
 
     onSave();
   };

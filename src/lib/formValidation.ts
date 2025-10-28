@@ -66,7 +66,8 @@ export const fieldReportSchema = z.object({
 
 export const safetyIncidentSchema = z.object({
   incidentDate: z.string().min(1, { message: "Incident date is required" }),
-  employeeId: z.string().min(1, { message: "Employee is required" }),
+  employeeId: z.string().optional(),
+  jobId: z.string().optional(),
   incidentType: sanitizedString.pipe(
     z.string()
       .min(1, { message: "Incident type is required" })
@@ -81,15 +82,35 @@ export const safetyIncidentSchema = z.object({
   location: sanitizedString.pipe(
     z.string()
       .max(500, { message: "Location must be less than 500 characters" })
-  ),
-  witnesses: sanitizedString.pipe(
-    z.string()
-      .max(1000, { message: "Witnesses must be less than 1000 characters" })
-  ),
-  actionsTaken: sanitizedString.pipe(
+  ).optional(),
+  immediateAction: sanitizedString.pipe(
     z.string()
       .max(2000, { message: "Actions taken must be less than 2000 characters" })
+  ).optional(),
+});
+
+export const timeEntrySchema = z.object({
+  employeeId: z.string().min(1, { message: "Employee is required" }),
+  jobId: z.string().optional(),
+  notes: sanitizedString.pipe(
+    z.string()
+      .max(2000, { message: "Notes must be less than 2000 characters" })
+  ).optional(),
+});
+
+export const equipmentAssignmentSchema = z.object({
+  assetType: sanitizedString.pipe(
+    z.string()
+      .min(1, { message: "Equipment type is required" })
+      .max(100, { message: "Equipment type must be less than 100 characters" })
   ),
+  assignedTo: z.string().min(1, { message: "Employee assignment is required" }),
+  jobId: z.string().optional(),
+  conditionOut: z.string().optional(),
+  notes: sanitizedString.pipe(
+    z.string()
+      .max(2000, { message: "Notes must be less than 2000 characters" })
+  ).optional(),
 });
 
 export const clientSchema = z.object({
@@ -177,3 +198,5 @@ export type FieldReportData = z.infer<typeof fieldReportSchema>;
 export type SafetyIncidentData = z.infer<typeof safetyIncidentSchema>;
 export type ClientData = z.infer<typeof clientSchema>;
 export type EmployeeData = z.infer<typeof employeeSchema>;
+export type TimeEntryData = z.infer<typeof timeEntrySchema>;
+export type EquipmentAssignmentData = z.infer<typeof equipmentAssignmentSchema>;

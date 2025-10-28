@@ -56,12 +56,34 @@ export const TimeEntryForm = ({ onSave, onCancel }: TimeEntryFormProps) => {
     e.preventDefault();
     setLoading(true);
 
+    // Validate input data
+    const formData = {
+      employeeId,
+      jobId,
+      notes,
+    };
+
+    const { validateFormData, timeEntrySchema } = await import('@/lib/formValidation');
+    const validation = validateFormData(timeEntrySchema, formData);
+
+    if (validation.success === false) {
+      const firstError = Object.values(validation.errors)[0];
+      toast({
+        title: "Validation Error",
+        description: String(firstError),
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
+    const validData = validation.data;
     const { error } = await supabase.from("time_entries").insert({
-      employee_id: employeeId,
-      job_id: jobId || null,
+      employee_id: validData.employeeId,
+      job_id: validData.jobId || null,
       clock_in: new Date().toISOString(),
       break_duration: 0,
-      notes: notes || null,
+      notes: validData.notes || null,
     });
 
     setLoading(false);
