@@ -55,7 +55,7 @@ export const HorizontalOpsBar: React.FC = () => {
   };
 
   return (
-    <div className="absolute left-0 right-0 top-12 z-[995] hud-element border-b border-primary/30 bg-background/70 backdrop-blur">
+    <div className="absolute left-0 right-0 top-[56px] z-[995] hud-element border-b border-primary/30 bg-background/70 backdrop-blur">
       <div className="flex items-center gap-3 px-2 py-2 overflow-x-auto scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent">
         {/* Clock in/out */}
         <ClockInStatus inline variant="compact" />
