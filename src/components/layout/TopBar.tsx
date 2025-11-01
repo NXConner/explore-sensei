@@ -11,8 +11,8 @@ export const TopBar = ({ onModuleClick }: TopBarProps) => {
   const navigate = useNavigate();
 
   return (
-    <div className="absolute top-0 left-0 right-0 z-[1000] hud-element animate-fade-in top-bar">
-      <div className="flex items-center justify-between p-2 md:p-3 gap-2 border-b border-primary/30">
+    <div className="absolute top-0 left-0 right-0 z-[1000] hud-element animate-fade-in top-bar h-12">
+      <div className="flex items-center justify-between px-3 py-2 gap-2 border-b border-primary/30 h-full">
         {/* Brand */}
         <div className="flex items-center gap-2 md:gap-3">
           <div className="w-8 h-8 md:w-10 md:h-10 bg-primary rounded flex items-center justify-center">

@@ -7,6 +7,8 @@ import { LeftSidebar } from "@/components/layout/LeftSidebar";
 import { RightSidebar } from "@/components/layout/RightSidebar";
 import { KPITicker } from "@/components/dashboard/KPITicker";
 import { AIAssistant } from "@/components/ai/AIAssistant";
+import { LoadingSpinner } from "@/components/hud/LoadingSpinner";
+
 const DashboardModal = lazy(() =>
   import("@/components/modals/DashboardModal").then((m) => ({ default: m.DashboardModal })),
 );
@@ -116,10 +118,18 @@ const VeteranModal = lazy(() =>
 );
 import { JobStatusLegend } from "@/components/map/JobStatusLegend";
 import { ClockInStatus } from "@/components/time/ClockInStatus";
+import { CornerBrackets } from "@/components/hud/CornerBrackets";
+import { CompassRose } from "@/components/hud/CompassRose";
+import { CoordinateDisplay } from "@/components/hud/CoordinateDisplay";
+import { ZoomIndicator } from "@/components/hud/ZoomIndicator";
+import { ScaleBar } from "@/components/hud/ScaleBar";
+
+import { CommandPalette } from "@/components/common/CommandPalette";
 
 const Index = () => {
   const [activeModule, setActiveModule] = useState<string | null>(null);
   const [showAI, setShowAI] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [showAIDetection, setShowAIDetection] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showChat, setShowChat] = useState(false);
@@ -146,6 +156,9 @@ const Index = () => {
     showParcels: false,
     activeMode: null as DrawingMode,
     imagery: "none" as "none" | "naip" | "usgs",
+    lat: 0,
+    lng: 0,
+    zoom: 15,
   });
 
   // Load map theme from settings, default to division, and react to changes
@@ -167,22 +180,13 @@ const Index = () => {
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
-  // Sync map state periodically
+  // Sync map state via events (optimized from 500ms polling)
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (mapContainerRef.current) {
-        setMapState({
-          showTraffic: mapContainerRef.current.getShowTraffic(),
-          showEmployeeTracking: mapContainerRef.current.getShowEmployeeTracking(),
-          showWeatherRadar: mapContainerRef.current.getShowWeatherRadar(),
-          showParcels: mapContainerRef.current.getShowParcels(),
-          activeMode: mapContainerRef.current.getActiveMode(),
-          imagery: (mapContainerRef.current as any).getImagery?.() || "none",
-          
-        });
-      }
-    }, 500);
-    return () => clearInterval(interval);
+    const handleMapStateChange = (e: CustomEvent) => {
+      setMapState(prev => ({ ...prev, ...e.detail }));
+    };
+    window.addEventListener('map-state-change', handleMapStateChange as any);
+    return () => window.removeEventListener('map-state-change', handleMapStateChange as any);
   }, []);
 
   useEffect(() => {
@@ -195,6 +199,36 @@ const Index = () => {
     window.addEventListener('ai-detection-estimate', handler as any);
     return () => window.removeEventListener('ai-detection-estimate', handler as any);
   }, []);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd/Ctrl + K for command palette
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowCommandPalette(true);
+      }
+      // Escape to close modals
+      if (e.key === 'Escape') {
+        if (activeModule) {
+          setActiveModule(null);
+        }
+        if (showAI) setShowAI(false);
+        if (showCommandPalette) setShowCommandPalette(false);
+      }
+      // A for AI Assistant
+      if (e.key === 'a' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        const target = e.target as HTMLElement;
+        if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+          setShowAI(!showAI);
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [activeModule, showAI, showCommandPalette]);
 
   useEffect(() => {
     if (activeModule === 'estimate' && pendingEstimateFromAI) {
@@ -242,9 +276,19 @@ const Index = () => {
       className="relative h-screen w-full overflow-hidden bg-background"
       data-testid="root-shell"
     >
-      {/* Removed thin bottom bar per new layout */}
-      {/* Horizontal Ops Bar just under TopBar */}
-      <HorizontalOpsBar />
+      {/* Horizontal Ops Bar - Optimized layout */}
+      <HorizontalOpsBar 
+        onModeChange={(mode) => mapContainerRef.current?.handleModeChange(mode)}
+        activeMode={mapState.activeMode}
+        onClear={() => mapContainerRef.current?.handleClear()}
+        onToggleTraffic={() => mapContainerRef.current?.handleToggleTraffic()}
+        showTraffic={mapState.showTraffic}
+        onToggleWeather={() => mapContainerRef.current?.toggleWeatherRadar()}
+        showWeather={mapState.showWeatherRadar}
+        onToggleDarkZones={() => {}}
+        onToggleEquipment={() => mapContainerRef.current?.toggleEmployeeTracking()}
+        showEquipment={mapState.showEmployeeTracking}
+      />
 
       {/* Objective Ribbon - ensure it sits directly under HorizontalOpsBar */}
       <div className="absolute left-1/2 -translate-x-1/2 z-[960] top-[96px]">
@@ -290,13 +334,19 @@ const Index = () => {
         imagery={mapState.imagery}
       />
       
-      {/* Wide panel now on right: mirror LeftSidebar styles */}
-      <div className="absolute right-0 top-16 bottom-16 w-72 z-[900] hud-element border-l border-primary/30">
-        {/* Render LeftSidebar content as right sidebar with correct behaviors */}
+      {/* Wide panel now on right */}
+      <div className="absolute right-0 top-12 bottom-16 w-80 z-[900] hud-element border-l border-primary/30 bg-background/80 backdrop-blur-md">
         <div className="h-full">
           <LeftSidebar side="right" />
         </div>
       </div>
+
+      {/* Add HUD Components */}
+      <CornerBrackets />
+      <CompassRose />
+      <CoordinateDisplay lat={mapState.lat} lng={mapState.lng} />
+      <ZoomIndicator zoom={mapState.zoom} />
+      <ScaleBar lat={mapState.lat} zoom={mapState.zoom} />
 
       {/* KPI Ticker */}
       <KPITicker />
@@ -311,32 +361,32 @@ const Index = () => {
 
       {/* Modals */}
       {activeModule === "dashboard" && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<LoadingSpinner message="Loading Dashboard..." />}>
           <DashboardModal onClose={() => setActiveModule(null)} />
         </Suspense>
       )}
       {activeModule === "schedule" && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<LoadingSpinner message="Loading Schedule..." />}>
           <ScheduleModal onClose={() => setActiveModule(null)} />
         </Suspense>
       )}
       {activeModule === "clients" && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<LoadingSpinner message="Loading Clients..." />}>
           <ClientsModal onClose={() => setActiveModule(null)} />
         </Suspense>
       )}
       {activeModule === "fleet" && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<LoadingSpinner message="Loading Fleet..." />}>
           <FleetModal onClose={() => setActiveModule(null)} />
         </Suspense>
       )}
       {activeModule === "finance" && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<LoadingSpinner message="Loading Finance..." />}>
           <FinanceModal onClose={() => setActiveModule(null)} />
         </Suspense>
       )}
       {activeModule === "payroll" && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<LoadingSpinner message="Loading Payroll..." />}>
           <PayrollModal onClose={() => setActiveModule(null)} />
         </Suspense>
       )}

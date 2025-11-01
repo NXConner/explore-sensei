@@ -301,20 +301,19 @@ All colors MUST be HSL.
     text-shadow: 0 0 10px currentColor;
   }
 
-  /* HUD Element */
+  /* Enhanced contrast for panels */
   .hud-element {
-    /* Black base, translucent, keep blur */
-    @apply border border-primary/50 bg-black/60 backdrop-blur-sm;
+    @apply border border-primary/50 bg-background/80 backdrop-blur-md;
     box-shadow: 0 0 20px rgba(255, 140, 0, 0.2);
   }
 
-  /* Ensure all sidebars and bars inherit the black translucent base */
+  /* Ensure all sidebars and bars inherit enhanced contrast */
   .tactical-panel,
   [data-sidebar="sidebar"],
   .top-bar,
   .map-toolbar,
   .objective-ribbon {
-    @apply bg-black/60 backdrop-blur-sm;
+    @apply bg-background/80 backdrop-blur-md;
   }
 }
 
@@ -448,4 +447,41 @@ All colors MUST be HSL.
     50% { text-shadow: 2px 0 red, -2px 0 cyan; }
     100% { text-shadow: 0 0 transparent; }
   }
+
+  /* Bounce in animation */
+  @keyframes bounce-in {
+    0% { transform: scale(0.9); opacity: 0; }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .animate-bounce-in {
+    animation: bounce-in 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  /* Slide up animation */
+  @keyframes slide-up {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.3s ease-out;
+  }
+
+  /* Fade in animation */
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-in;
+  }
+
+  /* Enhanced icon sizing utility */
+  .icon-sm { @apply w-4 h-4; }
+  .icon-md { @apply w-5 h-5; }
+  .icon-lg { @apply w-6 h-6; }
+  .icon-xl { @apply w-8 h-8; }
 }
