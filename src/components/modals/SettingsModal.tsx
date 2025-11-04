@@ -65,22 +65,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     weatherAlertRadius: 15,
     suitabilityThresholds: { minTempF: 55, maxTempF: 95, maxHumidity: 70, maxPrecipChance: 20 },
     // Themes & Wallpapers
-    theme: "tactical-dark" as
-      | "tactical-dark"
-      | "light"
-      | "high-contrast"
-      | "colorblind-safe"
-      | "industry-blue"
-      | "safety-green"
-      | "construction"
-      | "landscaping"
-      | "security"
-      | "aviation"
-      | "division-shd"
-      | "division-shd-faithful"
-      | "dark-zone"
-      | "dark-zone-faithful"
-      | "black-tusk",
+    theme: "tactical-dark" as ThemeId,
     // fidelity toggle: original-inspired vs faithful (close color matching)
     fidelityMode: "inspired" as "inspired" | "faithful",
     mapTheme: "division" as "division" | "animus",
@@ -496,7 +481,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                           presetId: settings.wallpaperPresetId,
                           customUrl: settings.wallpaperUrl,
                           kind: settings.wallpaperPresetId
-                            ? "preset"
+                            ? (getWallpaperPreset(settings.wallpaperPresetId)?.kind || "gradient")
                             : settings.wallpaperUrl
                               ? "upload"
                               : "none",

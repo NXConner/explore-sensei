@@ -13,7 +13,7 @@ type ApplyOptions = { highContrast?: boolean; forceDark?: boolean };
 const baseTheme = getThemeDefinition(defaultThemeId);
 const highContrastTheme = getThemeDefinition("high-contrast");
 
-export { ThemeId } from "@/design-system";
+export type { ThemeId } from "@/design-system";
 
 export function applyThemeVariables(themeId: ThemeId, options?: ApplyOptions): void {
   const root = document.documentElement as HTMLElement;
@@ -166,7 +166,8 @@ export function applySavedThemeFromLocalStorage(): void {
     const settings = JSON.parse(raw);
     let themeId: ThemeId = settings.theme ?? defaultThemeId;
 
-    if (themeId === "church-blue") {
+    // Handle legacy theme migration
+    if ((settings.theme as string) === "church-blue") {
       themeId = "industry-blue";
     }
 
