@@ -17,6 +17,9 @@ import {
   Save,
   Download,
   Pencil,
+  Map,
+  Satellite,
+  Mountain,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -97,7 +100,7 @@ export const RightSidebar = ({
   return (
     <div
       className={
-        `absolute ${isLeft ? "left-0 border-r" : "right-0 border-l"} top-16 bottom-16 w-12 z-[900] hud-element border-primary/30 flex flex-col`
+        `absolute ${isLeft ? "left-0 border-r" : "right-0 border-l"} top-[84px] bottom-16 w-14 z-[var(--z-sidebars)] hud-element border-primary/30 flex flex-col`
       }
       aria-label={isLeft ? "Left Slim Toolbar" : "Right Slim Toolbar"}
     >
@@ -112,9 +115,10 @@ export const RightSidebar = ({
             variant="ghost"
             size="sm"
             className="w-12 h-12 p-0 hover:bg-primary/20 hover:text-primary border border-transparent hover:border-primary/50 transition-all"
-            title="AI Assistant"
+            title="AI Assistant (A)"
+            aria-label="AI Assistant"
           >
-            <Bot className="w-5 h-5" />
+            <Bot className="icon-md" />
           </Button>
 
           <Button
@@ -122,9 +126,10 @@ export const RightSidebar = ({
             variant="ghost"
             size="sm"
             className="w-12 h-12 p-0 hover:bg-primary/20 hover:text-primary border border-transparent hover:border-primary/50 transition-all"
-            title="Settings"
+            title="Settings (Cmd+.)"
+            aria-label="Settings"
           >
-            <Settings className="w-5 h-5" />
+            <Settings className="icon-md" />
           </Button>
 
           <div className="h-px w-10 bg-primary/30 my-1" />
@@ -137,8 +142,9 @@ export const RightSidebar = ({
               className="w-12 h-12 p-0 hover:bg-blue-500/20 hover:text-blue-500 border border-transparent hover:border-blue-500/50 transition-all"
               onClick={onLocateMe}
               title="Locate Me"
+              aria-label="Locate me on map"
             >
-              <Navigation className="w-5 h-5 text-blue-500" />
+              <Navigation className="icon-md text-blue-500" />
             </Button>
           )}
 
@@ -223,8 +229,9 @@ export const RightSidebar = ({
                 className="w-12 h-12 p-0"
                 onClick={() => onImageryChange("none")}
                 title="Base Map"
+                aria-label="Switch to base map"
               >
-                BM
+                <Map className="icon-md" />
               </Button>
               <Button
                 variant={imagery === "naip" ? "default" : "ghost"}
@@ -232,8 +239,9 @@ export const RightSidebar = ({
                 className="w-12 h-12 p-0"
                 onClick={() => onImageryChange("naip")}
                 title="NAIP Imagery"
+                aria-label="Switch to NAIP imagery"
               >
-                N
+                <Satellite className="icon-md" />
               </Button>
               <Button
                 variant={imagery === "usgs" ? "default" : "ghost"}
@@ -241,8 +249,9 @@ export const RightSidebar = ({
                 className="w-12 h-12 p-0"
                 onClick={() => onImageryChange("usgs")}
                 title="USGS Imagery"
+                aria-label="Switch to USGS imagery"
               >
-                U
+                <Mountain className="icon-md" />
               </Button>
             </>
           )}

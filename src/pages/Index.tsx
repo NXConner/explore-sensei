@@ -315,15 +315,17 @@ const Index = () => {
       />
 
       {/* Objective Ribbon - ensure it sits directly under HorizontalOpsBar */}
-      <div className="absolute left-1/2 -translate-x-1/2 z-[960] top-[96px]">
+      <div className="absolute left-1/2 -translate-x-1/2 z-[var(--z-objective)] top-[84px]">
         <div className="hud-element px-4 py-2 text-xs flex items-center gap-3">
           <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
           <span className="uppercase tracking-widest">Active Mission</span>
-          <span className="text-muted-foreground">— Today’s Schedule</span>
-          <div className="w-32 h-1 bg-primary/20 rounded overflow-hidden">
-            <div className="h-full bg-primary" style={{ width: "45%" }} />
-          </div>
-          <span className="text-muted-foreground">ETA 2h</span>
+          <span className="text-muted-foreground">
+            — {scheduleItems?.length ? `${scheduleItems.length} scheduled` : "No active schedule"}
+          </span>
+...
+          <span className="text-muted-foreground">
+            {scheduleItems?.[0]?.start_time ? `ETA ${new Date(scheduleItems[0].start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'ETA —'}
+          </span>
         </div>
       </div>
       {/* Main Map */}
@@ -359,7 +361,7 @@ const Index = () => {
       />
       
       {/* Wide panel now on right - with corner brackets */}
-      <div className="absolute right-0 top-12 bottom-16 w-80 z-[900] hud-element border-l border-primary/30 bg-background/80 backdrop-blur-md">
+      <div className="absolute right-0 top-[84px] bottom-16 w-80 z-[var(--z-sidebars)] hud-element border-l border-primary/30 bg-background/80 backdrop-blur-md">
         <div className="absolute inset-0 pointer-events-none">
           <div className="corner-bracket-md corner-tl" />
           <div className="corner-bracket-md corner-tr" />
@@ -380,6 +382,13 @@ const Index = () => {
 
       {/* KPI Ticker */}
       <KPITicker />
+
+      {/* Command Palette */}
+      <CommandPalette 
+        open={showCommandPalette}
+        onOpenChange={setShowCommandPalette}
+        onNavigate={setActiveModule}
+      />
 
       {/* Legend now embedded in left sidebar; remove floating overlay */}
 

@@ -30,7 +30,7 @@ All colors MUST be HSL.
     --secondary-foreground: 0 0% 100%;
 
     --muted: 0 0% 10%;
-    --muted-foreground: 0 0% 60%;
+    --muted-foreground: 0 0% 65%;
 
     --accent: 197 100% 50%;
     --accent-foreground: 0 0% 100%;
@@ -48,6 +48,19 @@ All colors MUST be HSL.
     --ring: 30 100% 50%;
 
     --radius: 0.25rem;
+
+    /* Z-Index Hierarchy */
+    --z-base: 1;
+    --z-map: 100;
+    --z-hud: 900;
+    --z-sidebars: 900;
+    --z-corners: 950;
+    --z-topbar: 995;
+    --z-horizontal-ops: 995;
+    --z-objective: 960;
+    --z-kpi-ticker: 990;
+    --z-modals: 2000;
+    --z-command-palette: 3000;
 
     /* Tactical Shadows & Glows */
     --shadow-tactical: 0 4px 20px rgba(255, 140, 0, 0.2);
@@ -303,7 +316,7 @@ All colors MUST be HSL.
 
   /* Enhanced contrast for panels */
   .hud-element {
-    @apply border border-primary/40 bg-background/90 backdrop-blur-lg;
+    @apply border border-primary/40 bg-background/80 backdrop-blur-lg;
     box-shadow: 0 0 20px rgba(255, 140, 0, 0.2);
   }
 
@@ -312,16 +325,18 @@ All colors MUST be HSL.
     position: absolute;
     width: 8px;
     height: 8px;
-    border: 1px solid hsl(var(--primary) / 0.4);
+    border: 1px solid hsl(var(--primary) / 0.6);
     pointer-events: none;
+    box-shadow: 0 0 8px hsl(var(--primary) / 0.4);
   }
 
   .corner-bracket-md {
     position: absolute;
     width: 12px;
     height: 12px;
-    border: 2px solid hsl(var(--primary) / 0.6);
+    border: 2px solid hsl(var(--primary) / 0.8);
     pointer-events: none;
+    box-shadow: 0 0 12px hsl(var(--primary) / 0.5);
   }
 
   .corner-tl {

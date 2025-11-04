@@ -78,27 +78,27 @@ export const LeftSidebar = ({ side = "left" }: LeftSidebarProps) => {
 
   if (isMinimized) {
     return (
-      <div className={`absolute ${side === 'left' ? 'left-0 border-r' : 'right-0 border-l'} top-16 bottom-16 w-12 z-[900] hud-element border-primary/30 flex items-center justify-center`}>
+      <div className={`absolute ${side === 'left' ? 'left-0 border-r' : 'right-0 border-l'} top-[84px] bottom-16 w-12 z-[var(--z-sidebars)] hud-element border-primary/30 flex items-center justify-center`}>
         <Button
           onClick={() => setIsMinimized(false)}
           variant="ghost"
           size="sm"
           className="h-12 w-10"
+          aria-label="Expand sidebar"
         >
-          {/* Always use > icon per spec when minimized stub is visible */}
-          <ChevronRight className="w-5 h-5" />
+          {side === 'left' ? <ChevronRight className="icon-md" /> : <ChevronLeft className="icon-md" />}
         </Button>
       </div>
     );
   }
 
   return (
-    <div className={`absolute ${side === 'left' ? 'left-0 border-r' : 'right-0 border-l'} top-16 bottom-16 w-80 z-[900] hud-element border-primary/30 flex flex-col`}>
+    <div className={`absolute ${side === 'left' ? 'left-0 border-r' : 'right-0 border-l'} top-[84px] bottom-16 w-80 z-[var(--z-sidebars)] hud-element border-primary/30 flex flex-col`}>
       {/* Tactical Header */}
       <div className="p-4 border-b border-primary/30 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Crosshair className="w-5 h-5 text-primary" />
+            <Crosshair className="icon-md text-primary" />
             <h2 className="text-sm font-bold tracking-widest text-primary">TACTICAL COMMAND</h2>
           </div>
           <Button
@@ -107,37 +107,14 @@ export const LeftSidebar = ({ side = "left" }: LeftSidebarProps) => {
             size="sm"
             className="h-8 w-8 p-0"
             title="Minimize"
+            aria-label="Minimize sidebar"
           >
-            {side === 'right' ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            {side === 'right' ? <ChevronRight className="icon-sm" /> : <ChevronLeft className="icon-sm" />}
           </Button>
         </div>
       </div>
 
-      {/* Clock In Status Bar */}
-      <div className="p-2 border-b border-primary/30 flex-shrink-0">
-        <ClockInStatus inline variant="compact" />
-      </div>
-
       <ScrollArea className={`flex-1 h-full ${side === 'left' ? 'scrollbar-left' : ''}`}>
-        {/* Address Search */}
-        <div className="tactical-panel m-2 p-4">
-          <h3 className="text-xs font-bold text-primary mb-3">ADDRESS SEARCH</h3>
-          <form onSubmit={handleSearchSubmit} className="flex gap-2">
-            <Input
-              type="text"
-              placeholder="Enter address..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 text-xs h-8"
-            />
-            <Button type="submit" size="sm" className="h-8 w-8 p-0">
-              <Search className="w-4 h-4" />
-            </Button>
-          </form>
-        </div>
-
-        
-
         {/* Drawing Tools */}
         <div className="tactical-panel m-2 p-4">
           <h3 className="text-xs font-bold text-primary mb-3">MAP TOOLS</h3>
@@ -149,8 +126,9 @@ export const LeftSidebar = ({ side = "left" }: LeftSidebarProps) => {
                 variant={activeDrawingMode === tool.id ? "default" : "outline"}
                 size="sm"
                 className="flex flex-col items-center gap-1 h-auto py-3"
+                aria-label={tool.label}
               >
-                <tool.icon className="w-4 h-4" />
+                <tool.icon className="icon-sm" />
                 <span className="text-xs">{tool.label}</span>
               </Button>
             ))}
@@ -172,8 +150,8 @@ export const LeftSidebar = ({ side = "left" }: LeftSidebarProps) => {
         <div className="tactical-panel m-2 p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-xs font-bold text-primary">ACTIVE JOBS</h3>
-            <Button size="sm" variant="ghost" className="h-6 px-2">
-              <Plus className="w-3 h-3" />
+            <Button size="sm" variant="ghost" className="h-6 px-2" aria-label="Add job">
+              <Plus className="icon-sm" />
             </Button>
           </div>
           <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent scrollbar-hover-visible">
@@ -188,6 +166,13 @@ export const LeftSidebar = ({ side = "left" }: LeftSidebarProps) => {
                     {job.client_name || "Client"}
                   </span>
                   <span className="text-xs text-primary">{job.progress}%</span>
+                </div>
+                {/* Progress Bar */}
+                <div className="w-full h-1 bg-primary/20 rounded overflow-hidden mt-2">
+                  <div 
+                    className="h-full bg-primary transition-all duration-300" 
+                    style={{ width: `${job.progress}%` }}
+                  />
                 </div>
               </div>
             ))}

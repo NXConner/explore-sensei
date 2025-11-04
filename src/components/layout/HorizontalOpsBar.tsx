@@ -42,7 +42,7 @@ export const HorizontalOpsBar: React.FC<HorizontalOpsBarProps> = ({
   };
 
   return (
-    <div className="absolute left-0 right-0 top-[48px] z-[995] hud-element border-b border-primary/30 bg-background/80 backdrop-blur-md">
+    <div className="absolute left-0 right-0 top-[48px] z-[var(--z-horizontal-ops)] hud-element border-b border-primary/30 bg-background/80 backdrop-blur-md">
       <div className="flex items-center gap-3 px-3 py-2">
         {/* Clock Status */}
         <ClockInStatus inline variant="compact" />
@@ -58,50 +58,54 @@ export const HorizontalOpsBar: React.FC<HorizontalOpsBarProps> = ({
             onChange={(e) => setSearchQuery(e.target.value)}
             className="h-8 text-sm"
           />
-          <Button type="submit" size="sm" className="h-8 px-3">
-            <Search className="w-4 h-4" />
+          <Button type="submit" size="sm" className="h-8 px-3" aria-label="Search location">
+            <Search className="icon-sm" />
           </Button>
         </form>
 
         <div className="w-px h-6 bg-primary/30" />
 
-        {/* Layer Toggles with Icons */}
-        <div className="flex items-center gap-4 flex-1">
+        {/* Layer Toggles with Icons - Hide on small screens */}
+        <div className="hidden md:flex items-center gap-4 flex-1">
           <label className="flex items-center gap-2 text-sm cursor-pointer hover:text-primary transition-colors">
             <Checkbox 
               checked={showTraffic} 
               onCheckedChange={onToggleTraffic}
               className="border-2"
+              aria-label="Toggle traffic layer"
             />
-            <Car className="w-4 h-4" />
-            <span>Traffic</span>
+            <Car className="icon-sm" />
+            <span className="hidden lg:inline">Traffic</span>
           </label>
           <label className="flex items-center gap-2 text-sm cursor-pointer hover:text-primary transition-colors">
             <Checkbox 
               checked={showWeather} 
               onCheckedChange={onToggleWeather}
               className="border-2"
+              aria-label="Toggle weather layer"
             />
-            <Cloud className="w-4 h-4" />
-            <span>Weather</span>
+            <Cloud className="icon-sm" />
+            <span className="hidden lg:inline">Weather</span>
           </label>
           <label className="flex items-center gap-2 text-sm cursor-pointer hover:text-primary transition-colors">
             <Checkbox 
               checked={showDarkZones} 
               onCheckedChange={onToggleDarkZones}
               className="border-2"
+              aria-label="Toggle dark zones layer"
             />
-            <AlertTriangle className="w-4 h-4" />
-            <span>Dark Zones</span>
+            <AlertTriangle className="icon-sm" />
+            <span className="hidden lg:inline">Dark Zones</span>
           </label>
           <label className="flex items-center gap-2 text-sm cursor-pointer hover:text-primary transition-colors">
             <Checkbox 
               checked={showEquipment} 
               onCheckedChange={onToggleEquipment}
               className="border-2"
+              aria-label="Toggle equipment tracking"
             />
-            <Users className="w-4 h-4" />
-            <span>Equipment</span>
+            <Users className="icon-sm" />
+            <span className="hidden lg:inline">Equipment</span>
           </label>
         </div>
       </div>

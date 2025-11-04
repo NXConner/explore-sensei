@@ -50,37 +50,30 @@ export const KPITicker = () => {
   ];
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 z-[1000] hud-element border-t border-primary/30 overflow-hidden">
-      <div className="flex animate-marquee">
-        {/* Duplicate KPIs for continuous scroll */}
-        {[...kpis, ...extras, ...kpis, ...extras].map((kpi, idx) => (
-          <div
-            key={`${kpi.label}-${idx}`}
-            className="flex items-center gap-3 px-8 py-2 flex-shrink-0"
-          >
-            <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center animate-pulse">
-              <kpi.icon className="w-4 h-4 text-primary" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider">{kpi.label}</p>
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold text-glow">{kpi.value}</span>
-                <span
-                  className={`text-xs flex items-center gap-1 ${
-                    kpi.trend === "up" ? "text-success" : "text-destructive"
-                  }`}
-                >
-                  {kpi.trend === "up" ? (
-                    <TrendingUp className="w-3 h-3" />
-                  ) : (
-                    <TrendingDown className="w-3 h-3" />
-                  )}
-                  {kpi.change}
-                </span>
+    <div className="absolute bottom-0 left-0 right-0 h-16 z-[var(--z-kpi-ticker)] hud-element border-t border-primary/30 bg-background/80 backdrop-blur-md overflow-hidden">
+      {/* Corner brackets for KPI Ticker */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="corner-bracket-sm corner-tl" />
+        <div className="corner-bracket-sm corner-tr" />
+      </div>
+      <div className="flex items-center h-full px-2 relative z-10">
+        <div className="animate-marquee flex gap-8 whitespace-nowrap">
+          {[...kpis, ...extras, ...kpis, ...extras].map((item, idx) => {
+            const Icon = item.icon;
+            return (
+              <div key={idx} className="flex items-center gap-2 px-4">
+                <Icon className="icon-sm text-primary" />
+                <span className="text-xs font-mono uppercase">{item.label}:</span>
+                <span className="text-xs font-bold text-primary">{item.value}</span>
+                {item.change && (
+                  <span className={`text-xs ${item.trend === "up" ? "text-success" : "text-destructive"}`}>
+                    {item.trend === "up" ? "↑" : "↓"} {item.change}
+                  </span>
+                )}
               </div>
-            </div>
-          </div>
-        ))}
+            );
+          })}
+        </div>
       </div>
     </div>
   );
