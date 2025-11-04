@@ -10,6 +10,7 @@ import { Slider } from "@/components/ui/slider";
 import { WeatherAlertLocationsManager } from "./WeatherAlertLocationsManager";
 import { applyThemeVariables, applyWallpaper } from "@/lib/theme";
 import { ThemeSelector, WallpaperStudio } from "@/components/theme";
+import { HUDPanel } from "@/components/foundation";
 import {
   ThemeId,
   WallpaperSelection,
@@ -468,7 +469,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
             </TabsContent>
 
             <TabsContent value="themes" className="mt-0 space-y-6">
-              <div className="tactical-panel space-y-6 p-4">
+              <HUDPanel className="space-y-6">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <Label className="flex items-center gap-2 text-sm font-semibold">
@@ -485,9 +486,9 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   onChange={handleThemeChange}
                   premiumAccess={settings.premiumEnabled}
                 />
-              </div>
+              </HUDPanel>
 
-              <div className="tactical-panel space-y-5 p-4">
+              <HUDPanel className="space-y-5" withGlow>
                 <WallpaperStudio
                   selection={
                     settings.wallpaperPresetId || settings.wallpaperUrl
@@ -529,10 +530,10 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     blank uses the selected preset or upload.
                   </p>
                 </div>
-              </div>
+              </HUDPanel>
 
               {/* Fidelity Mode Toggle */}
-              <div className="tactical-panel space-y-3 p-4">
+              <HUDPanel className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
                     <Label>Fidelity Mode</Label>
@@ -552,14 +553,13 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                       size="sm"
                       variant={settings.fidelityMode === "faithful" ? "default" : "outline"}
                       onClick={() => {
-                        // auto-map base inspired themes to faithful variants when relevant
                         const mapToFaithful: Record<string, string> = {
                           "division-shd": "division-shd-faithful",
                           "dark-zone": "dark-zone-faithful",
                           "black-tusk": "black-tusk-faithful",
                         };
                         const nextTheme = (mapToFaithful[settings.theme as string] ||
-                          settings.theme) as any;
+                          settings.theme) as ThemeId;
                         setSettings((p) => ({ ...p, fidelityMode: "faithful", theme: nextTheme }));
                       }}
                     >
@@ -570,7 +570,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                 <p className="text-xs text-muted-foreground">
                   Fidelity affects palette intensity only. No third-party logos or assets are used.
                 </p>
-              </div>
+              </HUDPanel>
 
               {/* Map Theme Selection */}
               <div className="tactical-panel hidden space-y-4 p-4">
@@ -600,7 +600,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
               </div>
 
               {/* Default Map Location */}
-              <div className="tactical-panel space-y-4 p-4">
+              <HUDPanel className="space-y-4">
                 <div className="mb-2 flex items-center gap-3">
                   <MapPin className="h-5 w-5 text-primary" />
                   <Label>Default Map Location</Label>
@@ -630,7 +630,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     </p>
                   </div>
                 </div>
-              </div>
+              </HUDPanel>
 
               <div className="tactical-panel hidden space-y-4 p-4">
                 <div className="mb-2 flex items-center gap-3">

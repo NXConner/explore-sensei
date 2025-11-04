@@ -3,6 +3,7 @@ import { User, Settings as SettingsIcon, MapPin, CalendarDays } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ThemeQuickSwitcher } from "@/components/theme";
+import { MissionPill } from "@/components/foundation";
 
 interface TopBarProps {
   onModuleClick: (module: string) => void;
@@ -28,17 +29,18 @@ export const TopBar = ({ onModuleClick }: TopBarProps) => {
           </div>
         </div>
 
-        <div className="hidden flex-1 items-center justify-center gap-6 text-xs text-muted-foreground lg:flex">
-          <div className="flex items-center gap-2">
-            <CalendarDays className="h-4 w-4 text-primary" />
-            <span className="uppercase tracking-[0.32em] text-foreground/80">Mission</span>
-            <span className="text-foreground">Sanctuary Renewal – Phase II</span>
-          </div>
-          <div className="hidden items-center gap-2 xl:flex">
-            <MapPin className="h-4 w-4 text-primary" />
-            <span className="uppercase tracking-[0.32em] text-foreground/80">Site</span>
-            <span className="text-foreground">First Grace Church • Norfolk, VA</span>
-          </div>
+        <div className="hidden flex-1 items-center justify-center gap-4 lg:flex">
+          <MissionPill
+            icon={<CalendarDays className="h-4 w-4" aria-hidden />}
+            label="Mission"
+            value={<span className="tracking-[0.08em]">Sanctuary Renewal – Phase II</span>}
+          />
+          <MissionPill
+            icon={<MapPin className="h-4 w-4" aria-hidden />}
+            label="Site"
+            value={<span className="tracking-[0.08em]">First Grace Church • Norfolk, VA</span>}
+            className="hidden xl:inline-flex"
+          />
         </div>
 
         <div className="flex items-center gap-2">
