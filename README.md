@@ -103,9 +103,16 @@ npm run dev
 
 - Run `pwsh -ExecutionPolicy Bypass -File scripts/install_dependencies.ps1` to install Node, Python, Playwright, and Husky tooling in one pass.
 - Duplicate `.env.example` into `.env.local` and adjust Supabase, maps, weather, and AI keys for your workspace or staging tenant.
-- Execute `npm run db:migrate` and `npm run db:seed` against your local Supabase instance to populate baseline data.
+- Export `DATABASE_URL=postgres://supabase:supabase@localhost:54322/postgres` (or update `.env.local`) so the migration tooling can connect.
+- Execute `npm run db:migrate` and `npm run db:seed` against your local Supabase instance to populate baseline data (seed assigns `super_admin` to `n8ter8@gmail.com` if that auth user exists).
 - Validate the stack with `npm run lint`, `npm run test:all`, and `npm run type-check` before beginning feature work.
 - Launch the client with `npm run dev` (or refresh your running dev server) and verify authentication + map providers resolve correctly.
+
+### 🔐 Supabase Admin Account
+
+1. Open Supabase Dashboard → Authentication → Users and manually create the organization owner account `n8ter8@gmail.com` (set a temporary password, mark email as confirmed if appropriate).
+2. Run `npm run db:seed` once the user exists; the seed script will upsert a profile row and assign the `super_admin` role automatically.
+3. If the user already exists, simply re-run the seed or execute `INSERT INTO user_roles (user_id, role_id) VALUES (<uuid>, 'super_admin') ON CONFLICT DO NOTHING;` to guarantee elevated access.
 
 ### 🔀 Branching Strategy
 

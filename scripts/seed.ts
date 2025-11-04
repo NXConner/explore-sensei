@@ -6,16 +6,51 @@ import "dotenv/config";
 import { createClient } from "@supabase/supabase-js";
 
 const url = process.env.VITE_SUPABASE_URL as string;
-const anon = process.env.VITE_SUPABASE_ANON_KEY as string;
+const serviceRole = process.env.SUPABASE_SERVICE_ROLE_KEY as string;
 
-if (!url || !anon) {
-  console.error("Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY");
+if (!url || !serviceRole) {
+  console.error("Missing VITE_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
   process.exit(1);
 }
-
-const supabase = createClient(url, anon);
+const supabase = createClient(url, serviceRole, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+  },
+});
 
 async function main() {
+  const adminEmail = "n8ter8@gmail.com";
+
+  const { data: adminLookup, error: adminLookupError } =
+    await supabase.auth.admin.getUserByEmail(adminEmail);
+  if (adminLookupError) {
+    console.error("Failed to query Supabase auth admin API", adminLookupError.message);
+  }
+  if (!adminLookup?.user) {
+    console.warn(
+      `Admin user ${adminEmail} not found. Create this account via Supabase dashboard before re-running the seed.`,
+    );
+  }
+
+  if (adminLookup?.user) {
+    await supabase.from("profiles").upsert({
+      id: adminLookup.user.id,
+      user_id: adminLookup.user.id,
+      email: adminEmail,
+      full_name: adminLookup.user.user_metadata?.full_name ?? "Super Admin",
+      onboarding_status: "completed",
+      preferences: { theme: "tactical-dark" },
+    });
+
+    await supabase
+      .from("user_roles")
+      .upsert(
+        { user_id: adminLookup.user.id, role_id: "super_admin" },
+        { onConflict: "user_id,role_id" },
+      );
+  }
+
   // Clients
   const { data: client } = await supabase
     .from("clients")
@@ -69,6 +104,55 @@ async function main() {
       unit_cost: 1.2,
     },
   ]);
+
+  await supabase
+    .from("safety_incidents")
+    .insert([
+      {
+        incident_type: "PPE",
+        severity: "moderate",
+        description: "Crew member missing reflective vest during lot striping.",
+        job_id: _job?.id ?? null,
+        reported_by: adminLookup?.user?.id ?? null,
+        involved_employees: ["Ava Mason"],
+        injury_occurred: false,
+        corrective_actions: "Briefed crew on PPE checklist before mobilization.",
+      },
+    ])
+    .catch(() => undefined);
+
+  const { data: chatRoom } = await supabase
+    .from("chat_rooms")
+    .insert({
+      name: "Ops – St. Michael",
+      type: "job",
+      job_id: _job?.id ?? null,
+      created_by: adminLookup?.user?.id ?? null,
+    })
+    .select()
+    .single();
+
+  if (chatRoom) {
+    await supabase.from("chat_messages").insert([
+      {
+        room_id: chatRoom.id,
+        user_id: adminLookup?.user?.id ?? null,
+        message: "Morning briefing: sealcoat delivery ETA 08:30.",
+      },
+    ]);
+  }
+
+  if (adminLookup?.user) {
+    await supabase.from("game_profiles").upsert({
+      user_id: adminLookup.user.id,
+      points: 125,
+      xp: 125,
+      level: 3,
+      streak_current: 4,
+      streak_longest: 7,
+      last_event_date: new Date().toISOString().slice(0, 10),
+    });
+  }
 
   // Cost catalog & items
   const { data: catalog } = await supabase
