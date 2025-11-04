@@ -133,6 +133,10 @@ export const MapContainer = forwardRef<
   const weather = useOpenWeather(weatherCenter?.lat, weatherCenter?.lng);
   const [showDarkZoneEditor, setShowDarkZoneEditor] = useState(false);
 
+  // MapContext state
+  const [mapCenter, setMapCenter] = useState({ lat: 0, lng: 0 });
+  const [mapZoom, setMapZoom] = useState(15);
+
   // Expose methods to parent component
   useImperativeHandle(ref, () => ({
     handleLocateMe,
@@ -1180,6 +1184,31 @@ export const MapContainer = forwardRef<
             });
           } catch {}
 
+          // Listen for map changes to update context state
+          try {
+            mapInstanceRef.current.addListener("idle", () => {
+              if (mapInstanceRef.current) {
+                const center = mapInstanceRef.current.getCenter();
+                const zoom = mapInstanceRef.current.getZoom();
+                if (center && typeof zoom === 'number') {
+                  setMapCenter({ lat: center.lat(), lng: center.lng() });
+                  setMapZoom(zoom);
+                  
+                  // Emit state change event for other components
+                  window.dispatchEvent(new CustomEvent('map-state-change', {
+                    detail: {
+                      lat: center.lat(),
+                      lng: center.lng(),
+                      zoom: zoom
+                    }
+                  }));
+                }
+              }
+            });
+          } catch (err) {
+            logger.warn("Failed to add map idle listener", { error: err });
+          }
+
           // Detect unauthorized/dev-only overlay and auto-fallback to Mapbox
           setTimeout(() => {
             const container = mapRef.current;
@@ -1608,7 +1637,18 @@ export const MapContainer = forwardRef<
   }, [usingMapbox]);
 
   return (
-    <MapContext.Provider value={{ map: mapInstanceRef.current }}>
+    <MapContext.Provider
+      value={{
+        map: mapInstanceRef.current,
+        setMap: (map) => {
+          mapInstanceRef.current = map;
+        },
+        center: mapCenter,
+        setCenter: setMapCenter,
+        zoom: mapZoom,
+        setZoom: setMapZoom,
+      }}
+    >
       {/* Map Effects */}
       <Suspense fallback={null}>
       <MapEffectsLazy

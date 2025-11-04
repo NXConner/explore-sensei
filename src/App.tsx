@@ -2,7 +2,7 @@ import React, { lazy, Suspense, useEffect, useMemo } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 const Index = lazy(() => import("./pages/Index"));
 const Profile = lazy(() => import("./pages/Profile").then((m) => ({ default: m.Profile })));
@@ -11,12 +11,14 @@ const Auth = lazy(() => import("./pages/Auth"));
 const ClientAppLazy = lazy(() => import("./pages/client/ClientApp").then(m => ({ default: m.ClientApp })));
 import { initAnalytics, trackPageView } from "@/lib/analytics";
 import { GamificationProvider } from "@/context/GamificationContext";
+import { SettingsProvider } from "@/context/SettingsContext";
 import { applySavedThemeFromLocalStorage, listenForThemeChanges } from "@/lib/theme";
 import { ProtectedFeature } from "@/components/ProtectedFeature";
 import { usePWA } from "@/hooks/usePWA";
 import { I18nProvider } from "@/i18n";
-
-const queryClient = new QueryClient();
+import { queryClient } from "@/config/query-client";
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
+import { initWebVitals } from "@/lib/webVitals";
 
 const AnalyticsListener = () => {
   const location = useLocation();
@@ -24,6 +26,7 @@ const AnalyticsListener = () => {
   usePWA();
   useEffect(() => {
     initAnalytics();
+    initWebVitals();
   }, []);
   useEffect(() => {
     trackPageView(location.pathname);
@@ -91,39 +94,43 @@ const AnalyticsListener = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <I18nProvider>
-        <GamificationProvider>
-          <BrowserRouter>
-            <AnalyticsListener />
-            <Suspense fallback={null}>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/auth" element={<Auth />} />
-                {/* Client-facing app */}
-                <Route
-                  path="/client/*"
-                  element={
-                    <ProtectedFeature
-                      allowed={["Viewer","Operator","Manager","Administrator","Super Administrator"]}
-                    >
-                      <ClientAppLazy />
-                    </ProtectedFeature>
-                  }
-                />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
-          </BrowserRouter>
-        </GamificationProvider>
-      </I18nProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <I18nProvider>
+          <SettingsProvider>
+            <GamificationProvider>
+              <BrowserRouter>
+                <AnalyticsListener />
+                <Suspense fallback={null}>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/auth" element={<Auth />} />
+                    {/* Client-facing app */}
+                    <Route
+                      path="/client/*"
+                      element={
+                        <ProtectedFeature
+                          allowed={["Viewer","Operator","Manager","Administrator","Super Administrator"]}
+                        >
+                          <ClientAppLazy />
+                        </ProtectedFeature>
+                      }
+                    />
+                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
+              </BrowserRouter>
+            </GamificationProvider>
+          </SettingsProvider>
+        </I18nProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

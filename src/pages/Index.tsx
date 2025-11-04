@@ -8,7 +8,9 @@ import { RightSidebar } from "@/components/layout/RightSidebar";
 import { KPITicker } from "@/components/dashboard/KPITicker";
 import { AIAssistant } from "@/components/ai/AIAssistant";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { SkeletonLoader } from "@/components/common/SkeletonLoader";
 import { useSchedule } from "@/hooks/useSchedule";
+import { useOfflineDetection } from "@/hooks/useOfflineDetection";
 
 const DashboardModal = lazy(() =>
   import("@/components/modals/DashboardModal").then((m) => ({ default: m.DashboardModal })),
@@ -128,6 +130,7 @@ import { ScaleBar } from "@/components/hud/ScaleBar";
 import { CommandPalette } from "@/components/common/CommandPalette";
 
 const Index = () => {
+  const isOffline = useOfflineDetection();
   const [activeModule, setActiveModule] = useState<string | null>(null);
   const [showAI, setShowAI] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
@@ -300,6 +303,11 @@ const Index = () => {
       className="relative h-screen w-full overflow-hidden bg-background"
       data-testid="root-shell"
     >
+      {isOffline && (
+        <div className="absolute top-0 left-0 right-0 z-[9999] bg-destructive/90 backdrop-blur-sm text-destructive-foreground px-4 py-2 text-center text-sm font-medium">
+          Offline Mode • Changes will sync when connection is restored
+        </div>
+      )}
       {/* Horizontal Ops Bar - Optimized layout */}
       <HorizontalOpsBar 
         onModeChange={(mode) => mapContainerRef.current?.handleModeChange(mode)}
@@ -400,7 +408,7 @@ const Index = () => {
 
       {/* Modals */}
       {activeModule === "dashboard" && (
-        <Suspense fallback={<LoadingSpinner text="Loading Dashboard..." size="lg" variant="primary" />}>
+        <Suspense fallback={<SkeletonLoader type="modal" />}>
           <DashboardModal onClose={() => setActiveModule(null)} />
         </Suspense>
       )}
