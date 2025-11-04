@@ -1,28 +1,195 @@
 version: "3.9"
+
 services:
-  web:
+  app:
     build:
       context: .
       dockerfile: Dockerfile
       args:
-        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:-http://kong:8000}
         VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
-        VITE_GOOGLE_MAPS_API_KEY: ${VITE_GOOGLE_MAPS_API_KEY}
-        VITE_GOOGLE_API_KEY: ${VITE_GOOGLE_API_KEY}
-        VITE_GOOGLE_KEY: ${VITE_GOOGLE_KEY}
-        GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY}
+        VITE_GOOGLE_MAPS_API_KEY: ${VITE_GOOGLE_MAPS_API_KEY:-}
+        VITE_GOOGLE_API_KEY: ${VITE_GOOGLE_API_KEY:-}
+        VITE_GOOGLE_KEY: ${VITE_GOOGLE_KEY:-}
+        GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
     ports:
       - "5173:8080"
     environment:
-      - NODE_ENV=production
-    depends_on: []
+      NODE_ENV: production
+    depends_on:
+      - kong
+      - mlapi
+    restart: unless-stopped
+
   mlapi:
     build:
       context: ./ml
     environment:
-      - ASPHALT_MODEL_PATH=/models/asphalt-yolov8s-seg.pt
-      - PIXELS_PER_FOOT=3.0
+      ASPHALT_MODEL_PATH: /models/asphalt-yolov8s-seg.pt
+      PIXELS_PER_FOOT: "3.0"
     ports:
       - "8000:8000"
     volumes:
       - ./models:/models
+    restart: unless-stopped
+
+  db:
+    image: supabase/postgres:15.3.1.0
+    container_name: supabase-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: supabase
+      POSTGRES_USER: supabase
+      POSTGRES_PASSWORD: supabase
+      PGDATA: /var/lib/postgresql/data/pgdata
+      JWT_SECRET: ${SUPABASE_JWT_SECRET}
+      ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+      SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+    volumes:
+      - supabase-db:/var/lib/postgresql/data
+      - ./supabase/migrations:/docker-entrypoint-initdb.d/migrations:ro
+    ports:
+      - "54322:5432"
+
+  auth:
+    image: supabase/gotrue:v2.151.1
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      GOTRUE_SITE_URL: ${SUPABASE_SITE_URL:-http://localhost:5173}
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_JWT_SECRET: ${SUPABASE_JWT_SECRET}
+      GOTRUE_JWT_EXP: "3600"
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase:supabase@db:5432/supabase
+      GOTRUE_DB_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      GOTRUE_DB_MAX_CONNECTIONS: "10"
+      GOTRUE_DB_POOL_MAX_CONN_LIFETIME: "120"
+      GOTRUE_LOG_LEVEL: info
+      GOTRUE_OPERATOR_TOKEN: ${SUPABASE_SERVICE_ROLE_KEY}
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      GOTRUE_MAILER_AUTOCONFIRM: "true"
+      GOTRUE_SMTP_ADMIN_EMAIL: ${SUPABASE_SMTP_ADMIN_EMAIL:-admin@local.test}
+      GOTRUE_SMTP_HOST: ${SUPABASE_SMTP_HOST:-mailhog}
+      GOTRUE_SMTP_PORT: "1025"
+      GOTRUE_SMTP_USER: ${SUPABASE_SMTP_USER:-}
+      GOTRUE_SMTP_PASS: ${SUPABASE_SMTP_PASS:-}
+    ports:
+      - "9999:9999"
+
+  rest:
+    image: supabase/postgrest:v12.1.0
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      PGRST_DB_URI: postgres://supabase:supabase@db:5432/supabase
+      PGRST_DB_SCHEMA: public,storage,graphql_public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_DB_CHANNEL_ENABLED: "true"
+      PGRST_JWT_SECRET: ${SUPABASE_JWT_SECRET}
+      PGRST_SERVER_HOST: 0.0.0.0
+      PGRST_SERVER_PORT: 3000
+    ports:
+      - "3000:3000"
+
+  realtime:
+    image: supabase/realtime:v2.32.3
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: supabase
+      DB_USER: supabase
+      DB_PASSWORD: supabase
+      JWT_SECRET: ${SUPABASE_JWT_SECRET}
+      PORT: "4000"
+    ports:
+      - "4000:4000"
+
+  storage:
+    image: supabase/storage-api:v1.0.6
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+      SERVICE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      POSTGREST_URL: http://rest:3000
+      PGRST_JWT_SECRET: ${SUPABASE_JWT_SECRET}
+      DATABASE_URL: postgres://supabase:supabase@db:5432/supabase
+      REGION: local
+      GLOBAL_S3_BUCKET: global
+      AWS_ACCESS_KEY_ID: supabase
+      AWS_SECRET_ACCESS_KEY: supabase
+      AWS_DEFAULT_REGION: us-east-1
+      FILE_SIZE_LIMIT: 52428800
+      STORAGE_BACKEND: file
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+    volumes:
+      - supabase-storage:/var/lib/storage
+    ports:
+      - "5000:5000"
+
+  kong:
+    image: supabase/kong:v2.16.1
+    restart: unless-stopped
+    depends_on:
+      - auth
+      - rest
+      - realtime
+      - storage
+    environment:
+      KONG_PG_USER: supabase
+      KONG_PG_PASSWORD: supabase
+      KONG_PG_HOST: db
+      KONG_PG_DATABASE: supabase
+      KONG_ANONYMOUS_USERS: ${VITE_SUPABASE_ANON_KEY}
+      KONG_JWT_SECRET: ${SUPABASE_JWT_SECRET}
+      KONG_LOG_LEVEL: notice
+    ports:
+      - "8000:8000"
+      - "8443:8443"
+
+  studio:
+    image: supabase/studio:2025.02.01
+    restart: unless-stopped
+    depends_on:
+      - kong
+    environment:
+      STUDIO_PG_META_URL: http://meta:8080
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+    ports:
+      - "54323:3000"
+
+  meta:
+    image: supabase/postgres-meta:v0.81.4
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      PG_META_PORT: "8080"
+      PG_META_DB_HOST: db
+      PG_META_DB_PORT: "5432"
+      PG_META_DB_NAME: supabase
+      PG_META_DB_USER: supabase
+      PG_META_DB_PASSWORD: supabase
+      PG_META_DB_POOL_SIZE: "10"
+    ports:
+      - "8080:8080"
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+
+volumes:
+  supabase-db:
+  supabase-storage:
