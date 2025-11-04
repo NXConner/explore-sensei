@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { X, Settings, Moon, Sun, Bell, ImageUp, Zap, Volume2, Palette, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -9,6 +9,13 @@ import { useGamificationToggle } from "@/context/GamificationContext";
 import { Slider } from "@/components/ui/slider";
 import { WeatherAlertLocationsManager } from "./WeatherAlertLocationsManager";
 import { applyThemeVariables, applyWallpaper } from "@/lib/theme";
+import { ThemeSelector, WallpaperStudio } from "@/components/theme";
+import {
+  ThemeId,
+  WallpaperSelection,
+  WallpaperPresetId,
+  getWallpaperPreset,
+} from "@/design-system";
 import { Input } from "@/components/ui/input";
 import { detectExistingApiKeys } from "@/config/env";
 
@@ -28,7 +35,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     highContrast: false,
     // Animation & Effects
     radarEffect: true,
-    radarType: 'standard' as 'standard' | 'sonar' | 'aviation',
+    radarType: "standard" as "standard" | "sonar" | "aviation",
     glitchEffect: true,
     scanlineEffect: true,
     gridOverlay: true,
@@ -73,12 +80,14 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
       | "dark-zone"
       | "dark-zone-faithful"
       | "black-tusk",
-      // fidelity toggle: original-inspired vs faithful (close color matching)
+    // fidelity toggle: original-inspired vs faithful (close color matching)
     fidelityMode: "inspired" as "inspired" | "faithful",
     mapTheme: "division" as "division" | "animus",
     preferredMapProvider: "auto" as "auto" | "google" | "mapbox" | "maplibre" | "leaflet",
     wallpaperUrl: "",
     wallpaperOpacity: 60,
+    wallpaperPresetId: undefined as WallpaperPresetId | undefined,
+    wallpaperFileName: "",
     // Map defaults
     defaultMapAddress: "",
     useDefaultLocation: false,
@@ -131,7 +140,8 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
         const current = prev.apiKeys || {};
         const merged = { ...current } as typeof current;
         if (!merged.googleMaps && found.googleMaps) merged.googleMaps = found.googleMaps;
-        if (!merged.googleGeneric && found.googleGeneric) merged.googleGeneric = found.googleGeneric;
+        if (!merged.googleGeneric && found.googleGeneric)
+          merged.googleGeneric = found.googleGeneric;
         if (!merged.mapbox && found.mapbox) merged.mapbox = found.mapbox;
         if (!merged.openWeather && found.openWeather) merged.openWeather = found.openWeather;
         if (!merged.maptiler && found.maptiler) merged.maptiler = found.maptiler;
@@ -154,29 +164,90 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const handleThemeChange = (themeId: ThemeId) => {
+    setSettings((prev) => ({ ...prev, theme: themeId }));
+  };
+
+  const handleWallpaperSelection = (selection?: WallpaperSelection) => {
+    if (!selection) {
+      setSettings((prev) => ({
+        ...prev,
+        wallpaperPresetId: undefined,
+        wallpaperUrl: "",
+        wallpaperFileName: "",
+      }));
+      return;
+    }
+
+    if (selection.presetId) {
+      const preset = getWallpaperPreset(selection.presetId);
+      setSettings((prev) => ({
+        ...prev,
+        wallpaperPresetId: selection.presetId as WallpaperPresetId,
+        wallpaperUrl:
+          preset?.kind === "image"
+            ? selection.customUrl && selection.customUrl.length > 0
+              ? selection.customUrl
+              : (preset?.url ?? "")
+            : "",
+        wallpaperFileName: preset?.name ?? "",
+      }));
+      return;
+    }
+
+    if (selection.customUrl && selection.customUrl.trim().length > 0) {
+      setSettings((prev) => ({
+        ...prev,
+        wallpaperPresetId: undefined,
+        wallpaperUrl: selection.customUrl,
+        wallpaperFileName: selection.fileName ?? "",
+      }));
+    }
+  };
+
+  const handleWallpaperOpacityChange = (value: number) => {
+    setSettings((prev) => ({ ...prev, wallpaperOpacity: value }));
+  };
+
   // Apply theme by setting CSS variables on :root and sync dark class based on darkMode
   useEffect(() => {
-    applyThemeVariables(settings.theme as any, { highContrast: settings.highContrast, forceDark: settings.darkMode });
-    applyWallpaper(settings.wallpaperUrl, settings.wallpaperOpacity);
-  }, [settings.theme, settings.wallpaperUrl, settings.wallpaperOpacity, settings.highContrast, settings.darkMode]);
+    applyThemeVariables(settings.theme as ThemeId, {
+      highContrast: settings.highContrast,
+      forceDark: settings.darkMode,
+    });
+    const wallpaperSelection: WallpaperSelection | undefined = settings.wallpaperPresetId
+      ? { presetId: settings.wallpaperPresetId, customUrl: settings.wallpaperUrl }
+      : settings.wallpaperUrl
+        ? { customUrl: settings.wallpaperUrl, kind: "upload", fileName: settings.wallpaperFileName }
+        : undefined;
+    applyWallpaper(wallpaperSelection, settings.wallpaperOpacity);
+  }, [
+    settings.theme,
+    settings.wallpaperPresetId,
+    settings.wallpaperUrl,
+    settings.wallpaperOpacity,
+    settings.highContrast,
+    settings.darkMode,
+    settings.wallpaperFileName,
+  ]);
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/80 backdrop-blur-sm">
-      <div className="tactical-panel w-full max-w-4xl h-[80vh] flex flex-col">
+      <div className="tactical-panel flex h-[80vh] w-full max-w-4xl flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-primary/30">
+        <div className="flex items-center justify-between border-b border-primary/30 p-4">
           <div className="flex items-center gap-3">
-            <Settings className="w-5 h-5 text-primary" />
+            <Settings className="h-5 w-5 text-primary" />
             <h2 className="text-lg font-bold">SETTINGS</h2>
           </div>
           <Button onClick={onClose} variant="ghost" size="icon">
-            <X className="w-5 h-5" />
+            <X className="h-5 w-5" />
           </Button>
         </div>
 
         {/* Content */}
-        <Tabs defaultValue="appearance" className="flex-1 flex flex-col">
-            <TabsList className="mx-4 mt-4">
+        <Tabs defaultValue="appearance" className="flex flex-1 flex-col">
+          <TabsList className="mx-4 mt-4">
             <TabsTrigger value="appearance">Appearance</TabsTrigger>
             <TabsTrigger value="themes">Themes</TabsTrigger>
             <TabsTrigger value="weather">Weather</TabsTrigger>
@@ -187,22 +258,22 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
             <TabsTrigger value="sounds">Sounds</TabsTrigger>
             <TabsTrigger value="advanced">Advanced</TabsTrigger>
             <TabsTrigger value="api-keys">API Keys</TabsTrigger>
-              <TabsTrigger value="roles">Roles</TabsTrigger>
+            <TabsTrigger value="roles">Roles</TabsTrigger>
             <TabsTrigger value="pulse">Pulse</TabsTrigger>
           </TabsList>
-            <TabsContent value="gamification" className="mt-0 space-y-6">
-              <div className="tactical-panel p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Enable Gamification</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Turns on points, streaks, badges, leaderboards, and EOD summary
-                    </p>
-                  </div>
-                  <Switch checked={gamifyEnabled} onCheckedChange={setGamifyEnabled} />
+          <TabsContent value="gamification" className="mt-0 space-y-6">
+            <div className="tactical-panel p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Enable Gamification</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Turns on points, streaks, badges, leaderboards, and EOD summary
+                  </p>
                 </div>
+                <Switch checked={gamifyEnabled} onCheckedChange={setGamifyEnabled} />
               </div>
-            </TabsContent>
+            </div>
+          </TabsContent>
 
           <ScrollArea className="flex-1 p-4">
             <TabsContent value="appearance" className="mt-0 space-y-6">
@@ -210,9 +281,9 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     {settings.darkMode ? (
-                      <Moon className="w-5 h-5 text-primary" />
+                      <Moon className="h-5 w-5 text-primary" />
                     ) : (
-                      <Sun className="w-5 h-5 text-primary" />
+                      <Sun className="h-5 w-5 text-primary" />
                     )}
                     <div>
                       <Label>Dark Mode</Label>
@@ -260,7 +331,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
             </TabsContent>
 
             <TabsContent value="hud" className="mt-0 space-y-6">
-              <div className="tactical-panel p-4 space-y-3">
+              <div className="tactical-panel space-y-3 p-4">
                 <div className="text-sm font-semibold">HUD Elements</div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs">Corner Brackets</span>
@@ -286,52 +357,109 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
             </TabsContent>
 
             <TabsContent value="weather" className="mt-0 space-y-6">
-              <div className="tactical-panel p-4 space-y-4">
+              <div className="tactical-panel space-y-4 p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <Label>Enable Weather Alerts</Label>
-                    <p className="text-xs text-muted-foreground">Show alert radius circles and markers</p>
+                    <p className="text-xs text-muted-foreground">
+                      Show alert radius circles and markers
+                    </p>
                   </div>
                   <Switch
                     checked={settings.weatherAlertsEnabled}
-                    onCheckedChange={() => handleToggle('weatherAlertsEnabled')}
+                    onCheckedChange={() => handleToggle("weatherAlertsEnabled")}
                   />
                 </div>
                 <div>
-                  <Label className="text-xs">Alert Radius: {settings.weatherAlertRadius} miles</Label>
+                  <Label className="text-xs">
+                    Alert Radius: {settings.weatherAlertRadius} miles
+                  </Label>
                   <Slider
                     value={[settings.weatherAlertRadius]}
-                    onValueChange={([val]) => setSettings((p) => ({ ...p, weatherAlertRadius: val }))}
+                    onValueChange={([val]) =>
+                      setSettings((p) => ({ ...p, weatherAlertRadius: val }))
+                    }
                     min={5}
                     max={50}
                     step={1}
                     className="mt-2"
                   />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <div>
-                    <Label className="text-xs">Min Temperature (°F): {settings.suitabilityThresholds.minTempF}</Label>
-                    <Slider value={[settings.suitabilityThresholds.minTempF]}
-                      onValueChange={([val]) => setSettings((p) => ({ ...p, suitabilityThresholds: { ...p.suitabilityThresholds, minTempF: val } }))}
-                      min={30} max={80} step={1} className="mt-2" />
+                    <Label className="text-xs">
+                      Min Temperature (°F): {settings.suitabilityThresholds.minTempF}
+                    </Label>
+                    <Slider
+                      value={[settings.suitabilityThresholds.minTempF]}
+                      onValueChange={([val]) =>
+                        setSettings((p) => ({
+                          ...p,
+                          suitabilityThresholds: { ...p.suitabilityThresholds, minTempF: val },
+                        }))
+                      }
+                      min={30}
+                      max={80}
+                      step={1}
+                      className="mt-2"
+                    />
                   </div>
                   <div>
-                    <Label className="text-xs">Max Temperature (°F): {settings.suitabilityThresholds.maxTempF}</Label>
-                    <Slider value={[settings.suitabilityThresholds.maxTempF]}
-                      onValueChange={([val]) => setSettings((p) => ({ ...p, suitabilityThresholds: { ...p.suitabilityThresholds, maxTempF: val } }))}
-                      min={70} max={110} step={1} className="mt-2" />
+                    <Label className="text-xs">
+                      Max Temperature (°F): {settings.suitabilityThresholds.maxTempF}
+                    </Label>
+                    <Slider
+                      value={[settings.suitabilityThresholds.maxTempF]}
+                      onValueChange={([val]) =>
+                        setSettings((p) => ({
+                          ...p,
+                          suitabilityThresholds: { ...p.suitabilityThresholds, maxTempF: val },
+                        }))
+                      }
+                      min={70}
+                      max={110}
+                      step={1}
+                      className="mt-2"
+                    />
                   </div>
                   <div>
-                    <Label className="text-xs">Max Humidity (%): {settings.suitabilityThresholds.maxHumidity}</Label>
-                    <Slider value={[settings.suitabilityThresholds.maxHumidity]}
-                      onValueChange={([val]) => setSettings((p) => ({ ...p, suitabilityThresholds: { ...p.suitabilityThresholds, maxHumidity: val } }))}
-                      min={40} max={100} step={1} className="mt-2" />
+                    <Label className="text-xs">
+                      Max Humidity (%): {settings.suitabilityThresholds.maxHumidity}
+                    </Label>
+                    <Slider
+                      value={[settings.suitabilityThresholds.maxHumidity]}
+                      onValueChange={([val]) =>
+                        setSettings((p) => ({
+                          ...p,
+                          suitabilityThresholds: { ...p.suitabilityThresholds, maxHumidity: val },
+                        }))
+                      }
+                      min={40}
+                      max={100}
+                      step={1}
+                      className="mt-2"
+                    />
                   </div>
                   <div>
-                    <Label className="text-xs">Max Precip Chance (%): {settings.suitabilityThresholds.maxPrecipChance}</Label>
-                    <Slider value={[settings.suitabilityThresholds.maxPrecipChance]}
-                      onValueChange={([val]) => setSettings((p) => ({ ...p, suitabilityThresholds: { ...p.suitabilityThresholds, maxPrecipChance: val } }))}
-                      min={0} max={100} step={5} className="mt-2" />
+                    <Label className="text-xs">
+                      Max Precip Chance (%): {settings.suitabilityThresholds.maxPrecipChance}
+                    </Label>
+                    <Slider
+                      value={[settings.suitabilityThresholds.maxPrecipChance]}
+                      onValueChange={([val]) =>
+                        setSettings((p) => ({
+                          ...p,
+                          suitabilityThresholds: {
+                            ...p.suitabilityThresholds,
+                            maxPrecipChance: val,
+                          },
+                        }))
+                      }
+                      min={0}
+                      max={100}
+                      step={5}
+                      className="mt-2"
+                    />
                   </div>
                 </div>
               </div>
@@ -340,58 +468,77 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
             </TabsContent>
 
             <TabsContent value="themes" className="mt-0 space-y-6">
-              <div className="tactical-panel p-4 space-y-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <Palette className="w-5 h-5 text-primary" />
-                  <Label>Theme Presets</Label>
+              <div className="tactical-panel space-y-6 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <Label className="flex items-center gap-2 text-sm font-semibold">
+                      <Palette className="h-4 w-4 text-primary" /> Theme Library
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Curated presets tuned for ministry briefings, crew ops, and executive
+                      dashboards.
+                    </p>
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {[
-                    { id: "tactical-dark", label: "Tactical Dark", premium: false },
-                    { id: "light", label: "Light", premium: false },
-                    { id: "high-contrast", label: "High Contrast", premium: false },
-                    { id: "colorblind-safe", label: "Color-blind Safe", premium: false },
-                    { id: "industry-blue", label: "Industry Blue", premium: false },
-                    { id: "safety-green", label: "Safety Green", premium: false },
-                    // Division-inspired collection
-                    { id: "division-shd", label: "Division: SHD (Inspired)", premium: false },
-                    { id: "division-shd-faithful", label: "Division: SHD (Faithful)", premium: false },
-                    { id: "dark-zone", label: "Dark Zone (Inspired)", premium: false },
-                    { id: "dark-zone-faithful", label: "Dark Zone (Faithful)", premium: false },
-                    { id: "black-tusk", label: "Black Tusk (Inspired)", premium: false },
-                    { id: "black-tusk-faithful", label: "Black Tusk (Faithful)", premium: false },
-                    { id: "isac-core", label: "ISAC Core", premium: false },
-                    { id: "hunter", label: "Hunter", premium: false },
-                    { id: "rogue-agent", label: "Rogue Agent", premium: false },
-                    { id: "contaminated", label: "Contaminated", premium: false },
-                    { id: "night-ops", label: "Night Ops", premium: false },
-                    // Premium industry themes
-                    { id: "construction", label: "Construction (Premium)", premium: true },
-                    { id: "landscaping", label: "Landscaping (Premium)", premium: true },
-                    { id: "security", label: "Security (Premium)", premium: true },
-                    { id: "aviation", label: "Aviation (Premium)", premium: true },
-                  ].map((t) => (
-                    <Button
-                      key={t.id}
-                      variant={settings.theme === (t.id as any) ? "default" : "outline"}
-                      onClick={() => {
-                        if (t.premium && !settings.premiumEnabled) return;
-                        setSettings((p) => ({ ...p, theme: t.id as any }));
-                      }}
-                      className={`justify-start ${t.premium && !settings.premiumEnabled ? "opacity-60 cursor-not-allowed" : ""}`}
-                    >
-                      {t.label}
-                    </Button>
-                  ))}
+                <ThemeSelector
+                  value={settings.theme as ThemeId}
+                  onChange={handleThemeChange}
+                  premiumAccess={settings.premiumEnabled}
+                />
+              </div>
+
+              <div className="tactical-panel space-y-5 p-4">
+                <WallpaperStudio
+                  selection={
+                    settings.wallpaperPresetId || settings.wallpaperUrl
+                      ? {
+                          presetId: settings.wallpaperPresetId,
+                          customUrl: settings.wallpaperUrl,
+                          kind: settings.wallpaperPresetId
+                            ? "preset"
+                            : settings.wallpaperUrl
+                              ? "upload"
+                              : "none",
+                          fileName: settings.wallpaperFileName,
+                        }
+                      : undefined
+                  }
+                  opacity={settings.wallpaperOpacity}
+                  onSelectionChange={handleWallpaperSelection}
+                  onOpacityChange={handleWallpaperOpacityChange}
+                />
+                <div className="space-y-2">
+                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Remote Wallpaper URL
+                  </Label>
+                  <Input
+                    type="url"
+                    placeholder="https://church-cdn.example.com/wallpaper.jpg"
+                    value={settings.wallpaperUrl}
+                    onChange={(e) =>
+                      setSettings((prev) => ({
+                        ...prev,
+                        wallpaperPresetId: undefined,
+                        wallpaperUrl: e.target.value,
+                      }))
+                    }
+                    className="h-9 border-primary/30 bg-background/60"
+                  />
+                  <p className="text-[0.7rem] text-muted-foreground">
+                    Paste a hosted image to sync branding across distributed teams. Leaving this
+                    blank uses the selected preset or upload.
+                  </p>
                 </div>
               </div>
 
               {/* Fidelity Mode Toggle */}
-              <div className="tactical-panel p-4 space-y-3">
+              <div className="tactical-panel space-y-3 p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <Label>Fidelity Mode</Label>
-                    <p className="text-xs text-muted-foreground">Switch between Inspired (original) and Faithful color tuning</p>
+                    <p className="text-xs text-muted-foreground">
+                      Switch between Inspired (original) and Faithful color tuning
+                    </p>
                   </div>
                   <div className="flex gap-2">
                     <Button
@@ -411,7 +558,8 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                           "dark-zone": "dark-zone-faithful",
                           "black-tusk": "black-tusk-faithful",
                         };
-                        const nextTheme = (mapToFaithful[settings.theme as string] || settings.theme) as any;
+                        const nextTheme = (mapToFaithful[settings.theme as string] ||
+                          settings.theme) as any;
                         setSettings((p) => ({ ...p, fidelityMode: "faithful", theme: nextTheme }));
                       }}
                     >
@@ -425,9 +573,9 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
               </div>
 
               {/* Map Theme Selection */}
-              <div className="tactical-panel p-4 space-y-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <Palette className="w-5 h-5 text-primary" />
+              <div className="tactical-panel hidden space-y-4 p-4">
+                <div className="mb-2 flex items-center gap-3">
+                  <Palette className="h-5 w-5 text-primary" />
                   <Label>Map Theme</Label>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -452,9 +600,9 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
               </div>
 
               {/* Default Map Location */}
-              <div className="tactical-panel p-4 space-y-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <MapPin className="w-5 h-5 text-primary" />
+              <div className="tactical-panel space-y-4 p-4">
+                <div className="mb-2 flex items-center gap-3">
+                  <MapPin className="h-5 w-5 text-primary" />
                   <Label>Default Map Location</Label>
                 </div>
                 <div className="space-y-3">
@@ -467,26 +615,26 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   </div>
                   <div>
                     <Label>Address</Label>
-                    <input
+                    <Input
                       type="text"
                       value={settings.defaultMapAddress}
                       onChange={(e) =>
                         setSettings((p) => ({ ...p, defaultMapAddress: e.target.value }))
                       }
                       placeholder="123 Main St, City, State"
-                      className="w-full mt-1 px-3 py-2 bg-background border border-border rounded-md text-sm"
                       disabled={!settings.useDefaultLocation}
+                      className="mt-1"
                     />
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="mt-1 text-xs text-muted-foreground">
                       Fallback location when GPS is unavailable
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="tactical-panel p-4 space-y-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <ImageUp className="w-5 h-5 text-primary" />
+              <div className="tactical-panel hidden space-y-4 p-4">
+                <div className="mb-2 flex items-center gap-3">
+                  <ImageUp className="h-5 w-5 text-primary" />
                   <Label>Custom Wallpaper</Label>
                 </div>
                 <div className="space-y-2">
@@ -495,7 +643,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     placeholder="Paste image URL (https://...)"
                     value={settings.wallpaperUrl}
                     onChange={(e) => setSettings((p) => ({ ...p, wallpaperUrl: e.target.value }))}
-                    className="w-full hud-element border-primary/30 rounded px-3 py-2 text-sm bg-transparent"
+                    className="hud-element w-full rounded border-primary/30 bg-transparent px-3 py-2 text-sm"
                   />
                   <div className="pl-1">
                     <Label className="text-xs">
@@ -516,81 +664,101 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
               </div>
 
               {/* Theme Customizer with Live Preview */}
-              <div className="tactical-panel p-4 space-y-4">
-                <div className="flex items-center gap-3 mb-2">
+              <div className="tactical-panel hidden space-y-4 p-4">
+                <div className="mb-2 flex items-center gap-3">
                   <Label>Theme Customizer</Label>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
                   <div>
                     <Label className="text-xs">Primary Hue</Label>
-                    <input type="range" min={0} max={360} step={1}
+                    <input
+                      type="range"
+                      min={0}
+                      max={360}
+                      step={1}
                       value={(() => {
-                        const raw = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
-                        const [h] = raw ? raw.split(' ') : ['30'];
+                        const raw = getComputedStyle(document.documentElement)
+                          .getPropertyValue("--primary")
+                          .trim();
+                        const [h] = raw ? raw.split(" ") : ["30"];
                         return Number(h) || 30;
                       })()}
                       onChange={(e) => {
                         const root = document.documentElement as HTMLElement;
-                        const current = getComputedStyle(root).getPropertyValue('--primary').trim();
-                        const parts = current ? current.split(' ') : [];
-                        const sat = parts[1] || '100%';
-                        const lum = parts[2] || '50%';
-                        root.style.setProperty('--primary', `${e.target.value} ${sat} ${lum}`);
+                        const current = getComputedStyle(root).getPropertyValue("--primary").trim();
+                        const parts = current ? current.split(" ") : [];
+                        const sat = parts[1] || "100%";
+                        const lum = parts[2] || "50%";
+                        root.style.setProperty("--primary", `${e.target.value} ${sat} ${lum}`);
                       }}
                       className="w-full"
                     />
                   </div>
                   <div>
                     <Label className="text-xs">Accent Hue</Label>
-                    <input type="range" min={0} max={360} step={1}
+                    <input
+                      type="range"
+                      min={0}
+                      max={360}
+                      step={1}
                       value={(() => {
-                        const raw = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-                        const [h] = raw ? raw.split(' ') : ['197'];
+                        const raw = getComputedStyle(document.documentElement)
+                          .getPropertyValue("--accent")
+                          .trim();
+                        const [h] = raw ? raw.split(" ") : ["197"];
                         return Number(h) || 197;
                       })()}
                       onChange={(e) => {
                         const root = document.documentElement as HTMLElement;
-                        const current = getComputedStyle(root).getPropertyValue('--accent').trim();
-                        const parts = current ? current.split(' ') : [];
-                        const sat = parts[1] || '100%';
-                        const lum = parts[2] || '50%';
-                        root.style.setProperty('--accent', `${e.target.value} ${sat} ${lum}`);
+                        const current = getComputedStyle(root).getPropertyValue("--accent").trim();
+                        const parts = current ? current.split(" ") : [];
+                        const sat = parts[1] || "100%";
+                        const lum = parts[2] || "50%";
+                        root.style.setProperty("--accent", `${e.target.value} ${sat} ${lum}`);
                       }}
                       className="w-full"
                     />
                   </div>
                   <div>
                     <Label className="text-xs">Background Luminance</Label>
-                    <input type="range" min={0} max={100} step={1}
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      step={1}
                       value={(() => {
-                        const raw = getComputedStyle(document.documentElement).getPropertyValue('--background').trim();
-                        const parts = raw ? raw.split(' ') : [];
-                        const lum = parts[2] || '4%';
-                        return Number(String(lum).replace('%','')) || 4;
+                        const raw = getComputedStyle(document.documentElement)
+                          .getPropertyValue("--background")
+                          .trim();
+                        const parts = raw ? raw.split(" ") : [];
+                        const lum = parts[2] || "4%";
+                        return Number(String(lum).replace("%", "")) || 4;
                       })()}
                       onChange={(e) => {
                         const root = document.documentElement as HTMLElement;
-                        const current = getComputedStyle(root).getPropertyValue('--background').trim();
-                        const parts = current ? current.split(' ') : [];
-                        const h = parts[0] || '0';
-                        const s = parts[1] || '0%';
-                        root.style.setProperty('--background', `${h} ${s} ${e.target.value}%`);
+                        const current = getComputedStyle(root)
+                          .getPropertyValue("--background")
+                          .trim();
+                        const parts = current ? current.split(" ") : [];
+                        const h = parts[0] || "0";
+                        const s = parts[1] || "0%";
+                        root.style.setProperty("--background", `${h} ${s} ${e.target.value}%`);
                       }}
                       className="w-full"
                     />
                   </div>
                 </div>
-                <div className="mt-2 p-3 border border-primary/30 rounded">
-                  <div className="text-xs mb-2">Live Preview</div>
+                <div className="mt-2 rounded border border-primary/30 p-3">
+                  <div className="mb-2 text-xs">Live Preview</div>
                   <div className="flex gap-2">
-                    <button className="px-3 py-2 rounded bg-primary text-primary-foreground">
+                    <button className="rounded bg-primary px-3 py-2 text-primary-foreground">
                       Primary
                     </button>
-                    <button className="px-3 py-2 rounded bg-accent text-accent-foreground">
+                    <button className="rounded bg-accent px-3 py-2 text-accent-foreground">
                       Accent
                     </button>
                     <div
-                      className="px-3 py-2 rounded border"
+                      className="rounded border px-3 py-2"
                       style={{
                         background: "hsl(var(--background))",
                         color: "hsl(var(--foreground))",
@@ -603,19 +771,21 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
               </div>
 
               {/* Preferred Map Provider */}
-              <div className="tactical-panel p-4 space-y-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <Palette className="w-5 h-5 text-primary" />
+              <div className="tactical-panel space-y-4 p-4">
+                <div className="mb-2 flex items-center gap-3">
+                  <Palette className="h-5 w-5 text-primary" />
                   <Label>Preferred Map Provider</Label>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {([
-                    { id: "auto", label: "Auto" },
-                    { id: "google", label: "Google" },
-                    { id: "mapbox", label: "Mapbox" },
-                    { id: "maplibre", label: "MapLibre" },
-                    { id: "leaflet", label: "Leaflet" },
-                  ] as const).map((opt) => (
+                <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
+                  {(
+                    [
+                      { id: "auto", label: "Auto" },
+                      { id: "google", label: "Google" },
+                      { id: "mapbox", label: "Mapbox" },
+                      { id: "maplibre", label: "MapLibre" },
+                      { id: "leaflet", label: "Leaflet" },
+                    ] as const
+                  ).map((opt) => (
                     <Button
                       key={opt.id}
                       variant={settings.preferredMapProvider === opt.id ? "default" : "outline"}
@@ -634,30 +804,33 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
 
             {/* Role Management (surface only) */}
             <TabsContent value="roles" className="mt-0 space-y-6">
-              <div className="tactical-panel p-4 space-y-4">
+              <div className="tactical-panel space-y-4 p-4">
                 <div className="text-sm font-semibold">Role Management</div>
                 <p className="text-xs text-muted-foreground">
                   Manage user roles and permissions. Only Super Administrators can modify roles.
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <div>
                     <Label className="text-xs">Assign Role to User (email)</Label>
-                    <div className="flex gap-2 mt-1">
+                    <div className="mt-1 flex gap-2">
                       <Input placeholder="user@example.com" />
-                      <select className="hud-element border-primary/30 rounded px-2 py-1 text-xs bg-transparent">
+                      <select className="hud-element rounded border-primary/30 bg-transparent px-2 py-1 text-xs">
                         <option>Viewer</option>
                         <option>Operator</option>
                         <option>Manager</option>
                         <option>Administrator</option>
                         <option>Super Administrator</option>
                       </select>
-                      <Button size="sm" disabled title="Requires Super Administrator">Assign</Button>
+                      <Button size="sm" disabled title="Requires Super Administrator">
+                        Assign
+                      </Button>
                     </div>
                   </div>
                   <div>
                     <Label className="text-xs">Existing Roles</Label>
                     <div className="mt-1 text-xs text-muted-foreground">
-                      Roles are defined in the database (`roles`, `user_roles`). Changes require appropriate permissions.
+                      Roles are defined in the database (`roles`, `user_roles`). Changes require
+                      appropriate permissions.
                     </div>
                   </div>
                 </div>
@@ -668,7 +841,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
               <div className="tactical-panel p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Bell className="w-5 h-5 text-primary" />
+                    <Bell className="h-5 w-5 text-primary" />
                     <div>
                       <Label>Enable Notifications</Label>
                       <p className="text-sm text-muted-foreground">Receive alerts and updates</p>
@@ -696,9 +869,9 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
             </TabsContent>
 
             <TabsContent value="animations" className="mt-0 space-y-6">
-              <div className="tactical-panel p-4 space-y-4">
-                <div className="flex items-center gap-3 mb-4">
-                  <Zap className="w-5 h-5 text-primary" />
+              <div className="tactical-panel space-y-4 p-4">
+                <div className="mb-4 flex items-center gap-3">
+                  <Zap className="h-5 w-5 text-primary" />
                   <Label>Visual Effects & Animations</Label>
                 </div>
 
@@ -729,8 +902,8 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                       />
                       <div className="mt-3">
                         <Label className="text-xs">Radar Type</Label>
-                        <div className="flex gap-2 mt-1">
-                          {(["standard","sonar","aviation"] as const).map((t) => (
+                        <div className="mt-1 flex gap-2">
+                          {(["standard", "sonar", "aviation"] as const).map((t) => (
                             <Button
                               key={t}
                               variant={settings.radarType === t ? "default" : "outline"}
@@ -759,7 +932,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     />
                   </div>
                   {settings.glitchEffect && (
-                    <div className="pl-4 space-y-3">
+                    <div className="space-y-3 pl-4">
                       <Label className="text-xs">Intensity: {settings.glitchIntensity}%</Label>
                       <Slider
                         value={[settings.glitchIntensity]}
@@ -774,7 +947,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                       <div className="flex items-center gap-2">
                         <Label className="text-xs">Click Glitch Preset</Label>
                         <select
-                          className="hud-element border-primary/30 rounded px-2 py-1 text-xs bg-transparent"
+                          className="hud-element rounded border-primary/30 bg-transparent px-2 py-1 text-xs"
                           value={settings.glitchClickPreset}
                           onChange={(e) =>
                             setSettings((p) => ({ ...p, glitchClickPreset: e.target.value as any }))
@@ -843,36 +1016,45 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                 </div>
 
                 {/* Motion & Power */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="flex items-center justify-between">
                     <div>
                       <Label>Reduce Motion</Label>
                       <p className="text-xs text-muted-foreground">Disable most animations</p>
                     </div>
-                    <Switch checked={settings.reduceMotion} onCheckedChange={() => handleToggle('reduceMotion')} />
+                    <Switch
+                      checked={settings.reduceMotion}
+                      onCheckedChange={() => handleToggle("reduceMotion")}
+                    />
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
                       <Label>Low Power Mode</Label>
                       <p className="text-xs text-muted-foreground">Lighter visual effects</p>
                     </div>
-                    <Switch checked={settings.lowPowerMode} onCheckedChange={() => handleToggle('lowPowerMode')} />
+                    <Switch
+                      checked={settings.lowPowerMode}
+                      onCheckedChange={() => handleToggle("lowPowerMode")}
+                    />
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
                       <Label>Use Canvas FX</Label>
                       <p className="text-xs text-muted-foreground">Experimental canvas renderer</p>
                     </div>
-                    <Switch checked={settings.useCanvasFX} onCheckedChange={() => handleToggle('useCanvasFX')} />
+                    <Switch
+                      checked={settings.useCanvasFX}
+                      onCheckedChange={() => handleToggle("useCanvasFX")}
+                    />
                   </div>
                 </div>
               </div>
             </TabsContent>
 
             <TabsContent value="sounds" className="mt-0 space-y-6">
-              <div className="tactical-panel p-4 space-y-4">
-                <div className="flex items-center gap-3 mb-4">
-                  <Volume2 className="w-5 h-5 text-primary" />
+              <div className="tactical-panel space-y-4 p-4">
+                <div className="mb-4 flex items-center gap-3">
+                  <Volume2 className="h-5 w-5 text-primary" />
                   <Label>Sound Settings</Label>
                 </div>
 
@@ -900,7 +1082,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   />
                 </div>
 
-              {/* Volume */}
+                {/* Volume */}
                 <div>
                   <Label className="text-xs">Master Volume: {settings.soundVolume}%</Label>
                   <Slider
@@ -915,37 +1097,44 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   />
                 </div>
 
-              {/* Radar Ping Audio */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>Radar Ping Audio</Label>
-                  <p className="text-xs text-muted-foreground">Beep on sweep rotation</p>
-                </div>
-                <Switch
-                  checked={settings.radarAudioEnabled}
-                  onCheckedChange={() => handleToggle('radarAudioEnabled')}
-                />
-              </div>
-              {settings.radarAudioEnabled && (
-                <div>
-                  <Label className="text-xs">Radar Volume: {settings.radarAudioVolume}%</Label>
-                  <Slider
-                    value={[settings.radarAudioVolume]}
-                    onValueChange={([val]) => setSettings((prev) => ({ ...prev, radarAudioVolume: val }))}
-                    min={0}
-                    max={100}
-                    step={5}
-                    className="mt-2"
+                {/* Radar Ping Audio */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Radar Ping Audio</Label>
+                    <p className="text-xs text-muted-foreground">Beep on sweep rotation</p>
+                  </div>
+                  <Switch
+                    checked={settings.radarAudioEnabled}
+                    onCheckedChange={() => handleToggle("radarAudioEnabled")}
                   />
                 </div>
-              )}
+                {settings.radarAudioEnabled && (
+                  <div>
+                    <Label className="text-xs">Radar Volume: {settings.radarAudioVolume}%</Label>
+                    <Slider
+                      value={[settings.radarAudioVolume]}
+                      onValueChange={([val]) =>
+                        setSettings((prev) => ({ ...prev, radarAudioVolume: val }))
+                      }
+                      min={0}
+                      max={100}
+                      step={5}
+                      className="mt-2"
+                    />
+                  </div>
+                )}
 
                 {/* Soundset */}
                 <div className="mt-2">
                   <Label className="text-xs">Theme Soundset</Label>
-                  <div className="flex gap-2 mt-1">
-                    {(["auto","division","animus"] as const).map((opt) => (
-                      <Button key={opt} size="sm" variant={settings.soundset === opt ? "default" : "outline"} onClick={() => setSettings((p) => ({ ...p, soundset: opt }))}>
+                  <div className="mt-1 flex gap-2">
+                    {(["auto", "division", "animus"] as const).map((opt) => (
+                      <Button
+                        key={opt}
+                        size="sm"
+                        variant={settings.soundset === opt ? "default" : "outline"}
+                        onClick={() => setSettings((p) => ({ ...p, soundset: opt }))}
+                      >
                         {opt.toUpperCase()}
                       </Button>
                     ))}
@@ -956,17 +1145,21 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
 
             {/* Pulse Scan */}
             <TabsContent value="pulse" className="mt-0 space-y-6">
-              <div className="tactical-panel p-4 space-y-4">
+              <div className="tactical-panel space-y-4 p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <Label>Enable Pulse Scan</Label>
-                    <p className="text-xs text-muted-foreground">Overlay sweep and POI highlights</p>
+                    <p className="text-xs text-muted-foreground">
+                      Overlay sweep and POI highlights
+                    </p>
                   </div>
                   <Switch
                     checked={settings.pulseScanEnabled}
                     onCheckedChange={() => {
-                      handleToggle('pulseScanEnabled');
-                      try { window.dispatchEvent(new CustomEvent('toggle-pulse-scan')); } catch {}
+                      handleToggle("pulseScanEnabled");
+                      try {
+                        window.dispatchEvent(new CustomEvent("toggle-pulse-scan"));
+                      } catch {}
                     }}
                   />
                 </div>
@@ -977,7 +1170,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   </div>
                   <Switch
                     checked={settings.pulseHighlightPOIs}
-                    onCheckedChange={() => handleToggle('pulseHighlightPOIs')}
+                    onCheckedChange={() => handleToggle("pulseHighlightPOIs")}
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -987,7 +1180,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   </div>
                   <Switch
                     checked={settings.ringControls}
-                    onCheckedChange={() => handleToggle('ringControls')}
+                    onCheckedChange={() => handleToggle("ringControls")}
                   />
                 </div>
               </div>
@@ -995,7 +1188,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
 
             <TabsContent value="advanced" className="mt-0 space-y-6">
               <div className="tactical-panel p-4">
-                <div className="flex items-center justify-between mb-4">
+                <div className="mb-4 flex items-center justify-between">
                   <div>
                     <Label>Screensaver Mode</Label>
                     <p className="text-sm text-muted-foreground">Auto-start after idle time</p>
@@ -1023,11 +1216,13 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                 <div className="mt-6 flex items-center justify-between">
                   <div>
                     <Label>Boot Overlay</Label>
-                    <p className="text-sm text-muted-foreground">Show ISAC-style boot animation on app load</p>
+                    <p className="text-sm text-muted-foreground">
+                      Show ISAC-style boot animation on app load
+                    </p>
                   </div>
                   <Switch
                     checked={settings.bootOverlay}
-                    onCheckedChange={() => handleToggle('bootOverlay')}
+                    onCheckedChange={() => handleToggle("bootOverlay")}
                   />
                 </div>
               </div>
@@ -1035,13 +1230,14 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
 
             {/* API Keys Management */}
             <TabsContent value="api-keys" className="mt-0 space-y-6">
-              <div className="tactical-panel p-4 space-y-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <Settings className="w-5 h-5 text-primary" />
+              <div className="tactical-panel space-y-4 p-4">
+                <div className="mb-2 flex items-center gap-3">
+                  <Settings className="h-5 w-5 text-primary" />
                   <Label>API Keys</Label>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Values entered here override environment variables on this device. Keys are stored locally in your browser storage.
+                  Values entered here override environment variables on this device. Keys are stored
+                  locally in your browser storage.
                 </p>
                 <div className="space-y-3">
                   <div>
@@ -1064,8 +1260,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     <Input
                       type="password"
                       placeholder="AIza..."
-                      value={settings.apiKeys?.googleGeneric || ""
-                      }
+                      value={settings.apiKeys?.googleGeneric || ""}
                       onChange={(e) =>
                         setSettings((p) => ({
                           ...p,
@@ -1090,21 +1285,21 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                       className="mt-1"
                     />
                   </div>
-                <div>
-                  <Label className="text-xs">MapTiler API Key</Label>
-                  <Input
-                    type="password"
-                    placeholder="get from maptiler.com"
-                    value={settings.apiKeys?.maptiler || ""}
-                    onChange={(e) =>
-                      setSettings((p) => ({
-                        ...p,
-                        apiKeys: { ...(p.apiKeys || {}), maptiler: e.target.value },
-                      }))
-                    }
-                    className="mt-1"
-                  />
-                </div>
+                  <div>
+                    <Label className="text-xs">MapTiler API Key</Label>
+                    <Input
+                      type="password"
+                      placeholder="get from maptiler.com"
+                      value={settings.apiKeys?.maptiler || ""}
+                      onChange={(e) =>
+                        setSettings((p) => ({
+                          ...p,
+                          apiKeys: { ...(p.apiKeys || {}), maptiler: e.target.value },
+                        }))
+                      }
+                      className="mt-1"
+                    />
+                  </div>
                   <div>
                     <Label className="text-xs">OpenWeather API Key</Label>
                     <Input
@@ -1124,29 +1319,43 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
               </div>
 
               {/* Provider Endpoints */}
-              <div className="tactical-panel p-4 space-y-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <Settings className="w-5 h-5 text-primary" />
+              <div className="tactical-panel space-y-4 p-4">
+                <div className="mb-2 flex items-center gap-3">
+                  <Settings className="h-5 w-5 text-primary" />
                   <Label>Provider Endpoints</Label>
                 </div>
                 <div className="space-y-3">
                   <div>
-                    <Label className="text-xs">Patrick County Tile URL (ArcGIS MapServer tile)</Label>
+                    <Label className="text-xs">
+                      Patrick County Tile URL (ArcGIS MapServer tile)
+                    </Label>
                     <Input
                       type="url"
                       placeholder="https://.../arcgis/rest/services/Parcels/MapServer/tile/{z}/{y}/{x}"
                       value={settings.providers?.patrickWms || ""}
-                      onChange={(e) => setSettings((p) => ({ ...p, providers: { ...(p.providers||{}), patrickWms: e.target.value } }))}
+                      onChange={(e) =>
+                        setSettings((p) => ({
+                          ...p,
+                          providers: { ...(p.providers || {}), patrickWms: e.target.value },
+                        }))
+                      }
                       className="mt-1"
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Patrick County Feature Layer URL (ArcGIS FeatureServer)</Label>
+                    <Label className="text-xs">
+                      Patrick County Feature Layer URL (ArcGIS FeatureServer)
+                    </Label>
                     <Input
                       type="url"
                       placeholder="https://.../arcgis/rest/services/Parcels/FeatureServer/0"
                       value={settings.providers?.patrickEsriFeature || ""}
-                      onChange={(e) => setSettings((p) => ({ ...p, providers: { ...(p.providers||{}), patrickEsriFeature: e.target.value } }))}
+                      onChange={(e) =>
+                        setSettings((p) => ({
+                          ...p,
+                          providers: { ...(p.providers || {}), patrickEsriFeature: e.target.value },
+                        }))
+                      }
                       className="mt-1"
                     />
                   </div>
@@ -1156,7 +1365,12 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                       type="url"
                       placeholder="https://basemap.nationalmap.gov/.../USGSImageryOnly/MapServer/tile/{z}/{y}/{x}"
                       value={settings.providers?.usgsImageryWms || ""}
-                      onChange={(e) => setSettings((p) => ({ ...p, providers: { ...(p.providers||{}), usgsImageryWms: e.target.value } }))}
+                      onChange={(e) =>
+                        setSettings((p) => ({
+                          ...p,
+                          providers: { ...(p.providers || {}), usgsImageryWms: e.target.value },
+                        }))
+                      }
                       className="mt-1"
                     />
                   </div>
@@ -1166,19 +1380,26 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                       type="url"
                       placeholder="https://services.nationalmap.gov/.../USGSNAIPPlus/MapServer/tile/{z}/{y}/{x}"
                       value={settings.providers?.usdaNaipWms || ""}
-                      onChange={(e) => setSettings((p) => ({ ...p, providers: { ...(p.providers||{}), usdaNaipWms: e.target.value } }))}
+                      onChange={(e) =>
+                        setSettings((p) => ({
+                          ...p,
+                          providers: { ...(p.providers || {}), usdaNaipWms: e.target.value },
+                        }))
+                      }
                       className="mt-1"
                     />
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground">Values set here override environment variables on this device.</p>
+                <p className="text-xs text-muted-foreground">
+                  Values set here override environment variables on this device.
+                </p>
               </div>
             </TabsContent>
           </ScrollArea>
         </Tabs>
 
         {/* Footer */}
-        <div className="p-4 border-t border-primary/30 flex justify-end gap-2">
+        <div className="flex justify-end gap-2 border-t border-primary/30 p-4">
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
@@ -1188,7 +1409,10 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                 localStorage.setItem("aos_settings", JSON.stringify(settings));
               } catch {}
               // Re-apply in case toggles changed without theme change
-              applyThemeVariables(settings.theme as any, { highContrast: settings.highContrast, forceDark: settings.darkMode });
+              applyThemeVariables(settings.theme as any, {
+                highContrast: settings.highContrast,
+                forceDark: settings.darkMode,
+              });
               applyWallpaper(settings.wallpaperUrl, settings.wallpaperOpacity);
               onClose();
             }}
