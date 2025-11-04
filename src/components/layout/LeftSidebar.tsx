@@ -93,27 +93,29 @@ export const LeftSidebar = ({ side = "left" }: LeftSidebarProps) => {
   }
 
   return (
-    <div className={`absolute ${side === 'left' ? 'left-0 border-r' : 'right-0 border-l'} top-16 bottom-16 w-72 z-[900] hud-element border-primary/30 flex flex-col`}>
-      {/* Minimize Button */}
-      <div className="flex items-center justify-between p-2 border-b border-primary/30 flex-shrink-0">
-        {/* Clock in/out on the left per request */}
-        <div className="mr-2">
-          <ClockInStatus inline variant="compact" />
+    <div className={`absolute ${side === 'left' ? 'left-0 border-r' : 'right-0 border-l'} top-16 bottom-16 w-80 z-[900] hud-element border-primary/30 flex flex-col`}>
+      {/* Tactical Header */}
+      <div className="p-4 border-b border-primary/30 flex-shrink-0">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Crosshair className="w-5 h-5 text-primary" />
+            <h2 className="text-sm font-bold tracking-widest text-primary">TACTICAL COMMAND</h2>
+          </div>
+          <Button
+            onClick={() => setIsMinimized(true)}
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            title="Minimize"
+          >
+            {side === 'right' ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </Button>
         </div>
-        <Button
-          onClick={() => setIsMinimized(true)}
-          variant="ghost"
-          size="sm"
-          className="h-8 w-8 p-0 ml-auto"
-          title="Minimize"
-        >
-          {/* Use > on right sidebar, < on left sidebar */}
-          {side === 'right' ? (
-            <ChevronRight className="w-4 h-4" />
-          ) : (
-            <ChevronLeft className="w-4 h-4" />
-          )}
-        </Button>
+      </div>
+
+      {/* Clock In Status Bar */}
+      <div className="p-2 border-b border-primary/30 flex-shrink-0">
+        <ClockInStatus inline variant="compact" />
       </div>
 
       <ScrollArea className={`flex-1 h-full ${side === 'left' ? 'scrollbar-left' : ''}`}>

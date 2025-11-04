@@ -7,7 +7,8 @@ import { LeftSidebar } from "@/components/layout/LeftSidebar";
 import { RightSidebar } from "@/components/layout/RightSidebar";
 import { KPITicker } from "@/components/dashboard/KPITicker";
 import { AIAssistant } from "@/components/ai/AIAssistant";
-import { LoadingSpinner } from "@/components/hud/LoadingSpinner";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { useSchedule } from "@/hooks/useSchedule";
 
 const DashboardModal = lazy(() =>
   import("@/components/modals/DashboardModal").then((m) => ({ default: m.DashboardModal })),
@@ -148,6 +149,7 @@ const Index = () => {
   const [showExport, setShowExport] = useState(false);
   const [pendingEstimateFromAI, setPendingEstimateFromAI] = useState<any | null>(null);
   const mapContainerRef = useRef<MapContainerRef>(null);
+  const { data: scheduleItems } = useSchedule();
   const [mapTheme, setMapTheme] = useState<"division" | "animus">("division");
   const [mapState, setMapState] = useState({
     showTraffic: false,
@@ -200,28 +202,50 @@ const Index = () => {
     return () => window.removeEventListener('ai-detection-estimate', handler as any);
   }, []);
 
-  // Keyboard shortcuts
+  // Comprehensive keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Cmd/Ctrl + K for command palette
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      const target = e.target as HTMLElement;
+      const isInputField = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
+      const isModKey = e.metaKey || e.ctrlKey;
+
+      // Command Palette
+      if (isModKey && e.key === 'k') {
         e.preventDefault();
         setShowCommandPalette(true);
+        return;
       }
-      // Escape to close modals
-      if (e.key === 'Escape') {
-        if (activeModule) {
-          setActiveModule(null);
+
+      // Module shortcuts (with modifier)
+      if (isModKey && !isInputField) {
+        switch (e.key) {
+          case 'n': e.preventDefault(); setActiveModule('jobs'); break;
+          case 'b': e.preventDefault(); setActiveModule('dashboard'); break;
+          case '/': e.preventDefault(); (document.querySelector('.address-search-input') as HTMLInputElement)?.focus(); break;
+          case 's': e.preventDefault(); mapContainerRef.current?.handleSave(); break;
+          case '.': e.preventDefault(); setShowSettings(true); break;
         }
-        if (showAI) setShowAI(false);
-        if (showCommandPalette) setShowCommandPalette(false);
+        return;
       }
-      // A for AI Assistant
-      if (e.key === 'a' && !e.metaKey && !e.ctrlKey && !e.altKey) {
-        const target = e.target as HTMLElement;
-        if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
-          e.preventDefault();
-          setShowAI(!showAI);
+
+      // Single key shortcuts (no modifier)
+      if (!isModKey && !e.shiftKey && !e.altKey && !isInputField) {
+        switch (e.key) {
+          case 'Escape':
+            if (activeModule) setActiveModule(null);
+            else if (showAI) setShowAI(false);
+            else if (showCommandPalette) setShowCommandPalette(false);
+            break;
+          case 'a': e.preventDefault(); setShowAI(prev => !prev); break;
+          case 'm': e.preventDefault(); mapContainerRef.current?.handleModeChange('measure'); break;
+          case 't': e.preventDefault(); mapContainerRef.current?.handleToggleTraffic(); break;
+          case 'w': e.preventDefault(); mapContainerRef.current?.toggleWeatherRadar(); break;
+          case 'e': e.preventDefault(); mapContainerRef.current?.toggleEmployeeTracking(); break;
+          case '1': e.preventDefault(); mapContainerRef.current?.handleModeChange('marker'); break;
+          case '2': e.preventDefault(); mapContainerRef.current?.handleModeChange('polyline'); break;
+          case '3': e.preventDefault(); mapContainerRef.current?.handleModeChange('circle'); break;
+          case '4': e.preventDefault(); mapContainerRef.current?.handleModeChange('rectangle'); break;
+          case ' ': e.preventDefault(); break; // Space for future use
         }
       }
     };
@@ -334,9 +358,15 @@ const Index = () => {
         imagery={mapState.imagery}
       />
       
-      {/* Wide panel now on right */}
+      {/* Wide panel now on right - with corner brackets */}
       <div className="absolute right-0 top-12 bottom-16 w-80 z-[900] hud-element border-l border-primary/30 bg-background/80 backdrop-blur-md">
-        <div className="h-full">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="corner-bracket-md corner-tl" />
+          <div className="corner-bracket-md corner-tr" />
+          <div className="corner-bracket-md corner-bl" />
+          <div className="corner-bracket-md corner-br" />
+        </div>
+        <div className="h-full relative z-10">
           <LeftSidebar side="right" />
         </div>
       </div>
@@ -361,32 +391,32 @@ const Index = () => {
 
       {/* Modals */}
       {activeModule === "dashboard" && (
-        <Suspense fallback={<LoadingSpinner message="Loading Dashboard..." />}>
+        <Suspense fallback={<LoadingSpinner text="Loading Dashboard..." size="lg" variant="primary" />}>
           <DashboardModal onClose={() => setActiveModule(null)} />
         </Suspense>
       )}
       {activeModule === "schedule" && (
-        <Suspense fallback={<LoadingSpinner message="Loading Schedule..." />}>
+        <Suspense fallback={<LoadingSpinner text="Loading Schedule..." size="lg" variant="primary" />}>
           <ScheduleModal onClose={() => setActiveModule(null)} />
         </Suspense>
       )}
       {activeModule === "clients" && (
-        <Suspense fallback={<LoadingSpinner message="Loading Clients..." />}>
+        <Suspense fallback={<LoadingSpinner text="Loading Clients..." size="lg" variant="primary" />}>
           <ClientsModal onClose={() => setActiveModule(null)} />
         </Suspense>
       )}
       {activeModule === "fleet" && (
-        <Suspense fallback={<LoadingSpinner message="Loading Fleet..." />}>
+        <Suspense fallback={<LoadingSpinner text="Loading Fleet..." size="lg" variant="primary" />}>
           <FleetModal onClose={() => setActiveModule(null)} />
         </Suspense>
       )}
       {activeModule === "finance" && (
-        <Suspense fallback={<LoadingSpinner message="Loading Finance..." />}>
+        <Suspense fallback={<LoadingSpinner text="Loading Finance..." size="lg" variant="primary" />}>
           <FinanceModal onClose={() => setActiveModule(null)} />
         </Suspense>
       )}
       {activeModule === "payroll" && (
-        <Suspense fallback={<LoadingSpinner message="Loading Payroll..." />}>
+        <Suspense fallback={<LoadingSpinner text="Loading Payroll..." size="lg" variant="primary" />}>
           <PayrollModal onClose={() => setActiveModule(null)} />
         </Suspense>
       )}
