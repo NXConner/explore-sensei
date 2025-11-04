@@ -33,6 +33,7 @@
     "db:migrate:supabase": "supabase migration up",
     "db:seed": "tsx scripts/seed.ts",
     "security:audit": "npm audit --audit-level=high",
+    "security:audit:ci": "npm audit --omit=dev --audit-level=high --json",
     "security:fix": "npm audit fix",
     "performance:lighthouse": "lighthouse http://localhost:5173 --output=html --output-path=./lighthouse-report.html",
     "performance:budget": "size-limit",

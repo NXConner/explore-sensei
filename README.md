@@ -114,6 +114,12 @@ npm run dev
 2. Run `npm run db:seed` once the user exists; the seed script will upsert a profile row and assign the `super_admin` role automatically.
 3. If the user already exists, simply re-run the seed or execute `INSERT INTO user_roles (user_id, role_id) VALUES (<uuid>, 'super_admin') ON CONFLICT DO NOTHING;` to guarantee elevated access.
 
+### 🔑 Secrets Management
+
+- Review `config/secrets-manager.example.json` for the canonical production vault shape. The template is AWS Secrets Manager–centric, but the `provider` and `bootstrap.command` fields can be swapped for Doppler or HashiCorp Vault CLI usage.
+- Map each secret entry to runtime environment variables (e.g., `SUPABASE_SERVICE_ROLE_KEY`, `VITE_GOOGLE_MAPS_API_KEY`) and configure your CI/CD pipeline or Docker entrypoint to hydrate the `.env` file at container start—never commit live credentials.
+- Establish rotation policies (the template defaults to 30 days) and document ownership before moving to staging or production.
+
 ### 🔀 Branching Strategy
 
 - Follow trunk-based flow: keep `main` production-ready and branch from it for all work.
@@ -201,7 +207,8 @@ npm run db:migrate       # Run migrations
 npm run db:seed          # Seed database
 
 # Security & Performance
-npm run security:audit   # Security audit
+npm run security:audit        # Security audit
+npm run security:audit:ci     # JSON audit report for CI
 npm run performance:lighthouse  # Lighthouse audit
 npm run build:analyze    # Bundle analysis
 npm run performance:budget # Size budget check
@@ -296,13 +303,18 @@ Configure base URLs via environment variables in the script as needed.
 - **Input Validation** - Zod schema validation
 - **SQL Injection Prevention** - Parameterized queries
 - **File Upload Security** - Type and size validation
+- **Secrets Management Template** - `config/secrets-manager.example.json` documents the production vault layout and rotation cadence.
 
 ### **Security Audit**
 
 ```bash
-npm run security:audit    # Check for vulnerabilities
-npm run security:fix     # Fix security issues
+npm run security:audit              # Check for vulnerabilities
+npm run security:audit -- --json > audit-report.json   # Produce CI-friendly JSON output
+npm run security:fix                # Attempt automatic remediation
 ```
+
+- Run the audit scripts in CI at least weekly and monitor the generated report for regressions.
+- Automate credential rotation using the secrets manager template and refresh environment variables via your vault CLI before each deploy.
 
 ## 📊 **Performance**
 
