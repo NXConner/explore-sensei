@@ -4,24 +4,35 @@ bun.lockb
 
 # Builds and caches
 dist
+build
 .build
-.next
 .cache
 .vite
+.parcel-cache
 coverage
 lighthouse-report.html
 
-# Local env
+# Environment / secrets
 .env
 .env.*
 !.env.example
+supabase/.temp
+supabase/.branches
 
-# VCS
+# Tooling
+.husky/_/
+.vscode
+.idea
+*.log
+*.swp
+
+# Version control
 .git
 .gitignore
 .github/
 
-# OS/Editor
+# OS artifacts
 .DS_Store
-*.swp
-*.log
+Thumbs.db
+# Misc
+Dockerfile.local

@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+include = '\.pyi?$'
+exclude = '''
+/(
+  \.
+  git|
+  \.
+  history|
+  build|
+  dist|
+  node_modules|
+  supabase/migrations|
+  .*\.egg-info
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+known_first_party = ["ml"]
+skip = ["node_modules", "dist", "build"]
+
+[tool.flake8]
+max-line-length = 100
+extend-ignore = ["E203", "W503"]
+exclude = [
+  ".git",
+  "__pycache__",
+  "node_modules",
+  "dist",
+  "build",
+  "supabase/migrations"
+]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q"
+testpaths = [
+  "tests",
+  "ml/tests"
+]
+
+[tool.coverage.run]
+branch = true
+source = ["ml"]
+
+[tool.coverage.report]
+fail_under = 85
+show_missing = true
