@@ -2,6 +2,12 @@
 node_modules
 bun.lockb
 
+# Git metadata
+.git
+.gitmodules
+.github
+.husky
+
 # Builds and caches
 dist
 build
@@ -19,17 +25,18 @@ lighthouse-report.html
 supabase/.temp
 supabase/.branches
 
+# Local docs and tests (not needed for production image)
+docs
+tests
+e2e
+android
+
 # Tooling
 .husky/_/
 .vscode
 .idea
 *.log
 *.swp
-
-# Version control
-.git
-.gitignore
-.github/
 
 # OS artifacts
 .DS_Store
