@@ -110,9 +110,9 @@ npm run dev
 
 ### 🔐 Supabase Admin Account
 
-1. Open Supabase Dashboard → Authentication → Users and manually create the organization owner account `n8ter8@gmail.com` (set a temporary password, mark email as confirmed if appropriate).
-2. Run `npm run db:seed` once the user exists; the seed script will upsert a profile row and assign the `super_admin` role automatically.
-3. If the user already exists, simply re-run the seed or execute `INSERT INTO user_roles (user_id, role_id) VALUES (<uuid>, 'super_admin') ON CONFLICT DO NOTHING;` to guarantee elevated access.
+- Follow the dedicated **[Supabase Admin Bootstrap guide](docs/SUPABASE_ADMIN_BOOTSTRAP.md)** for secure, repeatable instructions.
+- In short: create `n8ter8@gmail.com` via the Supabase dashboard, then run `npm run db:migrate && npm run db:seed` to assign the `super_admin` role, HUD preferences, and mission alert subscriptions.
+- The seed command is idempotent—re-run it any time you need to refresh baseline data or confirm role assignments.
 
 ### 🔑 Secrets Management
 

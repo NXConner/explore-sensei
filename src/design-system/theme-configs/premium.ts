@@ -36,7 +36,7 @@ export const premiumThemes: ThemeConfig[] = [
       "--background": "225 28% 6%",
       "--hud-grid-color": "rgba(108,211,255,0.18)",
     },
-    wallpaper: "division-agent-grid",
+    wallpaper: "division-agent",
     accentGradient: gradients.data,
     badges: ["Premium"],
     tags: ["compliance", "security"],

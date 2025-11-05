@@ -37,7 +37,7 @@ const assetPreset = (
 
 export const WALLPAPER_PRESETS: WallpaperPreset[] = [
   assetPreset(
-    "division-agent-grid",
+    "division-agent",
     "Division Agent Grid",
     "SHD grid overlay with command-center glow and pulse arcs.",
     "/wallpapers/division-agent.svg",
@@ -49,7 +49,7 @@ export const WALLPAPER_PRESETS: WallpaperPreset[] = [
     },
   ),
   assetPreset(
-    "rogue-agent-grid",
+    "rogue-agent",
     "Rogue Agent",
     "Hazard red flare with glitch streaks for escalation dashboards.",
     "/wallpapers/rogue-agent.svg",
@@ -61,7 +61,7 @@ export const WALLPAPER_PRESETS: WallpaperPreset[] = [
     },
   ),
   assetPreset(
-    "dark-zone-holo",
+    "dark-zone",
     "Dark Zone Holo",
     "Low-visibility holographic rings for risk and threat monitoring.",
     "/wallpapers/dark-zone.svg",
@@ -73,7 +73,7 @@ export const WALLPAPER_PRESETS: WallpaperPreset[] = [
     },
   ),
   assetPreset(
-    "tech-specialist-grid",
+    "tech-specialist",
     "Tech Specialist",
     "Cyan diagnostics grid for AI-assisted analytics consoles.",
     "/wallpapers/tech-specialist.svg",
@@ -85,7 +85,7 @@ export const WALLPAPER_PRESETS: WallpaperPreset[] = [
     },
   ),
   assetPreset(
-    "stealth-operations-grid",
+    "stealth-operations",
     "Stealth Operations",
     "Emerald sonar sweep built for overnight crew rotations.",
     "/wallpapers/stealth-operations.svg",
@@ -97,7 +97,7 @@ export const WALLPAPER_PRESETS: WallpaperPreset[] = [
     },
   ),
   assetPreset(
-    "tactical-command-grid",
+    "tactical-command",
     "Tactical Command",
     "Amber holo rings with mission dossier corner brackets.",
     "/wallpapers/tactical-command.svg",
@@ -109,7 +109,7 @@ export const WALLPAPER_PRESETS: WallpaperPreset[] = [
     },
   ),
   assetPreset(
-    "hunter-protocol-grid",
+    "hunter-protocol",
     "Hunter Protocol",
     "Precision concentric arcs for elite response readiness.",
     "/wallpapers/hunter-protocol.svg",

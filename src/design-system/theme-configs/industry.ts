@@ -33,7 +33,7 @@ export const industryThemes: ThemeConfig[] = [
       "--accent-foreground": "0 0% 12%",
       "--background": "140 12% 7%",
     },
-    wallpaper: "stealth-operations-grid",
+    wallpaper: "stealth-operations",
     tags: ["field", "crew"],
   },
 ];

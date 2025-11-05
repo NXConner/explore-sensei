@@ -17,7 +17,7 @@ export const coreThemes: ThemeConfig[] = [
       "--hud-grid-color": "rgba(255,111,15,0.16)",
       "--hud-grid-color-soft": "rgba(108,211,255,0.09)",
     },
-    wallpaper: "tactical-command-grid",
+    wallpaper: "tactical-command",
     accentGradient: gradients.command,
     badges: ["Command HUD"],
     tags: ["mission", "command", "hud"],

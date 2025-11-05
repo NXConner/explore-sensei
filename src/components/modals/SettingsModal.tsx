@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { X, Settings, Moon, Sun, Bell, ImageUp, Zap, Volume2, Palette, MapPin } from "lucide-react";
+import { X, Settings, Moon, Sun, Bell, Zap, Volume2, Palette, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -534,32 +534,6 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   onHudFxChange={handleHudFxChange}
                 />
 
-                <div className="tactical-panel hidden space-y-4 p-4">
-                  <div className="mb-2 flex items-center gap-3">
-                    <Palette className="h-5 w-5 text-primary" />
-                    <Label>Map Theme</Label>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      variant={settings.mapTheme === "division" ? "default" : "outline"}
-                      onClick={() => setSettings((p) => ({ ...p, mapTheme: "division" }))}
-                      className="justify-start"
-                    >
-                      Division
-                    </Button>
-                    <Button
-                      variant={settings.mapTheme === "animus" ? "default" : "outline"}
-                      onClick={() => setSettings((p) => ({ ...p, mapTheme: "animus" }))}
-                      className="justify-start"
-                    >
-                      Animus
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Choose between Division (orange) and Animus (cyan) map styles
-                  </p>
-                </div>
-
                 {/* Default Map Location */}
               <HUDPanel className="space-y-4">
                 <div className="mb-2 flex items-center gap-3">
@@ -593,145 +567,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                 </div>
               </HUDPanel>
 
-              <div className="tactical-panel hidden space-y-4 p-4">
-                <div className="mb-2 flex items-center gap-3">
-                  <ImageUp className="h-5 w-5 text-primary" />
-                  <Label>Custom Wallpaper</Label>
-                </div>
-                <div className="space-y-2">
-                  <input
-                    type="url"
-                    placeholder="Paste image URL (https://...)"
-                    value={settings.wallpaperUrl}
-                    onChange={(e) => setSettings((p) => ({ ...p, wallpaperUrl: e.target.value }))}
-                    className="hud-element w-full rounded border-primary/30 bg-transparent px-3 py-2 text-sm"
-                  />
-                  <div className="pl-1">
-                    <Label className="text-xs">
-                      Wallpaper Opacity: {settings.wallpaperOpacity}%
-                    </Label>
-                    <Slider
-                      value={[settings.wallpaperOpacity]}
-                      onValueChange={([val]) =>
-                        setSettings((prev) => ({ ...prev, wallpaperOpacity: val }))
-                      }
-                      min={10}
-                      max={100}
-                      step={5}
-                      className="mt-2"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Theme Customizer with Live Preview */}
-              <div className="tactical-panel hidden space-y-4 p-4">
-                <div className="mb-2 flex items-center gap-3">
-                  <Label>Theme Customizer</Label>
-                </div>
-                <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-                  <div>
-                    <Label className="text-xs">Primary Hue</Label>
-                    <input
-                      type="range"
-                      min={0}
-                      max={360}
-                      step={1}
-                      value={(() => {
-                        const raw = getComputedStyle(document.documentElement)
-                          .getPropertyValue("--primary")
-                          .trim();
-                        const [h] = raw ? raw.split(" ") : ["30"];
-                        return Number(h) || 30;
-                      })()}
-                      onChange={(e) => {
-                        const root = document.documentElement as HTMLElement;
-                        const current = getComputedStyle(root).getPropertyValue("--primary").trim();
-                        const parts = current ? current.split(" ") : [];
-                        const sat = parts[1] || "100%";
-                        const lum = parts[2] || "50%";
-                        root.style.setProperty("--primary", `${e.target.value} ${sat} ${lum}`);
-                      }}
-                      className="w-full"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Accent Hue</Label>
-                    <input
-                      type="range"
-                      min={0}
-                      max={360}
-                      step={1}
-                      value={(() => {
-                        const raw = getComputedStyle(document.documentElement)
-                          .getPropertyValue("--accent")
-                          .trim();
-                        const [h] = raw ? raw.split(" ") : ["197"];
-                        return Number(h) || 197;
-                      })()}
-                      onChange={(e) => {
-                        const root = document.documentElement as HTMLElement;
-                        const current = getComputedStyle(root).getPropertyValue("--accent").trim();
-                        const parts = current ? current.split(" ") : [];
-                        const sat = parts[1] || "100%";
-                        const lum = parts[2] || "50%";
-                        root.style.setProperty("--accent", `${e.target.value} ${sat} ${lum}`);
-                      }}
-                      className="w-full"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Background Luminance</Label>
-                    <input
-                      type="range"
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={(() => {
-                        const raw = getComputedStyle(document.documentElement)
-                          .getPropertyValue("--background")
-                          .trim();
-                        const parts = raw ? raw.split(" ") : [];
-                        const lum = parts[2] || "4%";
-                        return Number(String(lum).replace("%", "")) || 4;
-                      })()}
-                      onChange={(e) => {
-                        const root = document.documentElement as HTMLElement;
-                        const current = getComputedStyle(root)
-                          .getPropertyValue("--background")
-                          .trim();
-                        const parts = current ? current.split(" ") : [];
-                        const h = parts[0] || "0";
-                        const s = parts[1] || "0%";
-                        root.style.setProperty("--background", `${h} ${s} ${e.target.value}%`);
-                      }}
-                      className="w-full"
-                    />
-                  </div>
-                </div>
-                <div className="mt-2 rounded border border-primary/30 p-3">
-                  <div className="mb-2 text-xs">Live Preview</div>
-                  <div className="flex gap-2">
-                    <button className="rounded bg-primary px-3 py-2 text-primary-foreground">
-                      Primary
-                    </button>
-                    <button className="rounded bg-accent px-3 py-2 text-accent-foreground">
-                      Accent
-                    </button>
-                    <div
-                      className="rounded border px-3 py-2"
-                      style={{
-                        background: "hsl(var(--background))",
-                        color: "hsl(var(--foreground))",
-                      }}
-                    >
-                      Body
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Preferred Map Provider */}
+                {/* Preferred Map Provider */}
               <div className="tactical-panel space-y-4 p-4">
                 <div className="mb-2 flex items-center gap-3">
                   <Palette className="h-5 w-5 text-primary" />
