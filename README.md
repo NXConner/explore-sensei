@@ -114,6 +114,12 @@ npm run dev
 - In short: create `n8ter8@gmail.com` via the Supabase dashboard, then run `npm run db:migrate && npm run db:seed` to assign the `super_admin` role, HUD preferences, and mission alert subscriptions.
 - The seed command is idempotent—re-run it any time you need to refresh baseline data or confirm role assignments.
 
+### 🛡️ Security Hardening
+
+- Review **[Security Hardening Playbook](docs/SECURITY_HARDENING.md)** for dependency scanning, secrets management, and compliance guidance.
+- Run `npm run security:baseline` locally or in CI to execute `npm audit` and `snyk test` (requires `snyk auth`). Findings are saved to `reports/snyk-report.json`.
+- `npm run security:monitor` uploads the current dependency snapshot to Snyk for continuous monitoring on `main`.
+
 ### 🔑 Secrets Management
 
 - Review `config/secrets-manager.example.json` for the canonical production vault shape. The template is AWS Secrets Manager–centric, but the `provider` and `bootstrap.command` fields can be swapped for Doppler or HashiCorp Vault CLI usage.
@@ -198,7 +204,13 @@ npm run test             # Run unit tests
 npm run test:watch       # Run tests in watch mode
 npm run test:coverage    # Run tests with coverage
 npm run test:e2e         # Run E2E tests
-npm run test:all         # Run all tests
+
+  # Security & Compliance
+  npm run security:audit    # npm audit --audit-level=high
+  npm run security:baseline # npm audit + snyk test (reports/snyk-report.json)
+  npm run security:snyk     # Direct snyk scan (requires snyk auth)
+  npm run security:monitor  # Push snapshot to snyk for monitoring
+  npm run test:all          # Run all tests
 
 # Database
 npm run db:generate      # Generate TypeScript types
