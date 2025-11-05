@@ -67,6 +67,17 @@ if command -v npx >/dev/null 2>&1; then
   npx playwright install --with-deps >/dev/null 2>&1 || true
 fi
 
+echo "[deps] Syncing tactical design assets"
+if command -v npx >/dev/null 2>&1; then
+  npx --yes tsx "${PROJECT_ROOT}/scripts/sync_assets.ts" >/dev/null 2>&1 || true
+fi
+
+if command -v npm >/dev/null 2>&1; then
+  npm run setup:assets --if-present >/dev/null 2>&1 || true
+elif command -v pnpm >/dev/null 2>&1; then
+  pnpm run setup:assets >/dev/null 2>&1 || true
+fi
+
 if [ -d .husky ]; then
   echo "[deps] Initializing Husky hooks"
   if command -v npm >/dev/null 2>&1; then
