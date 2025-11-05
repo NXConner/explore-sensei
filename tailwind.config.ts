@@ -1,26 +1,31 @@
 import type { Config } from "tailwindcss";
 import animate from "tailwindcss-animate";
+import plugin from "tailwindcss/plugin";
 
-export default {
+const config: Config = {
   darkMode: ["class"],
   content: [
-    "./pages/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
+    "./index.html",
     "./src/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./pages/**/*.{ts,tsx}",
   ],
-  prefix: "",
   theme: {
     container: {
       center: true,
-      padding: "2rem",
+      padding: {
+        DEFAULT: "1.5rem",
+        lg: "2rem",
+      },
       screens: {
-        "2xl": "1400px",
+        "2xl": "1440px",
       },
     },
     extend: {
       fontFamily: {
-        orbitron: ["Orbitron", "sans-serif"],
+        sans: ["Rajdhani", "Segoe UI", "system-ui", "-apple-system", "sans-serif"],
+        display: ["Orbitron", "Rajdhani", "sans-serif"],
+        mono: ["Share Tech Mono", "IBM Plex Mono", "SFMono-Regular", "Menlo", "monospace"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -73,47 +78,77 @@ export default {
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        xl: "var(--radius)",
+        lg: "calc(var(--radius) - 2px)",
+        md: "calc(var(--radius) - 4px)",
+        sm: "calc(var(--radius) - 6px)",
       },
-      keyframes: {
-        "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
-        },
-        "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
-        },
+      boxShadow: {
+        "hud-sm": "0 18px 48px rgba(10, 14, 28, 0.45)",
+        "hud-md": "0 26px 68px rgba(6, 12, 24, 0.55)",
+        "hud-lg": "0 38px 92px rgba(4, 8, 16, 0.65)",
+        "hud-glow": "0 0 38px rgba(255, 111, 15, 0.35)",
+      },
+      dropShadow: {
+        "hud-glow": "0 0 24px rgba(255, 111, 15, 0.4)",
+      },
+      transitionTimingFunction: {
+        hud: "cubic-bezier(0.19, 1, 0.22, 1)",
+        sonar: "cubic-bezier(0.37, 0, 0.45, 1)",
+        glitch: "cubic-bezier(0.83, 0, 0.17, 1)",
+      },
+      backgroundImage: {
+        "hud-grid":
+          "linear-gradient(15deg, rgba(108, 211, 255, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 111, 15, 0.12) 1px, transparent 1px)",
+        "hud-noise": "radial-gradient(rgba(255,255,255,0.08) 1px, transparent 0)",
       },
       animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
-        "pulse-glow": "pulse-glow 2s ease-in-out infinite",
-        scanline: "scanline 8s linear infinite",
+        "hud-glitch": "hud-glitch 0.6s steps(2, jump-start) infinite",
+        "hud-grid": "hud-grid-pulse 4s ease-in-out infinite",
+        "hud-sonar": "hud-sonar 2.4s var(--ease-sonar, cubic-bezier(0.37,0,0.45,1)) infinite",
+        "hud-scanline": "hud-scanline 8s linear infinite",
       },
       keyframes: {
-        ...{
-          "pulse-glow": {
-            "0%, 100%": { boxShadow: "0 0 20px rgba(255, 140, 0, 0.3)" },
-            "50%": { boxShadow: "0 0 40px rgba(255, 140, 0, 0.6)" },
-          },
-          scanline: {
-            "0%": { transform: "translateY(0)" },
-            "100%": { transform: "translateY(100%)" },
-          },
+        "hud-glitch": {
+          "0%": { clipPath: "inset(0% 0 0% 0)", transform: "translate3d(0,0,0)" },
+          "8%": { clipPath: "inset(12% 0 33% 0)", transform: "translate3d(-2px,2px,0) skewX(2deg)" },
+          "16%": { clipPath: "inset(45% 0 5% 0)", transform: "translate3d(3px,-1px,0) skewX(-2deg)" },
+          "32%": { clipPath: "inset(8% 0 60% 0)", transform: "translate3d(-1px,1px,0)" },
+          "48%": { clipPath: "inset(0% 0 0% 0)", transform: "translate3d(1px,0,0)" },
+          "100%": { clipPath: "inset(0% 0 0% 0)", transform: "translate3d(0,0,0)" },
+        },
+        "hud-sonar": {
+          "0%": { transform: "scale(0.15)", opacity: "0.75" },
+          "70%": { opacity: "0.15" },
+          "100%": { transform: "scale(1)", opacity: "0" },
+        },
+        "hud-grid-pulse": {
+          "0%, 100%": { opacity: "0.45" },
+          "50%": { opacity: "0.7" },
+        },
+        "hud-scanline": {
+          "0%": { transform: "translateY(-100%)" },
+          "100%": { transform: "translateY(100%)" },
         },
       },
     },
   },
-  plugins: [animate],
-} satisfies Config;
+  plugins: [
+    animate,
+    plugin(({ addUtilities }) => {
+      addUtilities({
+        ".hud-backdrop": {
+          background: "var(--glass-surface, rgba(12,18,28,0.78))",
+          backdropFilter: "blur(26px)",
+          border: "1px solid rgba(255,255,255,0.04)",
+        },
+        ".hud-outline": {
+          outline: "1px solid rgba(255,111,15,0.35)",
+          outlineOffset: "6px",
+        },
+      });
+    }),
+  ],
+};
+
+export default config;

@@ -36,6 +36,12 @@ export function applyThemeVariables(themeId: ThemeId, options?: ApplyOptions): v
   }
 
   try {
+    document.body.dataset.theme = themeId;
+  } catch {
+    /* noop */
+  }
+
+  try {
     window.dispatchEvent(new Event("theme-updated"));
   } catch {
     /* noop */

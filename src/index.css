@@ -11,576 +11,187 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
-@layer base {
-  :root {
-    /* Tactical Dark Theme - Division-inspired */
-    --background: 0 0% 4%;
-    --foreground: 0 0% 88%;
-
-    --card: 0 0% 6%;
-    --card-foreground: 0 0% 88%;
-
-    --popover: 0 0% 6%;
-    --popover-foreground: 0 0% 88%;
-
-    /* Division Orange - Primary */
-    --primary: 30 100% 50%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 30 100% 60%;
-
-    /* Accent Blue - Secondary */
-    --secondary: 197 100% 50%;
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 0 0% 10%;
-    --muted-foreground: 0 0% 65%;
-
-    --accent: 197 100% 50%;
-    --accent-foreground: 0 0% 100%;
-
-    /* Bright Red - Danger */
-    --destructive: 0 100% 54%;
-    --destructive-foreground: 0 0% 100%;
-
-    /* Bright Green - Success */
-    --success: 130 100% 50%;
-    --success-foreground: 0 0% 10%;
-
-    --border: 0 0% 15%;
-    --input: 0 0% 12%;
-    --ring: 30 100% 50%;
-
-    --radius: 0.25rem;
-
-    /* Z-Index Hierarchy */
-    --z-base: 1;
-    --z-map: 100;
-    --z-hud: 900;
-    --z-sidebars: 900;
-    --z-corners: 950;
-    --z-topbar: 995;
-    --z-horizontal-ops: 995;
-    --z-objective: 960;
-    --z-kpi-ticker: 990;
-    --z-modals: 2000;
-    --z-command-palette: 3000;
-
-    /* Tactical Shadows & Glows */
-    --shadow-tactical: 0 4px 20px rgba(255, 140, 0, 0.2);
-    --shadow-glow: 0 0 30px rgba(255, 140, 0, 0.3);
-    --scanline: repeating-linear-gradient(
-      0deg,
-      rgba(0, 0, 0, 0.15),
-      rgba(0, 0, 0, 0.15) 1px,
-      transparent 1px,
-      transparent 2px
-    );
-    --grid-overlay:
-      repeating-linear-gradient(
-        90deg,
-        rgba(255, 140, 0, 0.03) 0px,
-        transparent 1px,
-        transparent 40px
-      ),
-      repeating-linear-gradient(
-        0deg,
-        rgba(255, 140, 0, 0.03) 0px,
-        transparent 1px,
-        transparent 40px
-      );
-
-    --sidebar-background: 0 0% 5%;
-    --sidebar-foreground: 0 0% 88%;
-    --sidebar-primary: 30 100% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 10%;
-    --sidebar-accent-foreground: 0 0% 88%;
-    --sidebar-border: 0 0% 15%;
-    --sidebar-ring: 30 100% 50%;
-  }
-
-  /* Animus theme (Assassin's Creed inspired) */
-  .theme-animus {
-    --background: 190 30% 98%;
-    --foreground: 210 60% 20%;
-    --card: 0 0% 100%;
-    --card-foreground: 210 60% 20%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 210 60% 20%;
-    --primary: 180 75% 40%; /* cyan */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 210 80% 35%; /* deep teal */
-    --secondary-foreground: 0 0% 100%;
-    --muted: 200 20% 92%;
-    --muted-foreground: 210 20% 35%;
-    --accent: 180 70% 45%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 80% 50%;
-    --destructive-foreground: 0 0% 100%;
-    --success: 150 60% 40%;
-    --success-foreground: 0 0% 100%;
-    --border: 200 20% 88%;
-    --input: 200 20% 94%;
-    --ring: 180 75% 40%;
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 210 60% 20%;
-    --sidebar-primary: 180 75% 40%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 200 20% 92%;
-    --sidebar-accent-foreground: 210 60% 20%;
-    --sidebar-border: 200 20% 88%;
-    --sidebar-ring: 180 75% 40%;
-  }
-
-  /* Division-inspired variants (UI variables only; map style handled separately) */
-  .theme-division-shd {
-    --primary: 30 100% 50%;
-    --primary-foreground: 0 0% 100%;
-    --accent: 197 100% 55%;
-    --accent-foreground: 0 0% 100%;
-    --background: 0 0% 3%;
-    --foreground: 0 0% 92%;
-    --card: 0 0% 6%;
-    --card-foreground: 0 0% 92%;
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 70%;
-    --border: 0 0% 14%;
-    --input: 0 0% 12%;
-    --ring: 30 100% 50%;
-  }
-
-  /* Faithful variants (color tuning only; no external assets) */
-  .theme-division-shd-faithful {
-    --primary: 30 100% 54%;
-    --primary-foreground: 0 0% 100%;
-    --accent: 197 100% 58%;
-    --accent-foreground: 0 0% 100%;
-    --background: 0 0% 2%;
-    --foreground: 0 0% 95%;
-    --card: 0 0% 5%;
-    --card-foreground: 0 0% 95%;
-    --muted: 0 0% 10%;
-    --muted-foreground: 0 0% 72%;
-    --border: 0 0% 16%;
-    --input: 0 0% 12%;
-    --ring: 30 100% 54%;
-  }
-
-  .theme-dark-zone {
-    --primary: 0 85% 55%;
-    --primary-foreground: 0 0% 100%;
-    --accent: 186 85% 45%;
-    --accent-foreground: 0 0% 100%;
-    --background: 0 0% 2%;
-    --foreground: 0 0% 95%;
-    --card: 0 0% 6%;
-    --card-foreground: 0 0% 95%;
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 70%;
-    --border: 0 0% 14%;
-    --input: 0 0% 12%;
-    --ring: 0 85% 55%;
-  }
-
-  .theme-dark-zone-faithful {
-    --primary: 0 90% 56%;
-    --primary-foreground: 0 0% 100%;
-    --accent: 186 90% 48%;
-    --accent-foreground: 0 0% 100%;
-    --background: 0 0% 1.5%;
-    --foreground: 0 0% 96%;
-    --card: 0 0% 5%;
-    --card-foreground: 0 0% 96%;
-    --muted: 0 0% 10%;
-    --muted-foreground: 0 0% 72%;
-    --border: 0 0% 16%;
-    --input: 0 0% 12%;
-    --ring: 0 90% 56%;
-  }
-
-  .theme-black-tusk {
-    --primary: 135 95% 50%;
-    --primary-foreground: 0 0% 10%;
-    --accent: 220 15% 75%;
-    --accent-foreground: 0 0% 10%;
-    --background: 220 9% 6%;
-    --foreground: 0 0% 95%;
-    --card: 220 9% 8%;
-    --card-foreground: 0 0% 95%;
-    --muted: 220 8% 14%;
-    --muted-foreground: 0 0% 75%;
-    --border: 220 8% 16%;
-    --input: 220 8% 14%;
-    --ring: 135 95% 50%;
-  }
-
-  .theme-black-tusk-faithful {
-    --primary: 135 98% 52%;
-    --primary-foreground: 0 0% 10%;
-    --accent: 220 18% 76%;
-    --accent-foreground: 0 0% 10%;
-    --background: 220 10% 5%;
-    --foreground: 0 0% 96%;
-    --card: 220 10% 7%;
-    --card-foreground: 0 0% 96%;
-    --muted: 220 9% 13%;
-    --muted-foreground: 0 0% 76%;
-    --border: 220 9% 18%;
-    --input: 220 9% 14%;
-    --ring: 135 98% 52%;
-  }
-}
-
-/* Tactical Font Import */
-
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
+  }
+
+  html {
+    scroll-behavior: smooth;
+    background-color: hsl(var(--background));
   }
 
   body {
-    @apply bg-background text-foreground;
-    font-family: "Inter", "Orbitron", system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
-    position: relative;
+    min-height: 100vh;
+    margin: 0;
+    font-family: "Rajdhani", "Segoe UI", system-ui, -apple-system, sans-serif;
+    font-weight: 500;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    background-image:
+      radial-gradient(circle at 12% 18%, rgba(255, 111, 15, 0.18) 0%, transparent 48%),
+      radial-gradient(circle at 72% 8%, rgba(108, 211, 255, 0.16) 0%, transparent 45%),
+      linear-gradient(180deg, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0));
+    background-attachment: fixed;
+    caret-color: hsl(var(--primary));
   }
 
-  /* Tactical Grid Overlay */
   body::before {
     content: "";
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: var(--grid-overlay);
-    pointer-events: none;
+    inset: 0;
     z-index: 1;
-    opacity: 0.4;
+    pointer-events: none;
+    background-image:
+      linear-gradient(
+        var(--hud-grid-angle, 15deg),
+        transparent 0,
+        transparent calc(var(--hud-grid-size, 72px) - 1px),
+        var(--hud-grid-color-soft, rgba(108, 211, 255, 0.08)) calc(var(--hud-grid-size, 72px) - 1px)
+      ),
+      linear-gradient(
+        90deg,
+        transparent 0,
+        transparent calc(var(--hud-grid-size, 72px) - 1px),
+        var(--hud-grid-color, rgba(255, 111, 15, 0.14)) calc(var(--hud-grid-size, 72px) - 1px)
+      );
+    opacity: 0.35;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 1) 60%, transparent 100%);
   }
 
-  /* Scanline Effect */
   body::after {
     content: "";
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: var(--scanline);
+    inset: 0;
+    z-index: 2;
     pointer-events: none;
-    z-index: 1;
-    animation: scanline 8s linear infinite;
+    background-image: var(--hud-noise-layer);
+    opacity: 0.35;
+    mix-blend-mode: soft-light;
   }
 
-  @keyframes scanline {
-    0% {
-      transform: translateY(0);
-    }
-    100% {
-      transform: translateY(100%);
-    }
+  #root {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    z-index: 3;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  ::selection {
+    background: rgba(255, 111, 15, 0.55);
+    color: rgba(0, 0, 0, 0.92);
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(8, 12, 20, 0.7);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 111, 15, 0.45);
+    border-radius: 999px;
+    border: 2px solid rgba(8, 12, 20, 0.85);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 111, 15, 0.68);
   }
 }
 
 @layer components {
-  /* Tactical Button Styles */
-  .btn-tactical {
-    @apply bg-primary text-primary-foreground px-4 py-2 rounded font-bold uppercase tracking-wider;
-    box-shadow: 0 0 20px rgba(255, 140, 0, 0.5);
-    transition: all 0.3s ease;
+  .hud-surface {
+    background: var(--glass-surface, rgba(12, 18, 28, 0.78));
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    box-shadow:
+      0 24px 60px rgba(8, 12, 20, 0.55),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(26px);
   }
 
-  .btn-tactical:hover {
-    box-shadow: 0 0 30px rgba(255, 140, 0, 0.8);
-    transform: translateY(-2px);
+  .hud-surface--glow {
+    background: linear-gradient(135deg, rgba(255, 111, 15, 0.16), rgba(8, 20, 40, 0.88));
+    box-shadow:
+      0 28px 70px rgba(255, 111, 15, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 
-  /* Tactical Panel */
-  .tactical-panel {
-    @apply bg-card border border-primary/30 rounded p-4;
-    box-shadow: inset 0 0 20px rgba(255, 140, 0, 0.1);
+  .hud-grid-overlay {
     position: relative;
+    overflow: hidden;
   }
 
-  .tactical-panel::before {
+  .hud-grid-overlay::before {
     content: "";
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, hsl(var(--primary)), transparent);
+    inset: 0;
+    background-image:
+      linear-gradient(
+        var(--hud-grid-angle, 15deg),
+        transparent 0,
+        transparent calc(var(--hud-grid-size, 72px) - 1px),
+        var(--hud-grid-color-soft, rgba(108, 211, 255, 0.1)) calc(var(--hud-grid-size, 72px) - 1px)
+      ),
+      linear-gradient(
+        90deg,
+        transparent 0,
+        transparent calc(var(--hud-grid-size, 72px) - 1px),
+        var(--hud-grid-color, rgba(255, 111, 15, 0.2)) calc(var(--hud-grid-size, 72px) - 1px)
+      );
+    opacity: 0.45;
+    pointer-events: none;
   }
 
-  /* Glow Text */
-  .text-glow {
-    text-shadow: 0 0 10px currentColor;
+  .hud-bracket {
+    position: relative;
+    display: inline-flex;
+    padding: 0.4rem 0.9rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: hsl(var(--accent));
   }
 
-  /* Enhanced contrast for panels */
-  .hud-element {
-    @apply border border-primary/40 bg-background/80 backdrop-blur-lg;
-    box-shadow: 0 0 20px rgba(255, 140, 0, 0.2);
-  }
-
-  /* Corner Brackets */
-  .corner-bracket-sm {
+  .hud-bracket::before,
+  .hud-bracket::after {
+    content: "";
     position: absolute;
+    height: 60%;
     width: 8px;
-    height: 8px;
-    border: 1px solid hsl(var(--primary) / 0.6);
-    pointer-events: none;
-    box-shadow: 0 0 8px hsl(var(--primary) / 0.4);
+    border: 1px solid currentColor;
+    opacity: 0.45;
   }
 
-  .corner-bracket-md {
-    position: absolute;
-    width: 12px;
-    height: 12px;
-    border: 2px solid hsl(var(--primary) / 0.8);
-    pointer-events: none;
-    box-shadow: 0 0 12px hsl(var(--primary) / 0.5);
-  }
-
-  .corner-tl {
-    top: 0;
-    left: 0;
+  .hud-bracket::before {
+    left: -12px;
     border-right: none;
-    border-bottom: none;
   }
 
-  .corner-tr {
-    top: 0;
-    right: 0;
+  .hud-bracket::after {
+    right: -12px;
     border-left: none;
-    border-bottom: none;
-  }
-
-  .corner-bl {
-    bottom: 0;
-    left: 0;
-    border-right: none;
-    border-top: none;
-  }
-
-  .corner-br {
-    bottom: 0;
-    right: 0;
-    border-left: none;
-    border-top: none;
-  }
-
-  /* Ensure all sidebars and bars inherit enhanced contrast */
-  .tactical-panel,
-  [data-sidebar="sidebar"],
-  .top-bar,
-  .map-toolbar,
-  .objective-ribbon {
-    @apply bg-background/80 backdrop-blur-md;
   }
 }
 
-@layer utilities {
-  /* Division theme class to ensure dark tactical base */
-  .theme-division {
-    /* keep default root values from earlier section */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
-  /* Hide scrollbar but keep functionality */
-  .scrollbar-hide {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
-  }
-
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none; /* Chrome, Safari and Opera */
-  }
-
-  /* Custom Scrollbar Styles */
-  .scrollbar-thin::-webkit-scrollbar {
-    height: 6px;
-    width: 6px;
-  }
-
-  .scrollbar-thumb-primary\/30::-webkit-scrollbar-thumb {
-    background-color: hsl(var(--primary) / 0.3);
-    border-radius: 3px;
-  }
-
-  .scrollbar-thumb-primary\/50:hover::-webkit-scrollbar-thumb:hover {
-    background-color: hsl(var(--primary) / 0.5);
-  }
-
-  .scrollbar-track-transparent::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  /* Show scrollbar only on hover to indicate scrollability */
-  .scrollbar-hover-visible::-webkit-scrollbar {
-    height: 0px;
-    width: 0px;
-    transition: height 0.15s ease, width 0.15s ease;
-  }
-  .scrollbar-hover-visible:hover::-webkit-scrollbar {
-    height: 6px;
-    width: 6px;
-  }
-
-  /* Position vertical scrollbar on the left side */
-  .scrollbar-left {
-    direction: rtl;
-  }
-  .scrollbar-left > * {
-    direction: ltr;
-  }
-
-  /* Enhanced animations */
-  @keyframes shimmer {
-    0% {
-      background-position: -1000px 0;
-    }
-    100% {
-      background-position: 1000px 0;
-    }
-  }
-
-  .shimmer {
-    background: linear-gradient(
-      90deg,
-      hsl(var(--background)) 0%,
-      hsl(var(--accent)) 50%,
-      hsl(var(--background)) 100%
-    );
-    background-size: 1000px 100%;
-    animation: shimmer 2s infinite;
-  }
-
-  @keyframes float {
-    0%,
-    100% {
-      transform: translateY(0px);
-    }
-    50% {
-      transform: translateY(-10px);
-    }
-  }
-
-  .float {
-    animation: float 3s ease-in-out infinite;
-  }
-
-  @keyframes glow-pulse {
-    0%,
-    100% {
-      box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
-    }
-    50% {
-      box-shadow: 0 0 40px hsl(var(--primary) / 0.6);
-    }
-  }
-
-  .glow-pulse {
-    animation: glow-pulse 2s ease-in-out infinite;
-  }
-
-  @keyframes marquee {
-    0% {
-      transform: translateX(0);
-    }
-    100% {
-      transform: translateX(-50%);
-    }
-  }
-
-  .animate-marquee {
-    animation: marquee 30s linear infinite;
-  }
-
-  .animate-marquee:hover {
-    animation-play-state: paused;
-  }
-
-  /* Glitch distortion filter for route transitions / clicks */
-  .glitch-distortion {
-    filter: blur(2px) hue-rotate(10deg) contrast(1.2) saturate(1.05);
-    animation: chromaticAberration 0.2s ease-out;
-  }
-
-  @keyframes chromaticAberration {
-    0% { text-shadow: -2px 0 red, 2px 0 cyan; }
-    50% { text-shadow: 2px 0 red, -2px 0 cyan; }
-    100% { text-shadow: 0 0 transparent; }
-  }
-
-  /* Bounce in animation */
-  @keyframes bounce-in {
-    0% { transform: scale(0.9); opacity: 0; }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); opacity: 1; }
-  }
-
-  .animate-bounce-in {
-    animation: bounce-in 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  }
-
-  /* Slide up animation */
-  @keyframes slide-up {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
-
-  .animate-slide-up {
-    animation: slide-up 0.3s ease-out;
-  }
-
-  /* Fade in animation */
-  @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  .animate-fade-in {
-    animation: fade-in 0.5s ease-in;
-  }
-
-  /* Glitch distortion animation */
-  @keyframes glitch-distortion {
-    0%, 100% { 
-      transform: translate(0);
-      filter: hue-rotate(0deg) contrast(1);
-    }
-    10% { 
-      transform: translate(-3px, 2px);
-      filter: hue-rotate(5deg) contrast(1.3);
-    }
-    20% { 
-      transform: translate(3px, -2px);
-      filter: hue-rotate(-5deg) contrast(1.3);
-    }
-    30% { 
-      transform: translate(-2px, -3px);
-      filter: hue-rotate(10deg) contrast(1.2);
-    }
-    40% { 
-      transform: translate(2px, 3px);
-      filter: hue-rotate(-10deg) contrast(1.2);
-    }
-    50% { 
-      transform: translate(-3px, 1px);
-      filter: hue-rotate(5deg) contrast(1.1);
-    }
-  }
-
-  .glitch-trigger {
-    animation: glitch-distortion 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  }
-
-  /* Enhanced icon sizing utility */
-  .icon-sm { @apply w-4 h-4; }
-  .icon-md { @apply w-5 h-5; }
-  .icon-lg { @apply w-6 h-6; }
-  .icon-xl { @apply w-8 h-8; }
 }

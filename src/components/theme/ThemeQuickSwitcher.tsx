@@ -17,6 +17,15 @@ interface ThemeQuickSwitcherProps {
   onOpenSettings?: () => void;
 }
 
+const CURATED_THEMES: ThemeId[] = [
+  "tactical-dark",
+  "division-shd",
+  "dark-zone",
+  "isac-core",
+  "industry-blue",
+  "high-contrast",
+];
+
 export const ThemeQuickSwitcher: React.FC<ThemeQuickSwitcherProps> = ({
   premiumAccess = false,
   onOpenSettings,
@@ -40,17 +49,9 @@ export const ThemeQuickSwitcher: React.FC<ThemeQuickSwitcherProps> = ({
   }, []);
 
   const quickThemes = useMemo(() => {
-    const preferredOrder: ThemeId[] = [
-      "tactical-dark",
-      "light",
-      "industry-blue",
-      "division-shd",
-      "night-ops",
-      "high-contrast",
-    ];
-    const curated = preferredOrder
-      .map((id) => getThemeDefinition(id))
-      .filter((theme) => (premiumAccess ? true : !theme.premium));
+    const curated = CURATED_THEMES.map((id) => getThemeDefinition(id)).filter((theme) =>
+      premiumAccess ? true : !theme.premium,
+    );
     const extras = definitions
       .filter(
         (theme) => !curated.find((c) => c.id === theme.id) && (premiumAccess || !theme.premium),
@@ -91,14 +92,14 @@ export const ThemeQuickSwitcher: React.FC<ThemeQuickSwitcherProps> = ({
           <span className="sr-only">Open theme switcher</span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[320px] space-y-4 border-primary/20 bg-background/95 p-4 shadow-xl shadow-primary/10">
+      <PopoverContent className="w-[340px] space-y-4 border-primary/20 bg-background/95 p-4 shadow-xl shadow-primary/15">
         <header className="flex items-center justify-between">
           <div>
             <div className="text-xs font-semibold uppercase tracking-[0.32em] text-primary/70">
               Theme Switcher
             </div>
             <p className="text-xs text-muted-foreground/80">
-              Rotate between mission, ministry, and accessibility skins.
+              Rotate between command, analytics, and accessibility skins.
             </p>
           </div>
           <Button
