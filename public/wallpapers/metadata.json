@@ -1,0 +1,114 @@
+[
+  {
+    "slug": "division-agent",
+    "name": "Division Agent",
+    "palette": [
+      "#0b0f1a",
+      "#13223f",
+      "#1f3a64"
+    ],
+    "accent": "#ff6f0f",
+    "tone": "command",
+    "description": "Primary SHD-inspired gradient with tactical grid overlay and pulse arcs.",
+    "source": "wallpapers/division-agent.svg",
+    "updatedAt": "2025-11-05T03:20:50.287Z"
+  },
+  {
+    "slug": "rogue-agent",
+    "name": "Rogue Agent",
+    "palette": [
+      "#12080d",
+      "#2b1016",
+      "#3b161f"
+    ],
+    "accent": "#E63946",
+    "tone": "rogue",
+    "description": "Hazard-red bloom with digital noise for rogue protocol states.",
+    "source": "wallpapers/rogue-agent.svg",
+    "updatedAt": "2025-11-05T03:20:50.287Z"
+  },
+  {
+    "slug": "dark-zone",
+    "name": "Dark Zone",
+    "palette": [
+      "#04060b",
+      "#0e141f",
+      "#151d29"
+    ],
+    "accent": "#f2b705",
+    "tone": "command",
+    "description": "Midnight blue gradient with warning thresholds for Dark Zone operations.",
+    "source": "wallpapers/dark-zone.svg",
+    "updatedAt": "2025-11-05T03:20:50.287Z"
+  },
+  {
+    "slug": "tech-specialist",
+    "name": "Tech Specialist",
+    "palette": [
+      "#031b24",
+      "#063040",
+      "#0b4c63"
+    ],
+    "accent": "#6cd3ff",
+    "tone": "tech",
+    "description": "Icy teal circuitry motif with diagnostic scan lines.",
+    "source": "wallpapers/tech-specialist.svg",
+    "updatedAt": "2025-11-05T03:20:50.287Z"
+  },
+  {
+    "slug": "stealth-operations",
+    "name": "Stealth Operations",
+    "palette": [
+      "#050b07",
+      "#0a1a11",
+      "#123523"
+    ],
+    "accent": "#3ab795",
+    "tone": "stealth",
+    "description": "Low luminance green tones with soft grid for night deployments.",
+    "source": "wallpapers/stealth-operations.svg",
+    "updatedAt": "2025-11-05T03:20:50.287Z"
+  },
+  {
+    "slug": "tactical-command",
+    "name": "Tactical Command",
+    "palette": [
+      "#0b0f1a",
+      "#20150a",
+      "#301d0e"
+    ],
+    "accent": "#ff964f",
+    "tone": "command",
+    "description": "Mission dossier gradient with amber accents and directive glyphs.",
+    "source": "wallpapers/tactical-command.svg",
+    "updatedAt": "2025-11-05T03:20:50.287Z"
+  },
+  {
+    "slug": "hunter-protocol",
+    "name": "Hunter Protocol",
+    "palette": [
+      "#020c10",
+      "#0b1f26",
+      "#123541"
+    ],
+    "accent": "#ff6f0f",
+    "tone": "hunter",
+    "description": "Covert teal-to-charcoal gradient with hunter concentric pings.",
+    "source": "wallpapers/hunter-protocol.svg",
+    "updatedAt": "2025-11-05T03:20:50.287Z"
+  },
+  {
+    "slug": "dark-zone-threat",
+    "name": "Dark Zone Threat",
+    "palette": [
+      "#030507",
+      "#111018",
+      "#1a1522"
+    ],
+    "accent": "#E63946",
+    "tone": "rogue",
+    "description": "Threat heatmap with red flare and sonar sweep for incursion alerts.",
+    "source": "wallpapers/dark-zone-threat.svg",
+    "updatedAt": "2025-11-05T03:20:50.287Z"
+  }
+]

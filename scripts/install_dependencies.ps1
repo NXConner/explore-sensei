@@ -84,6 +84,21 @@ if (-not $SkipPlaywright) {
     }
 }
 
+Write-Host "[deps] Syncing tactical design assets" -ForegroundColor Cyan
+try {
+    if (Get-Command npx -ErrorAction SilentlyContinue) {
+        npx --yes tsx scripts/sync_assets.ts | Out-Null
+    }
+    elseif (Get-Command npm -ErrorAction SilentlyContinue) {
+        npm run setup:assets --if-present | Out-Null
+    }
+    elseif (Get-Command pnpm -ErrorAction SilentlyContinue) {
+        pnpm run setup:assets | Out-Null
+    }
+} catch {
+    Write-Warning "[deps] Tactical asset sync skipped: $_"
+}
+
 if (Test-Path ".husky") {
     Write-Host "[deps] Initializing Husky hooks" -ForegroundColor Cyan
     if (Get-Command npm -ErrorAction SilentlyContinue) {

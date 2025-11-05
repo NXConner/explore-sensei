@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bg-dark-zone-threat" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#030507" />
+      <stop offset="45%" stop-color="#111018" />
+      <stop offset="100%" stop-color="#1a1522" />
+    </linearGradient>
+    <radialGradient id="flare-dark-zone-threat" cx="40%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#E63946" stop-opacity="0.35" />
+      <stop offset="70%" stop-color="#E63946" stop-opacity="0" />
+    </radialGradient>
+    <pattern id="grid-dark-zone-threat" width="80" height="80" patternUnits="userSpaceOnUse" patternTransform="rotate(15)">
+      <path d="M80 0H0V80" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="1" />
+      <circle cx="0" cy="0" r="1" fill="rgba(255,255,255,0.25200000000000006)" />
+    </pattern>
+    <filter id="glow-dark-zone-threat" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="120" result="coloredBlur" />
+      <feMerge>
+        <feMergeNode in="coloredBlur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg-dark-zone-threat)" />
+  <rect width="1600" height="900" fill="url(#grid-dark-zone-threat)" opacity="0.55" />
+  <circle cx="1180" cy="260" r="520" fill="url(#flare-dark-zone-threat)" filter="url(#glow-dark-zone-threat)" />
+  <g opacity="0.35">
+    <path d="M1400 240c-40 120-220 220-420 220-200 0-380-100-420-220" fill="none" stroke="#E63946" stroke-width="1.5" stroke-dasharray="12 18" />
+    <path d="M1320 220c-35 90-180 160-360 160-180 0-335-70-360-160" fill="none" stroke="#E63946" stroke-width="1" stroke-dasharray="8 16" />
+  </g>
+  <g opacity="0.32">
+    <circle cx="320" cy="680" r="240" fill="none" stroke="#E63946" stroke-width="0.8" stroke-dasharray="6 12" />
+    <circle cx="320" cy="680" r="320" fill="none" stroke="#E63946" stroke-width="0.6" stroke-dasharray="4 14" />
+  </g>
+  <g opacity="0.22">
+    <line x1="200" y1="140" x2="1400" y2="760" stroke="#E63946" stroke-width="0.5" stroke-dasharray="10 20" />
+    <line x1="1400" y1="140" x2="200" y2="760" stroke="#E63946" stroke-width="0.35" stroke-dasharray="6 18" />
+  </g>
+  <g opacity="0.6" fill="#E63946">
+    <path d="M1480 140h60l-30 52z" opacity="0.45" />
+    <rect x="1260" y="110" width="6" height="50" rx="3" />
+    <rect x="1280" y="110" width="6" height="70" rx="3" />
+    <rect x="1300" y="110" width="6" height="40" rx="3" />
+  </g>
+  <g opacity="0.35" stroke="#E63946" stroke-width="1.4">
+    <rect x="120" y="120" width="220" height="120" rx="8" ry="8" fill="none" />
+    <path d="M120 152h220" />
+    <path d="M180 120v120" />
+  </g>
+  <text x="138" y="148" fill="rgba(255,255,255,0.68)" font-family="'Rajdhani', 'Orbitron', 'Segoe UI', sans-serif" font-size="18" letter-spacing="0.32em">
+    DARK ZONE THREAT
+  </text>
+  <text x="138" y="186" fill="rgba(255,255,255,0.45)" font-family="'Share Tech Mono', 'IBM Plex Mono', monospace" font-size="13" letter-spacing="0.2em">
+    THREAT HEATMAP WITH RED FLARE AND SONAR SWEEP FOR INCURSION ALERTS.
+  </text>
+</svg>

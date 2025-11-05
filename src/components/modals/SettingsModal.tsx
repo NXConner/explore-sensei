@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { X, Settings, Moon, Sun, Bell, ImageUp, Zap, Volume2, Palette, MapPin } from "lucide-react";
+import { X, Settings, Moon, Sun, Bell, Zap, Volume2, Palette, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -9,7 +9,7 @@ import { useGamificationToggle } from "@/context/GamificationContext";
 import { Slider } from "@/components/ui/slider";
 import { WeatherAlertLocationsManager } from "./WeatherAlertLocationsManager";
 import { applyThemeVariables, applyWallpaper } from "@/lib/theme";
-import { ThemeSelector, WallpaperStudio } from "@/components/theme";
+import { ThemeCustomizer } from "@/components/theme";
 import { HUDPanel } from "@/components/foundation";
 import {
   ThemeId,
@@ -19,6 +19,16 @@ import {
 } from "@/design-system";
 import { Input } from "@/components/ui/input";
 import { detectExistingApiKeys } from "@/config/env";
+
+type HudFxState = {
+  glitchEffect: boolean;
+  scanlineEffect: boolean;
+  gridOverlay: boolean;
+  animationSpeed: number;
+  glitchIntensity: number;
+  reduceMotion: boolean;
+  bootOverlay: boolean;
+};
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -193,6 +203,33 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
 
   const handleWallpaperOpacityChange = (value: number) => {
     setSettings((prev) => ({ ...prev, wallpaperOpacity: value }));
+  };
+
+  const handleHudFxChange = (patch: Partial<HudFxState>) => {
+    setSettings((prev) => ({ ...prev, ...patch }));
+  };
+
+  const handleFidelityModeChange = (mode: "inspired" | "faithful") => {
+    const faithfulMap: Record<ThemeId, ThemeId> = {
+      "division-shd": "division-shd-faithful",
+      "dark-zone": "dark-zone-faithful",
+      "black-tusk": "black-tusk-faithful",
+    } as Record<ThemeId, ThemeId>;
+
+    const inspiredMap: Record<ThemeId, ThemeId> = {
+      "division-shd-faithful": "division-shd",
+      "dark-zone-faithful": "dark-zone",
+      "black-tusk-faithful": "black-tusk",
+    } as Record<ThemeId, ThemeId>;
+
+    setSettings((prev) => {
+      const currentTheme = prev.theme as ThemeId;
+      const nextTheme =
+        mode === "faithful"
+          ? faithfulMap[currentTheme] ?? currentTheme
+          : inspiredMap[currentTheme] ?? currentTheme;
+      return { ...prev, fidelityMode: mode, theme: nextTheme };
+    });
   };
 
   // Apply theme by setting CSS variables on :root and sync dark class based on darkMode
@@ -453,29 +490,14 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
               <WeatherAlertLocationsManager />
             </TabsContent>
 
-            <TabsContent value="themes" className="mt-0 space-y-6">
-              <HUDPanel className="space-y-6">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <Label className="flex items-center gap-2 text-sm font-semibold">
-                      <Palette className="h-4 w-4 text-primary" /> Theme Library
-                    </Label>
-                    <p className="text-xs text-muted-foreground">
-                      Curated presets tuned for ministry briefings, crew ops, and executive
-                      dashboards.
-                    </p>
-                  </div>
-                </div>
-                <ThemeSelector
-                  value={settings.theme as ThemeId}
-                  onChange={handleThemeChange}
+              <TabsContent value="themes" className="mt-0 space-y-6">
+                <ThemeCustomizer
+                  themeId={settings.theme as ThemeId}
+                  onThemeChange={handleThemeChange}
+                  fidelityMode={settings.fidelityMode}
+                  onFidelityModeChange={handleFidelityModeChange}
                   premiumAccess={settings.premiumEnabled}
-                />
-              </HUDPanel>
-
-              <HUDPanel className="space-y-5" withGlow>
-                <WallpaperStudio
-                  selection={
+                  wallpaperSelection={
                     settings.wallpaperPresetId || settings.wallpaperUrl
                       ? {
                           presetId: settings.wallpaperPresetId,
@@ -489,102 +511,30 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                         }
                       : undefined
                   }
-                  opacity={settings.wallpaperOpacity}
-                  onSelectionChange={handleWallpaperSelection}
-                  onOpacityChange={handleWallpaperOpacityChange}
+                  wallpaperOpacity={settings.wallpaperOpacity}
+                  onWallpaperSelectionChange={handleWallpaperSelection}
+                  onWallpaperOpacityChange={handleWallpaperOpacityChange}
+                  wallpaperRemoteUrl={settings.wallpaperUrl}
+                  onWallpaperRemoteUrlChange={(url) =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      wallpaperUrl: url,
+                      wallpaperPresetId: url ? undefined : prev.wallpaperPresetId,
+                    }))
+                  }
+                  hudFx={{
+                    glitchEffect: settings.glitchEffect,
+                    scanlineEffect: settings.scanlineEffect,
+                    gridOverlay: settings.gridOverlay,
+                    animationSpeed: settings.animationSpeed,
+                    glitchIntensity: settings.glitchIntensity,
+                    reduceMotion: settings.reduceMotion,
+                    bootOverlay: settings.bootOverlay,
+                  }}
+                  onHudFxChange={handleHudFxChange}
                 />
-                <div className="space-y-2">
-                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                    Remote Wallpaper URL
-                  </Label>
-                  <Input
-                    type="url"
-                    placeholder="https://church-cdn.example.com/wallpaper.jpg"
-                    value={settings.wallpaperUrl}
-                    onChange={(e) =>
-                      setSettings((prev) => ({
-                        ...prev,
-                        wallpaperPresetId: undefined,
-                        wallpaperUrl: e.target.value,
-                      }))
-                    }
-                    className="h-9 border-primary/30 bg-background/60"
-                  />
-                  <p className="text-[0.7rem] text-muted-foreground">
-                    Paste a hosted image to sync branding across distributed teams. Leaving this
-                    blank uses the selected preset or upload.
-                  </p>
-                </div>
-              </HUDPanel>
 
-              {/* Fidelity Mode Toggle */}
-              <HUDPanel className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Fidelity Mode</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Switch between Inspired (original) and Faithful color tuning
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant={settings.fidelityMode === "inspired" ? "default" : "outline"}
-                      onClick={() => setSettings((p) => ({ ...p, fidelityMode: "inspired" }))}
-                    >
-                      Inspired
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant={settings.fidelityMode === "faithful" ? "default" : "outline"}
-                      onClick={() => {
-                        const mapToFaithful: Record<string, string> = {
-                          "division-shd": "division-shd-faithful",
-                          "dark-zone": "dark-zone-faithful",
-                          "black-tusk": "black-tusk-faithful",
-                        };
-                        const nextTheme = (mapToFaithful[settings.theme as string] ||
-                          settings.theme) as ThemeId;
-                        setSettings((p) => ({ ...p, fidelityMode: "faithful", theme: nextTheme }));
-                      }}
-                    >
-                      Faithful
-                    </Button>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Fidelity affects palette intensity only. No third-party logos or assets are used.
-                </p>
-              </HUDPanel>
-
-              {/* Map Theme Selection */}
-              <div className="tactical-panel hidden space-y-4 p-4">
-                <div className="mb-2 flex items-center gap-3">
-                  <Palette className="h-5 w-5 text-primary" />
-                  <Label>Map Theme</Label>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    variant={settings.mapTheme === "division" ? "default" : "outline"}
-                    onClick={() => setSettings((p) => ({ ...p, mapTheme: "division" }))}
-                    className="justify-start"
-                  >
-                    Division
-                  </Button>
-                  <Button
-                    variant={settings.mapTheme === "animus" ? "default" : "outline"}
-                    onClick={() => setSettings((p) => ({ ...p, mapTheme: "animus" }))}
-                    className="justify-start"
-                  >
-                    Animus
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Choose between Division (orange) and Animus (cyan) map styles
-                </p>
-              </div>
-
-              {/* Default Map Location */}
+                {/* Default Map Location */}
               <HUDPanel className="space-y-4">
                 <div className="mb-2 flex items-center gap-3">
                   <MapPin className="h-5 w-5 text-primary" />
@@ -617,145 +567,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                 </div>
               </HUDPanel>
 
-              <div className="tactical-panel hidden space-y-4 p-4">
-                <div className="mb-2 flex items-center gap-3">
-                  <ImageUp className="h-5 w-5 text-primary" />
-                  <Label>Custom Wallpaper</Label>
-                </div>
-                <div className="space-y-2">
-                  <input
-                    type="url"
-                    placeholder="Paste image URL (https://...)"
-                    value={settings.wallpaperUrl}
-                    onChange={(e) => setSettings((p) => ({ ...p, wallpaperUrl: e.target.value }))}
-                    className="hud-element w-full rounded border-primary/30 bg-transparent px-3 py-2 text-sm"
-                  />
-                  <div className="pl-1">
-                    <Label className="text-xs">
-                      Wallpaper Opacity: {settings.wallpaperOpacity}%
-                    </Label>
-                    <Slider
-                      value={[settings.wallpaperOpacity]}
-                      onValueChange={([val]) =>
-                        setSettings((prev) => ({ ...prev, wallpaperOpacity: val }))
-                      }
-                      min={10}
-                      max={100}
-                      step={5}
-                      className="mt-2"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Theme Customizer with Live Preview */}
-              <div className="tactical-panel hidden space-y-4 p-4">
-                <div className="mb-2 flex items-center gap-3">
-                  <Label>Theme Customizer</Label>
-                </div>
-                <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-                  <div>
-                    <Label className="text-xs">Primary Hue</Label>
-                    <input
-                      type="range"
-                      min={0}
-                      max={360}
-                      step={1}
-                      value={(() => {
-                        const raw = getComputedStyle(document.documentElement)
-                          .getPropertyValue("--primary")
-                          .trim();
-                        const [h] = raw ? raw.split(" ") : ["30"];
-                        return Number(h) || 30;
-                      })()}
-                      onChange={(e) => {
-                        const root = document.documentElement as HTMLElement;
-                        const current = getComputedStyle(root).getPropertyValue("--primary").trim();
-                        const parts = current ? current.split(" ") : [];
-                        const sat = parts[1] || "100%";
-                        const lum = parts[2] || "50%";
-                        root.style.setProperty("--primary", `${e.target.value} ${sat} ${lum}`);
-                      }}
-                      className="w-full"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Accent Hue</Label>
-                    <input
-                      type="range"
-                      min={0}
-                      max={360}
-                      step={1}
-                      value={(() => {
-                        const raw = getComputedStyle(document.documentElement)
-                          .getPropertyValue("--accent")
-                          .trim();
-                        const [h] = raw ? raw.split(" ") : ["197"];
-                        return Number(h) || 197;
-                      })()}
-                      onChange={(e) => {
-                        const root = document.documentElement as HTMLElement;
-                        const current = getComputedStyle(root).getPropertyValue("--accent").trim();
-                        const parts = current ? current.split(" ") : [];
-                        const sat = parts[1] || "100%";
-                        const lum = parts[2] || "50%";
-                        root.style.setProperty("--accent", `${e.target.value} ${sat} ${lum}`);
-                      }}
-                      className="w-full"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Background Luminance</Label>
-                    <input
-                      type="range"
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={(() => {
-                        const raw = getComputedStyle(document.documentElement)
-                          .getPropertyValue("--background")
-                          .trim();
-                        const parts = raw ? raw.split(" ") : [];
-                        const lum = parts[2] || "4%";
-                        return Number(String(lum).replace("%", "")) || 4;
-                      })()}
-                      onChange={(e) => {
-                        const root = document.documentElement as HTMLElement;
-                        const current = getComputedStyle(root)
-                          .getPropertyValue("--background")
-                          .trim();
-                        const parts = current ? current.split(" ") : [];
-                        const h = parts[0] || "0";
-                        const s = parts[1] || "0%";
-                        root.style.setProperty("--background", `${h} ${s} ${e.target.value}%`);
-                      }}
-                      className="w-full"
-                    />
-                  </div>
-                </div>
-                <div className="mt-2 rounded border border-primary/30 p-3">
-                  <div className="mb-2 text-xs">Live Preview</div>
-                  <div className="flex gap-2">
-                    <button className="rounded bg-primary px-3 py-2 text-primary-foreground">
-                      Primary
-                    </button>
-                    <button className="rounded bg-accent px-3 py-2 text-accent-foreground">
-                      Accent
-                    </button>
-                    <div
-                      className="rounded border px-3 py-2"
-                      style={{
-                        background: "hsl(var(--background))",
-                        color: "hsl(var(--foreground))",
-                      }}
-                    >
-                      Body
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Preferred Map Provider */}
+                {/* Preferred Map Provider */}
               <div className="tactical-panel space-y-4 p-4">
                 <div className="mb-2 flex items-center gap-3">
                   <Palette className="h-5 w-5 text-primary" />

@@ -1,24 +1,67 @@
 version: "3.9"
 
+x-frontend-build-args: &frontend-build-args
+  VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:-http://kong:8000}
+  VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+  VITE_GOOGLE_MAPS_API_KEY: ${VITE_GOOGLE_MAPS_API_KEY:-}
+  VITE_DEFAULT_THEME_PRESET: ${VITE_DEFAULT_THEME_PRESET:-division-shd}
+  VITE_DEFAULT_WALLPAPER: ${VITE_DEFAULT_WALLPAPER:-mission-grid}
+  DIVISION_THEME_ENABLED: ${DIVISION_THEME_ENABLED:-true}
+  DIVISION_HUD_ENABLED: ${DIVISION_HUD_ENABLED:-true}
+  HUD_LABS_ENABLED: ${HUD_LABS_ENABLED:-false}
+  TACTICAL_MAP_ENABLED: ${TACTICAL_MAP_ENABLED:-true}
+  OBSERVABILITY_PIPELINE_ENABLED: ${OBSERVABILITY_PIPELINE_ENABLED:-true}
+  VITE_OTEL_EXPORT_URL: ${VITE_OTEL_EXPORT_URL:-https://otel.exploresensei.com/v1/traces}
+
+x-frontend-env: &frontend-env
+  NODE_ENV: production
+  DIVISION_THEME_ENABLED: ${DIVISION_THEME_ENABLED:-true}
+  DIVISION_HUD_ENABLED: ${DIVISION_HUD_ENABLED:-true}
+  HUD_LABS_ENABLED: ${HUD_LABS_ENABLED:-false}
+  TACTICAL_MAP_ENABLED: ${TACTICAL_MAP_ENABLED:-true}
+  OBSERVABILITY_PIPELINE_ENABLED: ${OBSERVABILITY_PIPELINE_ENABLED:-true}
+  OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4318}
+  OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+  OTEL_SERVICE_NAME: pavement-performance-suite-frontend
+  VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:-http://kong:8000}
+  VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+  VITE_GOOGLE_MAPS_API_KEY: ${VITE_GOOGLE_MAPS_API_KEY:-}
+  VITE_OTEL_EXPORT_URL: ${VITE_OTEL_EXPORT_URL:-https://otel.exploresensei.com/v1/traces}
+  VITE_DEFAULT_THEME_PRESET: ${VITE_DEFAULT_THEME_PRESET:-division-shd}
+  VITE_DEFAULT_WALLPAPER: ${VITE_DEFAULT_WALLPAPER:-mission-grid}
+
 services:
   app:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:-http://kong:8000}
-        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
-        VITE_GOOGLE_MAPS_API_KEY: ${VITE_GOOGLE_MAPS_API_KEY:-}
-        VITE_GOOGLE_API_KEY: ${VITE_GOOGLE_API_KEY:-}
-        VITE_GOOGLE_KEY: ${VITE_GOOGLE_KEY:-}
-        GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+      args: *frontend-build-args
+      target: runner
+    image: pavement-performance-suite:latest
+    environment: *frontend-env
     ports:
       - "5173:8080"
-    environment:
-      NODE_ENV: production
     depends_on:
-      - kong
-      - mlapi
+      kong:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
+      mlapi:
+        condition: service_started
+    restart: unless-stopped
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.99.0
+    command: ["--config=/etc/otel-collector.yaml"]
+    volumes:
+      - ./docker/otel-collector.yaml:/etc/otel-collector.yaml:ro
+    environment:
+      OTEL_REMOTE_TRACES_ENDPOINT: ${OTEL_REMOTE_TRACES_ENDPOINT:-https://otel.exploresensei.com/v1/traces}
+      OTEL_REMOTE_API_KEY: ${OTEL_REMOTE_API_KEY:-otel-dev-token}
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+      - "8888:8888"
     restart: unless-stopped
 
   mlapi:
@@ -50,12 +93,18 @@ services:
       - ./supabase/migrations:/docker-entrypoint-initdb.d/migrations:ro
     ports:
       - "54322:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U supabase -d supabase"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   auth:
     image: supabase/gotrue:v2.151.1
     restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       GOTRUE_SITE_URL: ${SUPABASE_SITE_URL:-http://localhost:5173}
       GOTRUE_API_HOST: 0.0.0.0
@@ -82,7 +131,8 @@ services:
     image: supabase/postgrest:v12.1.0
     restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       PGRST_DB_URI: postgres://supabase:supabase@db:5432/supabase
       PGRST_DB_SCHEMA: public,storage,graphql_public
@@ -98,7 +148,8 @@ services:
     image: supabase/realtime:v2.32.3
     restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       DB_HOST: db
       DB_PORT: "5432"
@@ -114,7 +165,8 @@ services:
     image: supabase/storage-api:v1.0.6
     restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
       SERVICE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
@@ -138,27 +190,41 @@ services:
     image: supabase/kong:v2.16.1
     restart: unless-stopped
     depends_on:
-      - auth
-      - rest
-      - realtime
-      - storage
+      auth:
+        condition: service_started
+      rest:
+        condition: service_started
+      realtime:
+        condition: service_started
+      storage:
+        condition: service_started
     environment:
+      KONG_DATABASE: postgres
       KONG_PG_USER: supabase
       KONG_PG_PASSWORD: supabase
       KONG_PG_HOST: db
       KONG_PG_DATABASE: supabase
       KONG_ANONYMOUS_USERS: ${VITE_SUPABASE_ANON_KEY}
       KONG_JWT_SECRET: ${SUPABASE_JWT_SECRET}
-      KONG_LOG_LEVEL: notice
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001, 0.0.0.0:8444 ssl
     ports:
       - "8000:8000"
       - "8443:8443"
+      - "8001:8001"
+    healthcheck:
+      test: ["CMD", "kong", "health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   studio:
     image: supabase/studio:2025.02.01
     restart: unless-stopped
     depends_on:
-      - kong
+      kong:
+        condition: service_started
     environment:
       STUDIO_PG_META_URL: http://meta:8080
       SUPABASE_URL: http://kong:8000
@@ -171,7 +237,8 @@ services:
     image: supabase/postgres-meta:v0.81.4
     restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       PG_META_PORT: "8080"
       PG_META_DB_HOST: db

@@ -47,6 +47,12 @@ export interface ThemeDefinition {
   accentGradient?: string;
   badges?: string[];
   tags?: string[];
+  hud?: {
+    gridColor?: string;
+    cornerAccent?: string;
+    glassTint?: string;
+    glow?: string;
+  };
 }
 
 export type WallpaperPresetId =
@@ -60,6 +66,14 @@ export type WallpaperPresetId =
   | "steelworks"
   | "uplift"
   | "legacy"
+  | "division-agent"
+  | "rogue-agent"
+  | "dark-zone"
+  | "tech-specialist"
+  | "stealth-operations"
+  | "tactical-command"
+  | "hunter-protocol"
+  | "dark-zone-threat"
   | "custom";
 
 export type WallpaperKind = "gradient" | "image";
@@ -79,6 +93,7 @@ export interface WallpaperPreset {
   brightness?: number;
   saturation?: number;
   blur?: number;
+  source?: string;
 }
 
 export interface WallpaperSelection {
@@ -103,4 +118,12 @@ export interface DesignSpaceTokens {
   blurs: Record<string, string>;
   gradients: Record<string, string>;
   breakpoints: Record<string, string>;
+  noise?: Record<string, string>;
+  backdrops?: Record<string, string>;
+}
+
+export interface MotionTokens {
+  easings: Record<string, string>;
+  durations: Record<string, string>;
+  keyframes: Record<string, string>;
 }
