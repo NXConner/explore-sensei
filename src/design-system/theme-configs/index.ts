@@ -6,7 +6,7 @@ import { premiumThemes } from "./premium";
 import { limitedThemes } from "./limited";
 import { accessibilityThemes } from "./accessibility";
 
-export { ThemeConfig } from "./types";
+export type { ThemeConfig } from "./types";
 export {
   coreThemes,
   faithfulThemes,

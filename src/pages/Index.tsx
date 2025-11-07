@@ -1,6 +1,584 @@
 import React from "react";
 import { CommandCenterLayout } from "@/layouts/command-center/CommandCenterLayout";
 
-const Index = () => <CommandCenterLayout />;
+const DashboardModal = lazy(() =>
+  import("@/components/modals/DashboardModal").then((m) => ({ default: m.DashboardModal })),
+);
+const ScheduleModal = lazy(() =>
+  import("@/components/modals/ScheduleModal").then((m) => ({ default: m.ScheduleModal })),
+);
+const ClientsModal = lazy(() =>
+  import("@/components/modals/ClientsModal").then((m) => ({ default: m.ClientsModal })),
+);
+const FleetModal = lazy(() =>
+  import("@/components/modals/FleetModal").then((m) => ({ default: m.FleetModal })),
+);
+const FinanceModal = lazy(() =>
+  import("@/components/modals/FinanceModal").then((m) => ({ default: m.FinanceModal })),
+);
+const AnalyticsModal = lazy(() =>
+  import("@/components/modals/AnalyticsModal").then((m) => ({ default: m.AnalyticsModal })),
+);
+const ChatModal = lazy(() =>
+  import("@/components/modals/ChatModal").then((m) => ({ default: m.ChatModal })),
+);
+const AutomationModal = lazy(() =>
+  import("@/components/modals/AutomationModal").then((m) => ({ default: m.AutomationModal })),
+);
+const PayrollModal = lazy(() =>
+  import("@/components/modals/PayrollModal").then((m) => ({ default: m.PayrollModal })),
+);
+const JobsModal = lazy(() =>
+  import("@/components/jobs/JobsModal").then((m) => ({ default: m.JobsModal })),
+);
+const TimeTrackingModal = lazy(() =>
+  import("@/components/time/TimeTrackingModal").then((m) => ({ default: m.TimeTrackingModal })),
+);
+const PhotoDocumentationModal = lazy(() =>
+  import("@/components/photos/PhotoDocumentationModal").then((m) => ({
+    default: m.PhotoDocumentationModal,
+  })),
+);
+const EquipmentModal = lazy(() =>
+  import("@/components/equipment/EquipmentModal").then((m) => ({ default: m.EquipmentModal })),
+);
+const InvoicingModal = lazy(() =>
+  import("@/components/invoicing/InvoicingModal").then((m) => ({ default: m.InvoicingModal })),
+);
+const FieldReportsModal = lazy(() =>
+  import("@/components/reports/FieldReportsModal").then((m) => ({ default: m.FieldReportsModal })),
+);
+const SafetyComplianceModal = lazy(() =>
+  import("@/components/safety/SafetyComplianceModal").then((m) => ({
+    default: m.SafetyComplianceModal,
+  })),
+);
+const CostCatalogModal = lazy(() =>
+  import("@/components/catalog/CostCatalogModal").then((m) => ({ default: m.CostCatalogModal })),
+);
+const EstimateCalculatorModal = lazy(() =>
+  import("@/components/estimate/EstimateCalculatorModal").then((m) => ({
+    default: m.EstimateCalculatorModal,
+  })),
+);
+const AIAsphaltDetectionModal = lazy(() =>
+  import("@/components/ai/AIAsphaltDetectionModal").then((m) => ({
+    default: m.AIAsphaltDetectionModal,
+  })),
+);
+const RouteOptimizationModal = lazy(() =>
+  import("@/components/route/RouteOptimizationModal").then((m) => ({
+    default: m.RouteOptimizationModal,
+  })),
+);
+const ScreensaverMode = lazy(() =>
+  import("@/components/screensaver/ScreensaverMode").then((m) => ({ default: m.ScreensaverMode })),
+);
+const DocumentsModal = lazy(() =>
+  import("@/components/modals/DocumentsModal").then((m) => ({ default: m.DocumentsModal })),
+);
+const ContractsModal = lazy(() =>
+  import("@/components/modals/ContractsModal").then((m) => ({ default: m.ContractsModal })),
+);
+const ReceiptsModal = lazy(() =>
+  import("@/components/modals/ReceiptsModal").then((m) => ({ default: m.ReceiptsModal })),
+);
+const SettingsModal = lazy(() =>
+  import("@/components/modals/SettingsModal").then((m) => ({ default: m.SettingsModal })),
+);
+const EODPlaybackModal = lazy(() =>
+  import("@/components/modals/EODPlaybackModal").then((m) => ({ default: m.EODPlaybackModal })),
+);
+const EmployeeComplianceModal = lazy(() =>
+  import("@/components/compliance/EmployeeComplianceModal").then((m) => ({
+    default: m.EmployeeComplianceModal,
+  })),
+);
+const BusinessManagementHub = lazy(() =>
+  import("@/components/business/BusinessManagementHub").then((m) => ({
+    default: m.BusinessManagementHub,
+  })),
+);
+const HRManagementModal = lazy(() =>
+  import("@/components/business/HRManagementModal").then((m) => ({ default: m.HRManagementModal })),
+);
+const WeatherRadarModal = lazy(() =>
+  import("@/components/weather/WeatherRadarModal").then((m) => ({ default: m.WeatherRadarModal })),
+);
+const VeteranModal = lazy(() =>
+  import("@/components/modals/VeteranModal").then((m) => ({ default: m.VeteranModal })),
+);
+import { JobStatusLegend } from "@/components/map/JobStatusLegend";
+import { ClockInStatus } from "@/components/time/ClockInStatus";
+import { CornerBrackets } from "@/components/hud/CornerBrackets";
+import { CompassRose } from "@/components/hud/CompassRose";
+import { CoordinateDisplay } from "@/components/hud/CoordinateDisplay";
+import { ZoomIndicator } from "@/components/hud/ZoomIndicator";
+import { ScaleBar } from "@/components/hud/ScaleBar";
+
+import { CommandPalette } from "@/components/common/CommandPalette";
+
+const Index = () => {
+  const isOffline = useOfflineDetection();
+  const [activeModule, setActiveModule] = useState<string | null>(null);
+  const [showAI, setShowAI] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [showAIDetection, setShowAIDetection] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [showAutomation, setShowAutomation] = useState(false);
+  const [showScreensaver, setShowScreensaver] = useState(false);
+  const [showDocuments, setShowDocuments] = useState(false);
+  const [showContracts, setShowContracts] = useState(false);
+  const [showReceipts, setShowReceipts] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showEODPlayback, setShowEODPlayback] = useState(false);
+  const [showBusinessHub, setShowBusinessHub] = useState(false);
+  const [showHRCompliance, setShowHRCompliance] = useState(false);
+  const [showHRManagement, setShowHRManagement] = useState(false);
+  const [showWeatherRadar, setShowWeatherRadar] = useState(false);
+  const [showVeteran, setShowVeteran] = useState(false);
+  const [showExport, setShowExport] = useState(false);
+  const [pendingEstimateFromAI, setPendingEstimateFromAI] = useState<any | null>(null);
+  const mapContainerRef = useRef<MapContainerRef>(null);
+  const { data: scheduleItems } = useSchedule();
+  const [mapTheme, setMapTheme] = useState<"division" | "animus">("division");
+  const [mapState, setMapState] = useState({
+    showTraffic: false,
+    showEmployeeTracking: false,
+    showWeatherRadar: false,
+    showParcels: false,
+    activeMode: null as DrawingMode,
+    imagery: "none" as "none" | "naip" | "usgs",
+    lat: 0,
+    lng: 0,
+    zoom: 15,
+  });
+
+  // Load map theme from settings, default to division, and react to changes
+  useEffect(() => {
+    const load = () => {
+      try {
+        const raw = localStorage.getItem("aos_settings");
+        if (!raw) { setMapTheme("division"); return; }
+        const parsed = JSON.parse(raw);
+        setMapTheme(parsed.mapTheme === "animus" ? "animus" : "division");
+      } catch { setMapTheme("division"); }
+    };
+    load();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== "aos_settings") return;
+      load();
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  // Sync map state via events (optimized from 500ms polling)
+  useEffect(() => {
+    const handleMapStateChange = (e: CustomEvent) => {
+      setMapState(prev => ({ ...prev, ...e.detail }));
+    };
+    window.addEventListener('map-state-change', handleMapStateChange as any);
+    return () => window.removeEventListener('map-state-change', handleMapStateChange as any);
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      const analysis = e?.detail?.analysis;
+      if (!analysis) return;
+      setPendingEstimateFromAI(analysis);
+      setActiveModule("estimate");
+    };
+    window.addEventListener('ai-detection-estimate', handler as any);
+    return () => window.removeEventListener('ai-detection-estimate', handler as any);
+  }, []);
+
+  // Comprehensive keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const isInputField = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
+      const isModKey = e.metaKey || e.ctrlKey;
+
+      // Command Palette
+      if (isModKey && e.key === 'k') {
+        e.preventDefault();
+        setShowCommandPalette(true);
+        return;
+      }
+
+      // Module shortcuts (with modifier)
+      if (isModKey && !isInputField) {
+        switch (e.key) {
+          case 'n': e.preventDefault(); setActiveModule('jobs'); break;
+          case 'b': e.preventDefault(); setActiveModule('dashboard'); break;
+          case '/': e.preventDefault(); (document.querySelector('.address-search-input') as HTMLInputElement)?.focus(); break;
+          case 's': e.preventDefault(); mapContainerRef.current?.handleSave(); break;
+          case '.': e.preventDefault(); setShowSettings(true); break;
+        }
+        return;
+      }
+
+      // Single key shortcuts (no modifier)
+      if (!isModKey && !e.shiftKey && !e.altKey && !isInputField) {
+        switch (e.key) {
+          case 'Escape':
+            if (activeModule) setActiveModule(null);
+            else if (showAI) setShowAI(false);
+            else if (showCommandPalette) setShowCommandPalette(false);
+            break;
+          case 'a': e.preventDefault(); setShowAI(prev => !prev); break;
+          case 'm': e.preventDefault(); mapContainerRef.current?.handleModeChange('measure'); break;
+          case 't': e.preventDefault(); mapContainerRef.current?.handleToggleTraffic(); break;
+          case 'w': e.preventDefault(); mapContainerRef.current?.toggleWeatherRadar(); break;
+          case 'e': e.preventDefault(); mapContainerRef.current?.toggleEmployeeTracking(); break;
+          case '1': e.preventDefault(); mapContainerRef.current?.handleModeChange('marker'); break;
+          case '2': e.preventDefault(); mapContainerRef.current?.handleModeChange('polyline'); break;
+          case '3': e.preventDefault(); mapContainerRef.current?.handleModeChange('circle'); break;
+          case '4': e.preventDefault(); mapContainerRef.current?.handleModeChange('rectangle'); break;
+          case ' ': e.preventDefault(); break; // Space for future use
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [activeModule, showAI, showCommandPalette]);
+
+  useEffect(() => {
+    if (activeModule === 'estimate' && pendingEstimateFromAI) {
+      // ensure modal has mounted, then dispatch analysis payload
+      const t = setTimeout(() => {
+        const evt = new CustomEvent('ai-detection-estimate', { detail: { analysis: pendingEstimateFromAI } });
+        window.dispatchEvent(evt);
+        setPendingEstimateFromAI(null);
+      }, 50);
+      return () => clearTimeout(t);
+    }
+  }, [activeModule, pendingEstimateFromAI]);
+
+  // Map navigation module IDs to corresponding modal toggles when selected from TopBar
+  useEffect(() => {
+    if (!activeModule) return;
+    switch (activeModule) {
+      case 'settings':
+        setShowSettings(true);
+        setActiveModule(null);
+        break;
+      case 'weather':
+        setShowWeatherRadar(true);
+        setActiveModule(null);
+        break;
+      case 'screensaver':
+        setShowScreensaver(true);
+        setActiveModule(null);
+        break;
+      case 'export':
+        setShowExport(true);
+        setActiveModule(null);
+        break;
+      case 'veteran':
+        setShowVeteran(true);
+        setActiveModule(null);
+        break;
+      default:
+        break;
+    }
+  }, [activeModule]);
+
+  return (
+    <div
+      className="relative h-screen w-full overflow-hidden bg-background"
+      data-testid="root-shell"
+    >
+      {isOffline && (
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[9999] pointer-events-none">
+          <div className="hud-element px-4 py-1.5 text-xs font-medium border-l-2 border-destructive/80 bg-background/90">
+            <span className="text-destructive">●</span> Offline Mode
+          </div>
+        </div>
+      )}
+      {/* Horizontal Ops Bar - Optimized layout */}
+      <HorizontalOpsBar 
+        onModeChange={(mode) => mapContainerRef.current?.handleModeChange(mode)}
+        activeMode={mapState.activeMode}
+        onClear={() => mapContainerRef.current?.handleClear()}
+        onToggleTraffic={() => mapContainerRef.current?.handleToggleTraffic()}
+        showTraffic={mapState.showTraffic}
+        onToggleWeather={() => mapContainerRef.current?.toggleWeatherRadar()}
+        showWeather={mapState.showWeatherRadar}
+        onToggleDarkZones={() => {}}
+        onToggleEquipment={() => mapContainerRef.current?.toggleEmployeeTracking()}
+        showEquipment={mapState.showEmployeeTracking}
+      />
+
+      {/* Objective Ribbon - ensure it sits directly under HorizontalOpsBar */}
+      <div className="absolute left-1/2 -translate-x-1/2 z-[var(--z-objective)] top-[84px]">
+        <div className="hud-element px-4 py-2 text-xs flex items-center gap-3">
+          <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+          <span className="uppercase tracking-widest">Active Mission</span>
+          <span className="text-muted-foreground">
+            — {scheduleItems?.length ? `${scheduleItems.length} scheduled` : "No active schedule"}
+          </span>
+...
+          <span className="text-muted-foreground">
+            {scheduleItems?.[0]?.start_time ? `ETA ${new Date(scheduleItems[0].start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'ETA —'}
+          </span>
+        </div>
+      </div>
+      {/* Main Map */}
+      <MapContainer ref={mapContainerRef} initialMapTheme={mapTheme} />
+
+      {/* Top Bar */}
+      <TopBar onModuleClick={setActiveModule} />
+
+      {/* Slim toolbar swapped to left */}
+      <RightSidebar
+        side="left"
+        // now rendered on the left edge via prop and class override
+        onAIClick={() => setShowAI(true)}
+        onSettingsClick={() => setShowSettings(true)}
+        onLocateMe={() => mapContainerRef.current?.handleLocateMe()}
+        onToggleTraffic={() => mapContainerRef.current?.handleToggleTraffic()}
+        showTraffic={mapState.showTraffic}
+        onToggleStreetView={() => mapContainerRef.current?.handleToggleStreetView()}
+        onAIDetect={() => setShowAIDetection(true)}
+        onToggleEmployeeTracking={() => mapContainerRef.current?.toggleEmployeeTracking()}
+        showEmployeeTracking={mapState.showEmployeeTracking}
+        onToggleWeatherRadar={() => mapContainerRef.current?.toggleWeatherRadar()}
+        showWeatherRadar={mapState.showWeatherRadar}
+        onToggleParcels={() => mapContainerRef.current?.toggleParcels()}
+        showParcels={mapState.showParcels}
+        onModeChange={(mode) => mapContainerRef.current?.handleModeChange(mode)}
+        activeMode={mapState.activeMode}
+        onClear={() => mapContainerRef.current?.handleClear()}
+        onSave={() => mapContainerRef.current?.handleSave()}
+        onExport={() => setShowExport(true)}
+        onImageryChange={(mode) => (mapContainerRef.current as any)?.setImagery?.(mode)}
+        imagery={mapState.imagery}
+      />
+      
+      {/* Wide panel now on right - with corner brackets */}
+      <div className="absolute right-0 top-[84px] bottom-16 w-80 z-[var(--z-sidebars)] hud-element border-l border-primary/30 bg-background/80 backdrop-blur-md">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="corner-bracket-md corner-tl" />
+          <div className="corner-bracket-md corner-tr" />
+          <div className="corner-bracket-md corner-bl" />
+          <div className="corner-bracket-md corner-br" />
+        </div>
+        <div className="h-full relative z-10">
+          <LeftSidebar side="right" />
+        </div>
+      </div>
+
+      {/* HUD Components - properly layered and positioned */}
+      <CornerBrackets />
+      <CompassRose bearing={0} />
+      <CoordinateDisplay lat={mapState.lat} lng={mapState.lng} />
+      <ZoomIndicator zoom={mapState.zoom} />
+      <ScaleBar lat={mapState.lat} zoom={mapState.zoom} />
+
+      {/* KPI Ticker */}
+      <KPITicker />
+
+      {/* Command Palette */}
+      <CommandPalette 
+        open={showCommandPalette}
+        onOpenChange={setShowCommandPalette}
+        onNavigate={setActiveModule}
+      />
+
+      {/* Legend now embedded in left sidebar; remove floating overlay */}
+
+      {/* AI Assistant */}
+      {showAI && <AIAssistant onClose={() => setShowAI(false)} />}
+
+      {/* AI Asphalt Detection */}
+      <AIAsphaltDetectionModal isOpen={showAIDetection} onClose={() => setShowAIDetection(false)} />
+
+      {/* Modals */}
+      {activeModule === "dashboard" && (
+        <Suspense fallback={<SkeletonLoader type="modal" />}>
+          <DashboardModal onClose={() => setActiveModule(null)} />
+        </Suspense>
+      )}
+      {activeModule === "schedule" && (
+        <Suspense fallback={<LoadingSpinner text="Loading Schedule..." size="lg" variant="primary" />}>
+          <ScheduleModal onClose={() => setActiveModule(null)} />
+        </Suspense>
+      )}
+      {activeModule === "clients" && (
+        <Suspense fallback={<LoadingSpinner text="Loading Clients..." size="lg" variant="primary" />}>
+          <ClientsModal onClose={() => setActiveModule(null)} />
+        </Suspense>
+      )}
+      {activeModule === "fleet" && (
+        <Suspense fallback={<LoadingSpinner text="Loading Fleet..." size="lg" variant="primary" />}>
+          <FleetModal onClose={() => setActiveModule(null)} />
+        </Suspense>
+      )}
+      {activeModule === "finance" && (
+        <Suspense fallback={<LoadingSpinner text="Loading Finance..." size="lg" variant="primary" />}>
+          <FinanceModal onClose={() => setActiveModule(null)} />
+        </Suspense>
+      )}
+      {activeModule === "payroll" && (
+        <Suspense fallback={<LoadingSpinner text="Loading Payroll..." size="lg" variant="primary" />}>
+          <PayrollModal onClose={() => setActiveModule(null)} />
+        </Suspense>
+      )}
+      {activeModule === "jobs" && (
+        <Suspense fallback={null}>
+          <JobsModal onClose={() => setActiveModule(null)} />
+        </Suspense>
+      )}
+      {activeModule === "time" && (
+        <Suspense fallback={null}>
+          <TimeTrackingModal onClose={() => setActiveModule(null)} />
+        </Suspense>
+      )}
+      {activeModule === "photos" && (
+        <Suspense fallback={null}>
+          <PhotoDocumentationModal onClose={() => setActiveModule(null)} />
+        </Suspense>
+      )}
+      {activeModule === "equipment" && (
+        <Suspense fallback={null}>
+          <EquipmentModal onClose={() => setActiveModule(null)} />
+        </Suspense>
+      )}
+      {activeModule === "invoicing" && (
+        <Suspense fallback={null}>
+          <InvoicingModal onClose={() => setActiveModule(null)} />
+        </Suspense>
+      )}
+      {activeModule === "field-reports" && (
+        <Suspense fallback={null}>
+          <FieldReportsModal onClose={() => setActiveModule(null)} />
+        </Suspense>
+      )}
+      {activeModule === "safety" && (
+        <Suspense fallback={null}>
+          <SafetyComplianceModal onClose={() => setActiveModule(null)} />
+        </Suspense>
+      )}
+      {activeModule === "catalog" && (
+        <Suspense fallback={null}>
+          <CostCatalogModal isOpen={true} onClose={() => setActiveModule(null)} />
+        </Suspense>
+      )}
+      {activeModule === "estimate" && (
+        <Suspense fallback={null}>
+          <EstimateCalculatorModal isOpen={true} onClose={() => setActiveModule(null)} />
+        </Suspense>
+      )}
+      {activeModule === "route" && (
+        <Suspense fallback={null}>
+          <RouteOptimizationModal onClose={() => setActiveModule(null)} />
+        </Suspense>
+      )}
+
+      {showAnalytics && (
+        <Suspense fallback={null}>
+          <AnalyticsModal onClose={() => setShowAnalytics(false)} />
+        </Suspense>
+      )}
+      {showChat && (
+        <Suspense fallback={null}>
+          <ChatModal onClose={() => setShowChat(false)} />
+        </Suspense>
+      )}
+      {showAutomation && (
+        <Suspense fallback={null}>
+          <AutomationModal onClose={() => setShowAutomation(false)} />
+        </Suspense>
+      )}
+      {showScreensaver && (
+        <Suspense fallback={null}>
+          <ScreensaverMode onClose={() => setShowScreensaver(false)} />
+        </Suspense>
+      )}
+      {showDocuments && (
+        <Suspense fallback={null}>
+          <DocumentsModal onClose={() => setShowDocuments(false)} />
+        </Suspense>
+      )}
+      {showContracts && (
+        <Suspense fallback={null}>
+          <ContractsModal onClose={() => setShowContracts(false)} />
+        </Suspense>
+      )}
+      {showReceipts && (
+        <Suspense fallback={null}>
+          <ReceiptsModal onClose={() => setShowReceipts(false)} />
+        </Suspense>
+      )}
+      {showSettings && (
+        <Suspense fallback={null}>
+          <SettingsModal onClose={() => setShowSettings(false)} />
+        </Suspense>
+      )}
+      {showEODPlayback && (
+        <Suspense fallback={null}>
+          <EODPlaybackModal onClose={() => setShowEODPlayback(false)} />
+        </Suspense>
+      )}
+      {showBusinessHub && (
+        <BusinessManagementHub
+          onClose={() => setShowBusinessHub(false)}
+          onNavigate={(module) => {
+            setActiveModule(module);
+            if (module === "hr_compliance") {
+              setShowHRCompliance(true);
+            } else if (module === "hr") {
+              setShowHRManagement(true);
+            } else if (module === "veteran") {
+              setShowVeteran(true);
+            }
+          }}
+        />
+      )}
+      {showHRCompliance && <EmployeeComplianceModal onClose={() => setShowHRCompliance(false)} />}
+      {showHRManagement && <HRManagementModal onClose={() => setShowHRManagement(false)} />}
+      {activeModule === "hr_compliance" && (
+        <EmployeeComplianceModal onClose={() => setActiveModule(null)} />
+      )}
+      {activeModule === "hr" && <HRManagementModal onClose={() => setActiveModule(null)} />}
+      {activeModule === "documents" && <DocumentsModal onClose={() => setActiveModule(null)} />}
+      {activeModule === "contracts" && <ContractsModal onClose={() => setActiveModule(null)} />}
+      {activeModule === "receipts" && <ReceiptsModal onClose={() => setActiveModule(null)} />}
+      {activeModule === "eod-playback" && (
+        <EODPlaybackModal onClose={() => setActiveModule(null)} />
+      )}
+
+      {/* Standalone Modals */}
+      {showWeatherRadar && (
+        <Suspense fallback={null}>
+          <WeatherRadarModal onClose={() => setShowWeatherRadar(false)} />
+        </Suspense>
+      )}
+      {showVeteran && (
+        <Suspense fallback={null}>
+          <VeteranModal onClose={() => setShowVeteran(false)} />
+        </Suspense>
+      )}
+
+      {/* Export Modal */}
+      {showExport && (
+        <Suspense fallback={null}>
+          {React.createElement(
+            lazy(() =>
+              import("@/components/export/MeasurementExportModal").then((m) => ({
+                default: m.MeasurementExportModal,
+              })),
+            ),
+            { isOpen: showExport, onClose: () => setShowExport(false) },
+          )}
+        </Suspense>
+      )}
+    </div>
+  );
+};
 
 export default Index;
