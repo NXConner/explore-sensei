@@ -34,6 +34,13 @@ async function getGeo(): Promise<{ lat?: number; lng?: number }> {
 }
 
 export async function emitGamificationEvent(input: EmitEventInput) {
+  // Check if user is authenticated first
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    console.warn("Cannot emit gamification event: User not authenticated");
+    return null;
+  }
+
   const device_id = input.device_id ?? getOrCreateDeviceId();
   const geo = await getGeo();
   const payload = { ...geo, ...input, device_id };
