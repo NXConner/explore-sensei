@@ -12,12 +12,13 @@ export interface HUDSettings {
   gridOverlay: boolean;
   vignetteEffect: boolean;
 
-  // HUD elements
+  // HUD elements visibility
   hudCornerBrackets?: boolean;
   hudMiniMap?: boolean;
   hudCompassRose?: boolean;
   hudCoordinateDisplay?: boolean;
   hudScaleBar?: boolean;
+  hudZoomIndicator?: boolean;
 
   // Audio
   soundVolume: number;
@@ -50,6 +51,7 @@ export function useHUDSettings(): [HUDSettings, (patch: Partial<HUDSettings>) =>
     hudCompassRose: true,
     hudCoordinateDisplay: true,
     hudScaleBar: true,
+    hudZoomIndicator: true,
     soundVolume: 70,
     radarAudioEnabled: false,
     radarAudioVolume: 50,

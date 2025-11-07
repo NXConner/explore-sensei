@@ -25,6 +25,13 @@ export const addHUDNotification = (notification: Omit<HUDNotification, "id">) =>
   notifications.push(newNotif);
   subscribers.forEach((cb) => cb([...notifications]));
 
+  // Trigger screen shake for critical alerts
+  if (newNotif.type === "error") {
+    const root = document.documentElement;
+    root.classList.add("screen-shake");
+    setTimeout(() => root.classList.remove("screen-shake"), 500);
+  }
+
   if (newNotif.duration && newNotif.duration > 0) {
     setTimeout(() => {
       removeHUDNotification(id);

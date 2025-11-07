@@ -111,6 +111,7 @@ const config: Config = {
         "hud-slide-in": "hud-slide-in 0.3s cubic-bezier(0.19, 1, 0.22, 1)",
         "hud-fade-in": "hud-fade-in 0.4s cubic-bezier(0.19, 1, 0.22, 1)",
         "notification-slide": "notification-slide 0.4s cubic-bezier(0.19, 1, 0.22, 1)",
+        "screen-shake": "screen-shake 0.5s ease-in-out",
       },
       keyframes: {
         "hud-glitch": {
@@ -149,6 +150,11 @@ const config: Config = {
         "notification-slide": {
           "0%": { transform: "translateX(100%)", opacity: "0" },
           "100%": { transform: "translateX(0)", opacity: "1" },
+        },
+        "screen-shake": {
+          "0%, 100%": { transform: "translate(0, 0)" },
+          "10%, 30%, 50%, 70%, 90%": { transform: "translate(-4px, 2px)" },
+          "20%, 40%, 60%, 80%": { transform: "translate(4px, -2px)" },
         },
       },
     },

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { beep } from "@/lib/audioEffects";
+import { RadarParticles } from "./RadarParticles";
 
 interface MapEffectsProps {
   showRadar?: boolean;
@@ -180,6 +181,16 @@ export const MapEffects = ({
 
   return (
     <>
+      {/* Particle Effects Trail */}
+      <RadarParticles 
+        enabled={showRadar}
+        radarSpeed={radarSpeed}
+        radarType={radarType}
+        accentColor={accentColor}
+        lowPowerMode={lowPowerMode}
+        reduceMotion={reduceMotion}
+      />
+
       {/* Radar Effects (variant by type) */}
       {showRadar && radarType === "standard" && (
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-[100]">

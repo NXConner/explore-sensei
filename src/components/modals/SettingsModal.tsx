@@ -44,6 +44,13 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     screensaver: false,
     screensaverDelay: 5,
     highContrast: false,
+    // HUD Element Visibility
+    hudCornerBrackets: true,
+    hudMiniMap: false,
+    hudCompassRose: true,
+    hudCoordinateDisplay: true,
+    hudScaleBar: true,
+    hudZoomIndicator: true,
     // Animation & Effects
     radarEffect: true,
     radarType: "standard" as "standard" | "sonar" | "aviation",
@@ -355,26 +362,87 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
 
             <TabsContent value="hud" className="mt-0 space-y-6">
               <div className="tactical-panel space-y-3 p-4">
-                <div className="text-sm font-semibold">HUD Elements</div>
+                <div className="text-sm font-semibold mb-2">HUD Elements Visibility</div>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Toggle individual HUD components on/off
+                </p>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs">Corner Brackets</span>
-                  <Switch checked={true} disabled />
+                  <div>
+                    <Label className="text-xs">Corner Brackets</Label>
+                    <p className="text-[10px] text-muted-foreground">Tactical frame corners</p>
+                  </div>
+                  <Switch 
+                    checked={settings.hudCornerBrackets ?? true}
+                    onCheckedChange={(checked) => {
+                      setSettings((p) => ({ ...p, hudCornerBrackets: checked }));
+                      window.dispatchEvent(new CustomEvent("aos_settings_updated"));
+                    }}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs">Compass Rose</span>
-                  <Switch checked={true} disabled />
+                  <div>
+                    <Label className="text-xs">Compass Rose</Label>
+                    <p className="text-[10px] text-muted-foreground">Directional indicator</p>
+                  </div>
+                  <Switch 
+                    checked={settings.hudCompassRose ?? true}
+                    onCheckedChange={(checked) => {
+                      setSettings((p) => ({ ...p, hudCompassRose: checked }));
+                      window.dispatchEvent(new CustomEvent("aos_settings_updated"));
+                    }}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs">Coordinate Display</span>
-                  <Switch checked={true} disabled />
+                  <div>
+                    <Label className="text-xs">Coordinate Display</Label>
+                    <p className="text-[10px] text-muted-foreground">Current position</p>
+                  </div>
+                  <Switch 
+                    checked={settings.hudCoordinateDisplay ?? true}
+                    onCheckedChange={(checked) => {
+                      setSettings((p) => ({ ...p, hudCoordinateDisplay: checked }));
+                      window.dispatchEvent(new CustomEvent("aos_settings_updated"));
+                    }}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs">Scale Bar</span>
-                  <Switch checked={true} disabled />
+                  <div>
+                    <Label className="text-xs">Scale Bar</Label>
+                    <p className="text-[10px] text-muted-foreground">Distance reference</p>
+                  </div>
+                  <Switch 
+                    checked={settings.hudScaleBar ?? true}
+                    onCheckedChange={(checked) => {
+                      setSettings((p) => ({ ...p, hudScaleBar: checked }));
+                      window.dispatchEvent(new CustomEvent("aos_settings_updated"));
+                    }}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs">Zoom Indicator</span>
-                  <Switch checked={true} disabled />
+                  <div>
+                    <Label className="text-xs">Zoom Indicator</Label>
+                    <p className="text-[10px] text-muted-foreground">Current zoom level</p>
+                  </div>
+                  <Switch 
+                    checked={settings.hudZoomIndicator ?? true}
+                    onCheckedChange={(checked) => {
+                      setSettings((p) => ({ ...p, hudZoomIndicator: checked }));
+                      window.dispatchEvent(new CustomEvent("aos_settings_updated"));
+                    }}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-xs">Mini Map</Label>
+                    <p className="text-[10px] text-muted-foreground">Tactical overview</p>
+                  </div>
+                  <Switch 
+                    checked={settings.hudMiniMap ?? false}
+                    onCheckedChange={(checked) => {
+                      setSettings((p) => ({ ...p, hudMiniMap: checked }));
+                      window.dispatchEvent(new CustomEvent("aos_settings_updated"));
+                    }}
+                  />
                 </div>
               </div>
             </TabsContent>

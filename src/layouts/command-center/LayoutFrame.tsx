@@ -19,9 +19,11 @@ import { cn } from "@/lib/utils";
 import { MobileKPIBar } from "./MobileKPIBar";
 import { MiniMap } from "@/components/hud/MiniMap";
 import { HUDNotifications } from "@/components/hud/HUDNotifications";
+import { useHUDSettings } from "@/hooks/useHUDSettings";
 
 export const LayoutFrame = ({ controller, children }: LayoutFrameProps) => {
   const { isMobile, isTablet } = useLayoutContext();
+  const [hudSettings] = useHUDSettings();
   const showDesktopSidebars = !(isMobile || isTablet);
 
   const missionRibbon = (
@@ -117,12 +119,13 @@ export const LayoutFrame = ({ controller, children }: LayoutFrameProps) => {
 
         <div className="relative flex-1">
           <MapContainer ref={controller.mapContainerRef} initialMapTheme={controller.mapTheme} />
-          <CornerBrackets />
-          <CompassRose />
-          <CoordinateDisplay lat={controller.mapState.lat} lng={controller.mapState.lng} />
-          <ZoomIndicator zoom={controller.mapState.zoom} />
-          <ScaleBar lat={controller.mapState.lat} zoom={controller.mapState.zoom} />
-          <MiniMap variant="overlay" />
+          {/* HUD Overlays - conditionally rendered based on settings */}
+          {hudSettings.hudCornerBrackets && <CornerBrackets />}
+          {hudSettings.hudCompassRose && <CompassRose />}
+          {hudSettings.hudCoordinateDisplay && <CoordinateDisplay lat={controller.mapState.lat} lng={controller.mapState.lng} />}
+          {hudSettings.hudZoomIndicator && <ZoomIndicator zoom={controller.mapState.zoom} />}
+          {hudSettings.hudScaleBar && <ScaleBar lat={controller.mapState.lat} zoom={controller.mapState.zoom} />}
+          {hudSettings.hudMiniMap && <MiniMap variant="overlay" />}
           <HUDNotifications />
         </div>
 

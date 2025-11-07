@@ -91,6 +91,11 @@
     color: rgba(0, 0, 0, 0.92);
   }
 
+  /* Screen shake effect for critical alerts */
+  html.screen-shake {
+    animation: screen-shake 0.5s ease-in-out;
+  }
+
   ::-webkit-scrollbar {
     width: 10px;
     height: 10px;
