@@ -1674,12 +1674,7 @@ export const MapContainer = forwardRef<
       </Suspense>
       <PulseScanOverlay enabled={showPulseScan} color={mapTheme === 'division' ? 'rgba(0,255,255,0.16)' : 'rgba(255,140,0,0.16)'} speed={4} />
 
-      {/* HUD overlay elements */}
-      <CornerBrackets />
-      <CompassRose />
-      <CoordinateDisplay lat={mapInstanceRef.current?.getCenter?.()?.lat()} lng={mapInstanceRef.current?.getCenter?.()?.lng()} />
-      <ScaleBar lat={mapInstanceRef.current?.getCenter?.()?.lat()} zoom={mapInstanceRef.current?.getZoom?.() || 0} />
-      <ZoomIndicator zoom={mapInstanceRef.current?.getZoom?.() || 0} />
+      {/* HUD overlay elements - Remove duplicates, handled by Index.tsx */}
       {/* MiniMap overlay removed; now embedded in sidebar */}
       {/* Radial Menu (hold 'Q') */}
       <RadialMenu onSelect={(mode) => handleModeChange(mode)} />
@@ -1760,9 +1755,9 @@ export const MapContainer = forwardRef<
         }}
       />
       {usingMapbox && (
-        <div className="absolute left-1/2 top-[calc(56px+8px)] -translate-x-1/2 z-[500]">
-          <div className="tactical-panel max-w-md text-sm text-center">
-            Mapbox fallback active. Advanced tools are disabled without Google Maps.
+        <div className="absolute left-4 bottom-24 z-[var(--z-corners)] pointer-events-none">
+          <div className="hud-element px-3 py-1.5 text-xs text-muted-foreground border-l-2 border-accent/60">
+            Mapbox Mode • Limited Features
           </div>
         </div>
       )}
@@ -1773,12 +1768,11 @@ export const MapContainer = forwardRef<
         />
       )}
       {mapsUnavailable && (
-        <div className="absolute left-1/2 top-[56px] -translate-x-1/2 z-[500]">
-          <div className="tactical-panel max-w-md text-center">
-            <h3 className="text-lg font-bold mb-2">Map preview disabled</h3>
-            <p className="text-sm text-muted-foreground">
-              No Google Maps API key configured. Add your key to enable live map, or continue using
-              other features.
+        <div className="absolute left-4 bottom-24 z-[var(--z-corners)]">
+          <div className="hud-element px-3 py-2 max-w-sm border-l-2 border-destructive/60">
+            <div className="text-xs font-semibold text-destructive mb-1">No API Key</div>
+            <p className="text-[10px] text-muted-foreground leading-tight">
+              Configure Google Maps in Settings to enable full functionality
             </p>
           </div>
         </div>

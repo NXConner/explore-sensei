@@ -304,8 +304,10 @@ const Index = () => {
       data-testid="root-shell"
     >
       {isOffline && (
-        <div className="absolute top-0 left-0 right-0 z-[9999] bg-destructive/90 backdrop-blur-sm text-destructive-foreground px-4 py-2 text-center text-sm font-medium">
-          Offline Mode • Changes will sync when connection is restored
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[9999] pointer-events-none">
+          <div className="hud-element px-4 py-1.5 text-xs font-medium border-l-2 border-destructive/80 bg-background/90">
+            <span className="text-destructive">●</span> Offline Mode
+          </div>
         </div>
       )}
       {/* Horizontal Ops Bar - Optimized layout */}
@@ -381,9 +383,9 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Add HUD Components */}
+      {/* HUD Components - properly layered and positioned */}
       <CornerBrackets />
-      <CompassRose />
+      <CompassRose bearing={0} />
       <CoordinateDisplay lat={mapState.lat} lng={mapState.lng} />
       <ZoomIndicator zoom={mapState.zoom} />
       <ScaleBar lat={mapState.lat} zoom={mapState.zoom} />
