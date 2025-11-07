@@ -1,72 +1,74 @@
-# Environment Setup Script for Explore Sensei
-# This script helps configure the environment variables for the project
+# Pavement Performance Suite Environment Bootstrap (PowerShell)
+# ------------------------------------------------------------------
+# This script materializes developer-friendly environment files by copying
+# the curated blueprint (.env.example), optionally hydrating secrets from
+# a configured secrets manager, and verifying the resulting configuration.
 
-Write-Host "Explore Sensei Environment Setup" -ForegroundColor Cyan
-Write-Host "=====================================" -ForegroundColor Cyan
+[CmdletBinding()]
+param(
+    [ValidateSet("development", "test", "staging", "production")]
+    [string]$Environment = "development",
 
-# Check if .env file exists
-if (Test-Path ".env") {
-    Write-Host ".env file found" -ForegroundColor Green
+    [switch]$SkipVerify,
+    [switch]$DryRun
+)
+
+$ErrorActionPreference = "Stop"
+
+Write-Host "Pavement Performance Suite :: Environment Bootstrap" -ForegroundColor Cyan
+Write-Host "==================================================================" -ForegroundColor Cyan
+
+$root = Resolve-Path (Join-Path $PSScriptRoot "..")
+Set-Location $root
+
+$targetFile = if ($Environment -eq "development") { ".env.local" } else { ".env.$Environment" }
+$exampleFile = ".env.example"
+
+if (-not (Test-Path $exampleFile)) {
+    throw "Blueprint file '$exampleFile' is missing. Run git pull or regenerate Phase 2 assets."
+}
+
+if (Test-Path $targetFile) {
+    Write-Host "Existing $targetFile detected. It will be updated in-place." -ForegroundColor Yellow
 } else {
-    Write-Host ".env file not found. Creating one..." -ForegroundColor Yellow
-    New-Item -Path ".env" -ItemType File
+    Write-Host "Creating $targetFile from $exampleFile" -ForegroundColor Cyan
+    if (-not $DryRun) {
+        Copy-Item $exampleFile $targetFile
+    }
 }
 
-# Environment variables to set
-$envVars = @{
-    "VITE_GOOGLE_MAPS_API_KEY" = "AIzaSyBaUoISC-zfsvfJumBuZnstJv9uf4BgWJM"
-    "VITE_GOOGLE_MAPS_API_KEY_ALT" = "AIzaSyDcVJ1Za5tw7LS_OJh8t3RtDjdOoTz8-6I"
-    "VITE_SUPABASE_ANON_KEY" = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvZGdsemJncXNhZmdobGloaXZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzNDcwMDQsImV4cCI6MjA2NDkyMzAwNH0.uLAZ_zY3zY-QmDDXwkAuspCUW9NpotsTV5fVCiHf5mM"
-    "VITE_SUPABASE_PROJECT_ID" = "vodglzbgqsafghlihivy"
-    "VITE_SUPABASE_PUBLISHABLE_KEY" = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvZGdsemJncXNhZmdobGloaXZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzNDcwMDQsImV4cCI6MjA2NDkyMzAwNH0.uLAZ_zY3zY-QmDDXwkAuspCUW9NpotsTV5fVCiHf5mM"
-    "VITE_SUPABASE_URL" = "https://vodglzbgqsafghlihivy.supabase.co"
-    "VITE_OPENWEATHER_API_KEY" = "fcd180ffa1ffafd662a60892c7a2bb97"
-    "GEMINI_API_KEY" = "AlzaSyBECTAY-5fOWzeh02GhJxDbV9UVQUmOdag"
-    "LOVABLE_API_KEY" = "your_lovable_api_key_here"
+if ($DryRun) {
+    Write-Host "[dry-run] No changes were written. Inspect $targetFile manually if needed." -ForegroundColor Yellow
+    return
 }
 
-Write-Host "`nSetting up environment variables..." -ForegroundColor Blue
+# Stamp the environment values
+(Get-Content $targetFile) | ForEach-Object {
+    $_ -replace '^ENVIRONMENT=.*$', "ENVIRONMENT=$Environment" `
+       -replace '^NODE_ENV=.*$', "NODE_ENV=$Environment" `
+       -replace '^VITE_APP_ENV=.*$', "VITE_APP_ENV=$Environment"
+} | Set-Content $targetFile
 
-# Create .env content
-$envContent = @"
-# Google Maps API Keys
-VITE_GOOGLE_MAPS_API_KEY="AIzaSyBaUoISC-zfsvfJumBuZnstJv9uf4BgWJM"
-VITE_GOOGLE_MAPS_API_KEY_ALT="AIzaSyDcVJ1Za5tw7LS_OJh8t3RtDjdOoTz8-6I"
+Write-Host "Blueprint copied. To hydrate secrets, run your chosen vault tooling:" -ForegroundColor Cyan
+Write-Host "  aws secretsmanager get-secret-value --secret-id pps/app/$Environment ..." -ForegroundColor DarkCyan
+Write-Host "  doppler secrets download --project pavement-performance-suite --config $Environment" -ForegroundColor DarkCyan
 
-# Supabase Configuration
-VITE_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvZGdsemJncXNhZmdobGloaXZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzNDcwMDQsImV4cCI6MjA2NDkyMzAwNH0.uLAZ_zY3zY-QmDDXwkAuspCUW9NpotsTV5fVCiHf5mM"
-VITE_SUPABASE_PROJECT_ID="vodglzbgqsafghlihivy"
-VITE_SUPABASE_PUBLISHABLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvZGdsemJncXNhZmdobGloaXZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzNDcwMDQsImV4cCI6MjA2NDkyMzAwNH0.uLAZ_zY3zY-QmDDXwkAuspCUW9NpotsTV5fVCiHf5mM"
-VITE_SUPABASE_URL="https://vodglzbgqsafghlihivy.supabase.co"
-
-# Weather API
-VITE_OPENWEATHER_API_KEY="fcd180ffa1ffafd662a60892c7a2bb97"
-
-# AI/Gemini API
-GEMINI_API_KEY="AlzaSyBECTAY-5fOWzeh02GhJxDbV9UVQUmOdag"
-
-# Lovable AI API (for AI functions)
-LOVABLE_API_KEY="your_lovable_api_key_here"
-"@
-
-# Write to .env file
-try {
-    $envContent | Out-File -FilePath ".env" -Encoding UTF8
-    Write-Host "Environment variables written to .env file" -ForegroundColor Green
-} catch {
-    Write-Host "Error writing to .env file: $($_.Exception.Message)" -ForegroundColor Red
+if (-not $SkipVerify) {
+    if (Get-Command npx -ErrorAction SilentlyContinue) {
+        Write-Host "Verifying $targetFile with scripts/verify-env.ts" -ForegroundColor Cyan
+        try {
+            npx --yes tsx scripts/verify-env.ts --file $targetFile --allow-vault-placeholders | Out-Null
+            Write-Host "$targetFile passed verification." -ForegroundColor Green
+        } catch {
+            Write-Warning "$targetFile failed verification. Address the reported issues above."
+        }
+    } else {
+        Write-Warning "npx not available; skipping verification. Run `npm run env:verify -- --file $targetFile` after installing dependencies."
+    }
 }
 
-Write-Host "`nNext Steps:" -ForegroundColor Yellow
-Write-Host "1. Update LOVABLE_API_KEY in .env with your actual Lovable AI key" -ForegroundColor White
-Write-Host "2. Run 'npm install' to install dependencies" -ForegroundColor White
-Write-Host "3. Run 'npm run dev' to start the development server" -ForegroundColor White
-
-Write-Host "`nAPI Keys Configured:" -ForegroundColor Green
-Write-Host "• Google Maps: Primary + Alternate keys" -ForegroundColor Green
-Write-Host "• Supabase: All configuration keys" -ForegroundColor Green
-Write-Host "• OpenWeather: Weather data API" -ForegroundColor Green
-Write-Host "• Gemini AI: AI analysis API" -ForegroundColor Green
-Write-Host "• Lovable AI: Needs your actual key" -ForegroundColor Yellow
-
-Write-Host "`nReady to start development!" -ForegroundColor Cyan
+Write-Host "`nNext steps:" -ForegroundColor Yellow
+Write-Host "  1. Pull secrets from your vault provider into $targetFile." -ForegroundColor White
+Write-Host "  2. Run scripts/install_dependencies.ps1 to install toolchains." -ForegroundColor White
+Write-Host "  3. Execute npm run db:migrate && npm run db:seed once Supabase is running." -ForegroundColor White
+Write-Host "  4. Launch the dev server (npm run dev) and refresh your existing browser session." -ForegroundColor White

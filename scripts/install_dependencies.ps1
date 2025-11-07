@@ -71,11 +71,39 @@ function Invoke-PythonInstall {
     }
 }
 
+function Test-SupabaseCli {
+    if (-not (Get-Command npx -ErrorAction SilentlyContinue)) {
+        Write-Warning "[deps] npx unavailable; skipping Supabase CLI validation"
+        return
+    }
+
+    Write-Host "[deps] Validating Supabase CLI availability" -ForegroundColor Cyan
+    try {
+        npx --yes supabase --version | Out-Null
+    }
+    catch {
+        Write-Warning "[deps] Supabase CLI not found via npx; installing local dev dependency"
+        try { npm install --save-dev supabase | Out-Null } catch { Write-Warning "[deps] Failed to install Supabase CLI: $($_.Exception.Message)" }
+    }
+}
+
+function Invoke-VerifyEnvBlueprint {
+    if (-not (Get-Command npx -ErrorAction SilentlyContinue)) { return }
+    Write-Host "[deps] Verifying environment blueprint (.env.example)" -ForegroundColor Cyan
+    try {
+        npx --yes tsx scripts/verify-env.ts --file .env.example --allow-vault-placeholders | Out-Null
+    } catch {
+        Write-Warning "[deps] Environment blueprint verification reported issues. Review .env.example and rerun `npm run env:verify`."
+    }
+}
+
 Write-Host "[deps] Installing Node dependencies" -ForegroundColor Cyan
 Invoke-NodeInstall
 
 Write-Host "[deps] Installing Python dependencies" -ForegroundColor Cyan
 Invoke-PythonInstall
+
+Test-SupabaseCli
 
 if (-not $SkipPlaywright) {
     if (Get-Command npx -ErrorAction SilentlyContinue) {
@@ -108,5 +136,7 @@ if (Test-Path ".husky") {
         try { npx husky install | Out-Null } catch { }
     }
 }
+
+Invoke-VerifyEnvBlueprint
 
 Write-Host "[deps] Dependency setup complete" -ForegroundColor Green
