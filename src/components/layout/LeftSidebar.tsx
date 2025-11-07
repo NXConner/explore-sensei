@@ -76,9 +76,13 @@ export const LeftSidebar = ({ side = "left" }: LeftSidebarProps) => {
 
   const activeJobs = jobSites?.filter((job) => job.status === "In Progress") || [];
 
+  const anchoredShell = `absolute ${side === "left" ? "left-0 border-r" : "right-0 border-l"} top-[84px] bottom-16 z-[var(--z-sidebars)]`;
+  const chromeSurface =
+    "hud-element border-primary/30 bg-[radial-gradient(circle_at_top,rgba(10,15,25,0.92),rgba(6,10,18,0.88))] supports-[backdrop-filter]:backdrop-blur-lg shadow-[0_24px_60px_rgba(6,10,18,0.52)]";
+
   if (isMinimized) {
     return (
-      <div className={`absolute ${side === 'left' ? 'left-0 border-r' : 'right-0 border-l'} top-[84px] bottom-16 w-12 z-[var(--z-sidebars)] hud-element border-primary/30 flex items-center justify-center`}>
+      <div className={`${anchoredShell} w-12 ${chromeSurface} flex items-center justify-center`}>
         <Button
           onClick={() => setIsMinimized(false)}
           variant="ghost"
@@ -93,7 +97,7 @@ export const LeftSidebar = ({ side = "left" }: LeftSidebarProps) => {
   }
 
   return (
-    <div className={`absolute ${side === 'left' ? 'left-0 border-r' : 'right-0 border-l'} top-[84px] bottom-16 w-80 z-[var(--z-sidebars)] hud-element border-primary/30 flex flex-col`}>
+    <div className={`${anchoredShell} w-80 ${chromeSurface} flex flex-col overflow-hidden`}>
       {/* Tactical Header */}
       <div className="p-4 border-b border-primary/30 flex-shrink-0">
         <div className="flex items-center justify-between">
