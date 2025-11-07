@@ -14,6 +14,8 @@ LABEL org.opencontainers.image.title="Pavement Performance Suite" \
 
 WORKDIR /app
 ENV NODE_ENV=production \
+    ENVIRONMENT=production \
+    VITE_APP_ENV=production \
     PNPM_HOME="/root/.local/share/pnpm" \
     PATH="${PNPM_HOME}:$PATH"
 
@@ -25,6 +27,7 @@ RUN --mount=type=cache,target=/root/.npm \
     npm ci --legacy-peer-deps --no-audit --no-fund
 
 FROM base AS builder
+ARG ENVIRONMENT=production
 ARG VITE_SUPABASE_URL="http://localhost:54321"
 ARG VITE_SUPABASE_ANON_KEY="local-anon-key"
 ARG VITE_GOOGLE_MAPS_API_KEY=""
@@ -37,7 +40,9 @@ ARG TACTICAL_MAP_ENABLED="true"
 ARG OBSERVABILITY_PIPELINE_ENABLED="true"
 ARG VITE_OTEL_EXPORT_URL="https://otel.exploresensei.com/v1/traces"
 
-ENV VITE_SUPABASE_URL=${VITE_SUPABASE_URL} \
+ENV ENVIRONMENT=${ENVIRONMENT} \
+    VITE_APP_ENV=${ENVIRONMENT} \
+    VITE_SUPABASE_URL=${VITE_SUPABASE_URL} \
     VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY} \
     VITE_GOOGLE_MAPS_API_KEY=${VITE_GOOGLE_MAPS_API_KEY} \
     VITE_DEFAULT_THEME_PRESET=${VITE_DEFAULT_THEME_PRESET} \
@@ -62,7 +67,8 @@ COPY src ./src
 COPY scripts ./scripts
 
 # Generate tactical wallpapers/fonts and build production bundle
-RUN npm run setup:assets && npm run build
+RUN npx --yes tsx scripts/verify-env.ts --file .env.example --allow-vault-placeholders && \
+    npm run setup:assets && npm run build
 
 # Optionally prune dev dependencies to shrink copied node_modules snapshot (kept for transparency)
 RUN npm prune --omit=dev

@@ -56,11 +56,34 @@ install_python_dependencies() {
   fi
 }
 
+ensure_supabase_cli() {
+  if command -v npx >/dev/null 2>&1; then
+    echo "[deps] Validating Supabase CLI availability"
+    if ! npx --yes supabase --version >/dev/null 2>&1; then
+      echo "[warn] Supabase CLI not available via npx; installing local dev dependency"
+      npm install --save-dev supabase >/dev/null 2>&1 || true
+    fi
+  else
+    echo "[warn] npx is unavailable; skipping Supabase CLI validation"
+  fi
+}
+
+verify_env_blueprint() {
+  if command -v npx >/dev/null 2>&1; then
+    echo "[deps] Verifying environment blueprint (.env.example)"
+    npx --yes tsx scripts/verify-env.ts --file .env.example --allow-vault-placeholders >/dev/null 2>&1 || {
+      echo "[warn] Environment blueprint verification reported issues. Review .env.example output above."
+    }
+  fi
+}
+
 echo "[deps] Installing Node dependencies"
 install_node_dependencies
 
 echo "[deps] Installing Python tooling"
 install_python_dependencies
+
+ensure_supabase_cli
 
 echo "[deps] Installing Playwright browsers"
 if command -v npx >/dev/null 2>&1; then
@@ -86,5 +109,7 @@ if [ -d .husky ]; then
     npx husky install || true
   fi
 fi
+
+verify_env_blueprint
 
 echo "[deps] Dependency setup complete"

@@ -1,6 +1,8 @@
 version: "3.9"
 
 x-frontend-build-args: &frontend-build-args
+  ENVIRONMENT: ${ENVIRONMENT:-production}
+  VITE_APP_ENV: ${VITE_APP_ENV:-production}
   VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:-http://kong:8000}
   VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
   VITE_GOOGLE_MAPS_API_KEY: ${VITE_GOOGLE_MAPS_API_KEY:-}
@@ -14,7 +16,9 @@ x-frontend-build-args: &frontend-build-args
   VITE_OTEL_EXPORT_URL: ${VITE_OTEL_EXPORT_URL:-https://otel.exploresensei.com/v1/traces}
 
 x-frontend-env: &frontend-env
-  NODE_ENV: production
+  NODE_ENV: ${NODE_ENV:-production}
+  ENVIRONMENT: ${ENVIRONMENT:-production}
+  VITE_APP_ENV: ${VITE_APP_ENV:-production}
   DIVISION_THEME_ENABLED: ${DIVISION_THEME_ENABLED:-true}
   DIVISION_HUD_ENABLED: ${DIVISION_HUD_ENABLED:-true}
   HUD_LABS_ENABLED: ${HUD_LABS_ENABLED:-false}

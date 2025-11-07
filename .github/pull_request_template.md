@@ -1,23 +1,41 @@
-## Summary
-- What does this PR do? Why?
+## Overview
+- **Why:** 
+- **Primary issue(s):** Closes #
+- **Feature flag(s):** 
+- **Modules touched:** 
 
 ## Changes
-- Key changes at a glance
+- 
+- 
+- 
 
-## Testing
-- [ ] Unit tests added/updated
-- [ ] Integration tests added/updated
-- [ ] E2E tests added/updated
-- [ ] Accessibility checks
+### Data & Schema
+- [ ] Supabase migration required
+- [ ] Seed data updated
+- [ ] Backfill or cleanup scripts included
 
-## Checklist
-- [ ] Lint passes (`npm run lint`)
-- [ ] Types pass (`npm run type-check`)
-- [ ] All tests pass (`npm run test:all`)
-- [ ] No secrets or sensitive data committed
+### Observability
+- [ ] Structured logging added/updated
+- [ ] Metrics / traces instrumented
+- [ ] Alert rules reviewed
 
-## Screenshots / Videos
-(Optional)
+## Verification
+- [ ] `npm run lint`
+- [ ] `npm run type-check`
+- [ ] `npm run test:all`
+- [ ] `npm run env:verify` (target env file: )
+- [ ] Accessibility checks (axe, keyboard nav, screen reader)
+- [ ] Visual regression / UX review
+- Additional manual verification notes:
 
-## Notes
-Anything else reviewers should know.
+## Deployment & Rollout
+- [ ] Secrets or config changes coordinated
+- [ ] Feature flags defaulted correctly per environment
+- [ ] Rollback plan documented
+- [ ] Release notes / docs updated
+
+## Screenshots / Evidence
+- 
+
+## Follow-up Tasks
+- 
