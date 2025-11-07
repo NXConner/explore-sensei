@@ -75,6 +75,9 @@ export const RightSidebar = ({
   imagery = "none",
 }: RightSidebarProps) => {
   const isLeft = side === "left";
+  const anchoredShell = `absolute ${isLeft ? "left-0 border-r" : "right-0 border-l"} top-[84px] bottom-16 w-14 z-[var(--z-sidebars)]`;
+  const chromeSurface =
+    "hud-element border-primary/30 bg-[radial-gradient(circle_at_top,rgba(10,15,25,0.92),rgba(6,10,18,0.88))] supports-[backdrop-filter]:backdrop-blur-lg shadow-[0_24px_60px_rgba(6,10,18,0.52)]";
   const tools = [
     {
       mode: "measure" as DrawingMode,
@@ -99,9 +102,7 @@ export const RightSidebar = ({
 
   return (
     <div
-      className={
-        `absolute ${isLeft ? "left-0 border-r" : "right-0 border-l"} top-[84px] bottom-16 w-14 z-[var(--z-sidebars)] hud-element border-primary/30 flex flex-col`
-      }
+      className={`${anchoredShell} ${chromeSurface} flex flex-col`}
       aria-label={isLeft ? "Left Slim Toolbar" : "Right Slim Toolbar"}
     >
       {/* Left-side scrollbar when toolbar is on the left */}

@@ -135,9 +135,8 @@ export const LayoutFrame = ({ controller, children }: LayoutFrameProps) => {
           {hudSettings.hudMiniMap && <MiniMap variant="overlay" />}
           <HUDNotifications />
         </div>
-
         {showDesktopSidebars && (
-          <div className="absolute right-0 top-[84px] bottom-16 hidden xl:block w-80 z-[var(--z-sidebars)] hud-element border-l border-primary/30 bg-background/80 backdrop-blur-md">
+          <div className="absolute right-0 top-[84px] bottom-16 hidden xl:block w-80 z-[var(--z-sidebars)] hud-element border-l border-primary/30 bg-[radial-gradient(circle_at_top,rgba(10,15,25,0.92),rgba(6,10,18,0.88))] supports-[backdrop-filter]:backdrop-blur-lg shadow-[0_24px_60px_rgba(6,10,18,0.52)]">
             <div className="absolute inset-0 pointer-events-none">
               <div className="corner-bracket-md corner-tl" />
               <div className="corner-bracket-md corner-tr" />
