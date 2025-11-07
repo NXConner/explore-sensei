@@ -171,6 +171,8 @@ export const MapContainer = forwardRef<
     radarType: "standard" as "standard" | "sonar" | "aviation",
     radarAudioEnabled: false,
     radarAudioVolume: 50,
+    particleDensity: 5,
+    particleColor: "hsl(var(--primary))",
     ringControls: true,
     reduceMotion: false,
     lowPowerMode: false,
@@ -1670,6 +1672,8 @@ export const MapContainer = forwardRef<
         lowPowerMode={uiSettings.lowPowerMode}
         reduceMotion={uiSettings.reduceMotion}
         useCanvasFX={uiSettings.useCanvasFX}
+        particleDensity={uiSettings.particleDensity}
+        particleColor={uiSettings.particleColor}
       />
       </Suspense>
       <PulseScanOverlay enabled={showPulseScan} color={mapTheme === 'division' ? 'rgba(0,255,255,0.16)' : 'rgba(255,140,0,0.16)'} speed={4} />

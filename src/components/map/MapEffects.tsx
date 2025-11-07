@@ -19,6 +19,8 @@ interface MapEffectsProps {
   lowPowerMode?: boolean;
   reduceMotion?: boolean;
   useCanvasFX?: boolean;
+  particleDensity?: number; // 1-10
+  particleColor?: string;
 }
 
 export const MapEffects = ({
@@ -38,6 +40,8 @@ export const MapEffects = ({
   lowPowerMode = false,
   reduceMotion = false,
   useCanvasFX = false,
+  particleDensity = 5,
+  particleColor,
 }: MapEffectsProps) => {
   const radarRef = useRef<HTMLDivElement>(null);
   const glitchRef = useRef<HTMLDivElement>(null);
@@ -189,6 +193,8 @@ export const MapEffects = ({
         accentColor={accentColor}
         lowPowerMode={lowPowerMode}
         reduceMotion={reduceMotion}
+        particleDensity={particleDensity}
+        particleColor={particleColor || accentColor}
       />
 
       {/* Radar Effects (variant by type) */}

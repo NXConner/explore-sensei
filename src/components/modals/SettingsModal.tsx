@@ -45,6 +45,8 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     screensaverDelay: 5,
     highContrast: false,
     // HUD Element Visibility
+    particleDensity: 5,
+    particleColor: "hsl(var(--primary))",
     hudCornerBrackets: true,
     hudMiniMap: false,
     hudCompassRose: true,
@@ -68,6 +70,9 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     soundVolume: 70,
     radarAudioEnabled: false,
     radarAudioVolume: 50,
+    alertSoundEnabled: true,
+    alertSoundVolume: 70,
+    shakeIntensity: 5,
     // Pulse / Scan
     pulseScanEnabled: false,
     pulseHighlightPOIs: true,
@@ -86,6 +91,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     // fidelity toggle: original-inspired vs faithful (close color matching)
     fidelityMode: "inspired" as "inspired" | "faithful",
     mapTheme: "division" as "division" | "animus",
+    hudPreset: "standard" as "minimal" | "standard" | "tactical" | "custom",
     preferredMapProvider: "auto" as "auto" | "google" | "mapbox" | "maplibre" | "leaflet",
     wallpaperUrl: "",
     wallpaperOpacity: 60,
@@ -442,6 +448,188 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                       setSettings((p) => ({ ...p, hudMiniMap: checked }));
                       window.dispatchEvent(new CustomEvent("aos_settings_updated"));
                     }}
+                  />
+                </div>
+              </div>
+
+              {/* HUD Layout Presets */}
+              <div className="tactical-panel space-y-3 p-4">
+                <div className="text-sm font-semibold mb-2">HUD Layout Presets</div>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Quick apply predefined HUD configurations
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { id: "minimal", label: "Minimal", desc: "Essential only" },
+                    { id: "standard", label: "Standard", desc: "Balanced view" },
+                    { id: "tactical", label: "Tactical", desc: "Full HUD" },
+                    { id: "custom", label: "Custom", desc: "Your settings" },
+                  ].map((preset) => (
+                    <button
+                      key={preset.id}
+                      onClick={() => {
+                        const presets = {
+                          minimal: {
+                            hudCornerBrackets: false,
+                            hudCompassRose: false,
+                            hudCoordinateDisplay: true,
+                            hudScaleBar: false,
+                            hudZoomIndicator: false,
+                            hudMiniMap: false,
+                            radarEffect: false,
+                            glitchEffect: false,
+                            scanlineEffect: false,
+                          },
+                          standard: {
+                            hudCornerBrackets: true,
+                            hudCompassRose: true,
+                            hudCoordinateDisplay: true,
+                            hudScaleBar: true,
+                            hudZoomIndicator: true,
+                            hudMiniMap: false,
+                            radarEffect: true,
+                            glitchEffect: true,
+                            scanlineEffect: true,
+                          },
+                          tactical: {
+                            hudCornerBrackets: true,
+                            hudCompassRose: true,
+                            hudCoordinateDisplay: true,
+                            hudScaleBar: true,
+                            hudZoomIndicator: true,
+                            hudMiniMap: true,
+                            radarEffect: true,
+                            glitchEffect: true,
+                            scanlineEffect: true,
+                            gridOverlay: true,
+                            vignetteEffect: true,
+                          },
+                          custom: {},
+                        };
+                        if (preset.id !== "custom") {
+                          setSettings((p) => ({ 
+                            ...p, 
+                            ...presets[preset.id as keyof typeof presets],
+                            hudPreset: preset.id as any 
+                          }));
+                          window.dispatchEvent(new CustomEvent("aos_settings_updated"));
+                        }
+                      }}
+                      className={`p-3 border rounded-lg text-left transition-all ${
+                        settings.hudPreset === preset.id
+                          ? "border-primary bg-primary/10"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <div className="font-semibold text-sm">{preset.label}</div>
+                      <div className="text-xs text-muted-foreground">{preset.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Particle Effects */}
+              <div className="tactical-panel space-y-3 p-4">
+                <div className="text-sm font-semibold mb-2">Particle Effects</div>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Customize radar sweep trail particles
+                </p>
+                <div>
+                  <Label className="text-xs">
+                    Particle Density: {settings.particleDensity}/10
+                  </Label>
+                  <Slider
+                    value={[settings.particleDensity]}
+                    onValueChange={([val]) => {
+                      setSettings((p) => ({ ...p, particleDensity: val }));
+                      window.dispatchEvent(new CustomEvent("aos_settings_updated"));
+                    }}
+                    min={1}
+                    max={10}
+                    step={1}
+                    className="mt-2"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Particle Color</Label>
+                  <div className="flex gap-2 mt-2">
+                    {[
+                      { label: "Primary", value: "hsl(var(--primary))" },
+                      { label: "Orange", value: "hsl(25, 95%, 53%)" },
+                      { label: "Cyan", value: "hsl(180, 100%, 50%)" },
+                      { label: "Green", value: "hsl(120, 100%, 40%)" },
+                    ].map((color) => (
+                      <button
+                        key={color.label}
+                        onClick={() => {
+                          setSettings((p) => ({ ...p, particleColor: color.value }));
+                          window.dispatchEvent(new CustomEvent("aos_settings_updated"));
+                        }}
+                        className={`flex-1 p-2 border rounded text-xs transition-all ${
+                          settings.particleColor === color.value
+                            ? "border-primary bg-primary/10"
+                            : "border-border hover:border-primary/50"
+                        }`}
+                        style={{ color: color.value }}
+                      >
+                        {color.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Alert Settings */}
+              <div className="tactical-panel space-y-3 p-4">
+                <div className="text-sm font-semibold mb-2">Alert Settings</div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-xs">Alert Sounds</Label>
+                    <p className="text-[10px] text-muted-foreground">Play sound on alerts</p>
+                  </div>
+                  <Switch 
+                    checked={settings.alertSoundEnabled ?? true}
+                    onCheckedChange={(checked) => {
+                      setSettings((p) => ({ ...p, alertSoundEnabled: checked }));
+                      window.dispatchEvent(new CustomEvent("aos_settings_updated"));
+                    }}
+                  />
+                </div>
+                {settings.alertSoundEnabled && (
+                  <div>
+                    <Label className="text-xs">
+                      Alert Volume: {settings.alertSoundVolume}%
+                    </Label>
+                    <Slider
+                      value={[settings.alertSoundVolume]}
+                      onValueChange={([val]) => {
+                        setSettings((p) => ({ ...p, alertSoundVolume: val }));
+                        window.dispatchEvent(new CustomEvent("aos_settings_updated"));
+                      }}
+                      min={0}
+                      max={100}
+                      step={5}
+                      className="mt-2"
+                    />
+                  </div>
+                )}
+                <div>
+                  <Label className="text-xs">
+                    Screen Shake Intensity: {settings.shakeIntensity}/10
+                  </Label>
+                  <p className="text-[10px] text-muted-foreground mb-2">
+                    Shake effect on critical alerts
+                  </p>
+                  <Slider
+                    value={[settings.shakeIntensity]}
+                    onValueChange={([val]) => {
+                      setSettings((p) => ({ ...p, shakeIntensity: val }));
+                      window.dispatchEvent(new CustomEvent("aos_settings_updated"));
+                    }}
+                    min={0}
+                    max={10}
+                    step={1}
+                    className="mt-2"
                   />
                 </div>
               </div>

@@ -26,6 +26,11 @@ export const LayoutFrame = ({ controller, children }: LayoutFrameProps) => {
   const [hudSettings] = useHUDSettings();
   const showDesktopSidebars = !(isMobile || isTablet);
 
+  // Set global shake intensity for notifications
+  React.useEffect(() => {
+    (window as any).__hudShakeIntensity = hudSettings.shakeIntensity || 5;
+  }, [hudSettings.shakeIntensity]);
+
   const missionRibbon = (
     <div
       className={cn(

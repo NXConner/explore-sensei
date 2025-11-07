@@ -92,9 +92,15 @@
   }
 
   /* Screen shake effect for critical alerts */
-  html.screen-shake {
-    animation: screen-shake 0.5s ease-in-out;
-  }
+html.screen-shake {
+  animation: screen-shake 0.5s ease-in-out;
+}
+
+@keyframes screen-shake {
+  0%, 100% { transform: translate(0, 0); }
+  10%, 30%, 50%, 70%, 90% { transform: translate(calc(-1 * var(--shake-intensity, 5px)), 0); }
+  20%, 40%, 60%, 80% { transform: translate(var(--shake-intensity, 5px), 0); }
+}
 
   ::-webkit-scrollbar {
     width: 10px;

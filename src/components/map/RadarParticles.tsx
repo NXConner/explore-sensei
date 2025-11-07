@@ -15,6 +15,8 @@ interface RadarParticlesProps {
   accentColor?: string;
   lowPowerMode?: boolean;
   reduceMotion?: boolean;
+  particleDensity?: number; // 1-10
+  particleColor?: string;
 }
 
 export const RadarParticles: React.FC<RadarParticlesProps> = ({
@@ -24,6 +26,8 @@ export const RadarParticles: React.FC<RadarParticlesProps> = ({
   accentColor = "hsl(var(--primary))",
   lowPowerMode = false,
   reduceMotion = false,
+  particleDensity = 5,
+  particleColor,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
@@ -50,14 +54,17 @@ export const RadarParticles: React.FC<RadarParticlesProps> = ({
     const maxRadius = Math.sqrt(centerX * centerX + centerY * centerY);
 
     const animate = () => {
-      angleRef.current += radarSpeed * 0.5;
+      // Match the radar sweep speed exactly
+      const speedFactor = radarSpeed * 0.5;
+      angleRef.current += speedFactor;
 
       // Clear canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // Add new particles along the radar sweep line
       const angle = (angleRef.current * Math.PI) / 180;
-      const particlesPerFrame = radarType === "sonar" ? 3 : 2;
+      const baseParticles = radarType === "sonar" ? 3 : 2;
+      const particlesPerFrame = Math.round(baseParticles * (particleDensity / 5));
       
       for (let i = 0; i < particlesPerFrame; i++) {
         const distance = Math.random() * maxRadius;
@@ -78,8 +85,9 @@ export const RadarParticles: React.FC<RadarParticlesProps> = ({
         particle.opacity -= particle.decay;
 
         if (particle.opacity > 0) {
-          ctx.fillStyle = accentColor.includes("hsl") 
-            ? accentColor.replace(")", ` / ${particle.opacity})`)
+          const finalColor = particleColor || accentColor;
+          ctx.fillStyle = finalColor.includes("hsl") 
+            ? finalColor.replace(")", ` / ${particle.opacity})`)
             : `rgba(255, 140, 0, ${particle.opacity})`;
           ctx.beginPath();
           ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
@@ -87,7 +95,7 @@ export const RadarParticles: React.FC<RadarParticlesProps> = ({
 
           // Add glow effect
           ctx.shadowBlur = 8;
-          ctx.shadowColor = accentColor;
+          ctx.shadowColor = finalColor;
           ctx.fill();
           ctx.shadowBlur = 0;
 
@@ -105,7 +113,7 @@ export const RadarParticles: React.FC<RadarParticlesProps> = ({
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       window.removeEventListener("resize", resizeCanvas);
     };
-  }, [enabled, radarSpeed, radarType, accentColor, lowPowerMode, reduceMotion]);
+  }, [enabled, radarSpeed, radarType, accentColor, lowPowerMode, reduceMotion, particleDensity, particleColor]);
 
   if (!enabled) return null;
 

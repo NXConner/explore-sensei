@@ -12,6 +12,10 @@ export interface HUDSettings {
   gridOverlay: boolean;
   vignetteEffect: boolean;
 
+  // Particle effects
+  particleDensity?: number; // 1-10
+  particleColor?: string;
+
   // HUD elements visibility
   hudCornerBrackets?: boolean;
   hudMiniMap?: boolean;
@@ -24,6 +28,11 @@ export interface HUDSettings {
   soundVolume: number;
   radarAudioEnabled?: boolean;
   radarAudioVolume?: number;
+  alertSoundEnabled?: boolean;
+  alertSoundVolume?: number;
+
+  // Alerts
+  shakeIntensity?: number; // 0-10
 
   // Weather
   weatherAlertsEnabled?: boolean;
@@ -31,6 +40,9 @@ export interface HUDSettings {
 
   // Themes
   mapTheme?: "division" | "animus";
+
+  // HUD Layout Presets
+  hudPreset?: "minimal" | "standard" | "tactical" | "custom";
 }
 
 const STORAGE_KEY = "aos_settings";
@@ -46,6 +58,8 @@ export function useHUDSettings(): [HUDSettings, (patch: Partial<HUDSettings>) =>
     scanlineEffect: true,
     gridOverlay: true,
     vignetteEffect: false,
+    particleDensity: 5,
+    particleColor: "hsl(var(--primary))",
     hudCornerBrackets: true,
     hudMiniMap: false,
     hudCompassRose: true,
@@ -55,9 +69,13 @@ export function useHUDSettings(): [HUDSettings, (patch: Partial<HUDSettings>) =>
     soundVolume: 70,
     radarAudioEnabled: false,
     radarAudioVolume: 50,
+    alertSoundEnabled: true,
+    alertSoundVolume: 70,
+    shakeIntensity: 5,
     weatherAlertsEnabled: true,
     weatherAlertRadius: 15,
     mapTheme: "division",
+    hudPreset: "standard",
   });
 
   useEffect(() => {
