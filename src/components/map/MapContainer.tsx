@@ -264,6 +264,8 @@ export const MapContainer = forwardRef<
           soundVolume: parsed.soundVolume ?? prev.soundVolume,
           pulseHighlightPOIs: parsed.pulseHighlightPOIs ?? prev.pulseHighlightPOIs,
           suitabilityThresholds: parsed.suitabilityThresholds ?? prev.suitabilityThresholds,
+          particleDensity: parsed.particleDensity ?? prev.particleDensity ?? 5,
+          particleColor: parsed.particleColor ?? prev.particleColor ?? "hsl(var(--primary))",
         }));
         if (parsed.mapTheme && (parsed.mapTheme === "division" || parsed.mapTheme === "animus")) {
           setMapTheme(parsed.mapTheme);

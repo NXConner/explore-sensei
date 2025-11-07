@@ -151,10 +151,19 @@ const config: Config = {
           "0%": { transform: "translateX(100%)", opacity: "0" },
           "100%": { transform: "translateX(0)", opacity: "1" },
         },
-        "screen-shake": {
+        "screen-shake-sustained": {
           "0%, 100%": { transform: "translate(0, 0)" },
-          "10%, 30%, 50%, 70%, 90%": { transform: "translate(-4px, 2px)" },
-          "20%, 40%, 60%, 80%": { transform: "translate(4px, -2px)" },
+          "10%, 30%, 50%, 70%, 90%": { transform: "translate(calc(-1 * var(--shake-intensity, 5px)), calc(-1 * var(--shake-intensity, 5px) * 0.5))" },
+          "20%, 40%, 60%, 80%": { transform: "translate(var(--shake-intensity, 5px), calc(var(--shake-intensity, 5px) * 0.5))" },
+        },
+        "screen-shake-quick": {
+          "0%, 100%": { transform: "translateX(0)" },
+          "25%": { transform: "translateX(calc(-1 * var(--shake-intensity, 5px)))" },
+          "75%": { transform: "translateX(var(--shake-intensity, 5px))" },
+        },
+        "screen-shake-pulse": {
+          "0%, 100%": { transform: "scale(1)" },
+          "50%": { transform: "scale(1.02)" },
         },
       },
     },

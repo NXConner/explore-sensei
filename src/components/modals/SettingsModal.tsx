@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { X, Settings, Moon, Sun, Bell, Zap, Volume2, Palette, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -367,6 +367,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
             </TabsContent>
 
             <TabsContent value="hud" className="mt-0 space-y-6">
+              <ScrollArea className="h-[500px] pr-4">
               <div className="tactical-panel space-y-3 p-4">
                 <div className="text-sm font-semibold mb-2">HUD Elements Visibility</div>
                 <p className="text-xs text-muted-foreground mb-4">
@@ -526,6 +527,9 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     </button>
                   ))}
                 </div>
+                <div className="p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground">
+                  <strong>Hotkeys:</strong> Press 1 for Minimal, 2 for Standard, 3 for Tactical
+                </div>
               </div>
 
               {/* Particle Effects */}
@@ -575,6 +579,48 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                         {color.label}
                       </button>
                     ))}
+                  </div>
+                </div>
+
+                {/* Particle Preview */}
+                <div className="space-y-2 p-4 border border-primary/30 rounded-lg bg-background/50">
+                  <Label>Particle Effect Preview</Label>
+                  <div className="h-32 relative bg-background/80 rounded overflow-hidden">
+                    <canvas 
+                      ref={(canvas) => {
+                        if (!canvas) return;
+                        const ctx = canvas.getContext("2d");
+                        if (!ctx) return;
+                        canvas.width = canvas.offsetWidth;
+                        canvas.height = canvas.offsetHeight;
+                        
+                        let angle = 0;
+                        let rafId: number;
+                        const animate = () => {
+                          ctx.clearRect(0, 0, canvas.width, canvas.height);
+                          angle += settings.radarSpeed * 0.5;
+                          const rad = (angle * Math.PI) / 180;
+                          const particles = Math.round(2 * (settings.particleDensity / 5));
+                          
+                          for (let i = 0; i < particles; i++) {
+                            const dist = Math.random() * 60;
+                            const x = canvas.width / 2 + Math.cos(rad) * dist;
+                            const y = canvas.height / 2 + Math.sin(rad) * dist;
+                            const color = settings.particleColor || "hsl(var(--primary))";
+                            ctx.fillStyle = color.includes("hsl") 
+                              ? color.replace(")", " / 0.8)")
+                              : "rgba(255, 140, 0, 0.8)";
+                            ctx.beginPath();
+                            ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+                            ctx.fill();
+                          }
+                          rafId = requestAnimationFrame(animate);
+                        };
+                        animate();
+                        return () => cancelAnimationFrame(rafId);
+                      }}
+                      className="w-full h-full"
+                    />
                   </div>
                 </div>
               </div>
@@ -633,9 +679,11 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   />
                 </div>
               </div>
+              </ScrollArea>
             </TabsContent>
 
             <TabsContent value="weather" className="mt-0 space-y-6">
+              <ScrollArea className="h-[500px] pr-4">
               <div className="tactical-panel space-y-4 p-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -744,9 +792,11 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
               </div>
 
               <WeatherAlertLocationsManager />
+              </ScrollArea>
             </TabsContent>
 
-              <TabsContent value="themes" className="mt-0 space-y-6">
+            <TabsContent value="themes" className="mt-0 space-y-6">
+              <ScrollArea className="h-[500px] pr-4">
                 <ThemeCustomizer
                   themeId={settings.theme as ThemeId}
                   onThemeChange={handleThemeChange}
@@ -888,9 +938,11 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   </div>
                 </div>
               </div>
+              </ScrollArea>
             </TabsContent>
 
             <TabsContent value="notifications" className="mt-0 space-y-6">
+              <ScrollArea className="h-[500px] pr-4">
               <div className="tactical-panel p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -919,9 +971,11 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   />
                 </div>
               </div>
+              </ScrollArea>
             </TabsContent>
 
             <TabsContent value="animations" className="mt-0 space-y-6">
+              <ScrollArea className="h-[500px] pr-4">
               <div className="tactical-panel space-y-4 p-4">
                 <div className="mb-4 flex items-center gap-3">
                   <Zap className="h-5 w-5 text-primary" />
@@ -1102,9 +1156,11 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   </div>
                 </div>
               </div>
+              </ScrollArea>
             </TabsContent>
 
             <TabsContent value="sounds" className="mt-0 space-y-6">
+              <ScrollArea className="h-[500px] pr-4">
               <div className="tactical-panel space-y-4 p-4">
                 <div className="mb-4 flex items-center gap-3">
                   <Volume2 className="h-5 w-5 text-primary" />
@@ -1177,6 +1233,51 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   </div>
                 )}
 
+                {/* Alert Sound Controls */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Alert Sounds</Label>
+                    <p className="text-xs text-muted-foreground">Notification and warning sounds</p>
+                  </div>
+                  <Switch
+                    checked={settings.alertSoundEnabled}
+                    onCheckedChange={() => handleToggle("alertSoundEnabled")}
+                  />
+                </div>
+                {settings.alertSoundEnabled && (
+                  <div>
+                    <Label className="text-xs">Alert Volume: {settings.alertSoundVolume}%</Label>
+                    <Slider
+                      value={[settings.alertSoundVolume]}
+                      onValueChange={([val]) =>
+                        setSettings((prev) => ({ ...prev, alertSoundVolume: val }))
+                      }
+                      min={0}
+                      max={100}
+                      step={5}
+                      className="mt-2"
+                    />
+                  </div>
+                )}
+
+                {/* Screen Shake Intensity */}
+                <div>
+                  <Label className="text-xs">Screen Shake Intensity: {settings.shakeIntensity}/10</Label>
+                  <p className="text-[10px] text-muted-foreground mb-2">
+                    Shake effect strength for critical alerts
+                  </p>
+                  <Slider
+                    value={[settings.shakeIntensity]}
+                    onValueChange={([val]) =>
+                      setSettings((prev) => ({ ...prev, shakeIntensity: val }))
+                    }
+                    min={0}
+                    max={10}
+                    step={1}
+                    className="mt-2"
+                  />
+                </div>
+
                 {/* Soundset */}
                 <div className="mt-2">
                   <Label className="text-xs">Theme Soundset</Label>
@@ -1194,10 +1295,12 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   </div>
                 </div>
               </div>
+              </ScrollArea>
             </TabsContent>
 
             {/* Pulse Scan */}
             <TabsContent value="pulse" className="mt-0 space-y-6">
+              <ScrollArea className="h-[500px] pr-4">
               <div className="tactical-panel space-y-4 p-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -1237,9 +1340,11 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   />
                 </div>
               </div>
+              </ScrollArea>
             </TabsContent>
 
             <TabsContent value="advanced" className="mt-0 space-y-6">
+              <ScrollArea className="h-[500px] pr-4">
               <div className="tactical-panel p-4">
                 <div className="mb-4 flex items-center justify-between">
                   <div>

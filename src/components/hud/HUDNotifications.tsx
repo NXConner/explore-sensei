@@ -25,13 +25,22 @@ export const addHUDNotification = (notification: Omit<HUDNotification, "id">) =>
   notifications.push(newNotif);
   subscribers.forEach((cb) => cb([...notifications]));
 
-  // Trigger screen shake for critical alerts with custom intensity
-  if (newNotif.type === "error") {
+  // Trigger screen shake with custom patterns based on alert type
+  const shakePatterns: Record<NotificationType, string> = {
+    error: "screen-shake-sustained",
+    warning: "screen-shake-quick",
+    info: "screen-shake-pulse",
+    success: "screen-shake-pulse",
+  };
+  
+  const shakeClass = shakePatterns[newNotif.type];
+  if (shakeClass) {
     const intensity = (window as any).__hudShakeIntensity || 5;
     const root = document.documentElement;
     root.style.setProperty("--shake-intensity", `${intensity}px`);
-    root.classList.add("screen-shake");
-    setTimeout(() => root.classList.remove("screen-shake"), 500);
+    root.classList.add(shakeClass);
+    const duration = newNotif.type === "error" ? 800 : newNotif.type === "warning" ? 300 : 500;
+    setTimeout(() => root.classList.remove(shakeClass), duration);
   }
 
   if (newNotif.duration && newNotif.duration > 0) {

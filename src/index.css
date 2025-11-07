@@ -92,8 +92,16 @@
   }
 
   /* Screen shake effect for critical alerts */
-html.screen-shake {
-  animation: screen-shake 0.5s ease-in-out;
+html.screen-shake-sustained {
+  animation: screen-shake-sustained 0.8s ease-in-out;
+}
+
+html.screen-shake-quick {
+  animation: screen-shake-quick 0.3s ease-in-out;
+}
+
+html.screen-shake-pulse {
+  animation: screen-shake-pulse 0.5s ease-in-out;
 }
 
 @keyframes screen-shake {

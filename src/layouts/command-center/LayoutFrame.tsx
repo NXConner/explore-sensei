@@ -20,10 +20,12 @@ import { MobileKPIBar } from "./MobileKPIBar";
 import { MiniMap } from "@/components/hud/MiniMap";
 import { HUDNotifications } from "@/components/hud/HUDNotifications";
 import { useHUDSettings } from "@/hooks/useHUDSettings";
+import { useHUDPresetHotkeys } from "@/hooks/useHUDPresetHotkeys";
 
 export const LayoutFrame = ({ controller, children }: LayoutFrameProps) => {
   const { isMobile, isTablet } = useLayoutContext();
   const [hudSettings] = useHUDSettings();
+  useHUDPresetHotkeys();
   const showDesktopSidebars = !(isMobile || isTablet);
 
   // Set global shake intensity for notifications
