@@ -1,0 +1,159 @@
+import React from "react";
+import { LayoutFrameProps } from "./CommandCenterLayout";
+import { useLayoutContext } from "@/context/LayoutContext";
+import { TopBar } from "@/components/layout/TopBar";
+import { HorizontalOpsBar } from "@/components/layout/HorizontalOpsBar";
+import { RightSidebar } from "@/components/layout/RightSidebar";
+import { LeftSidebar } from "@/components/layout/LeftSidebar";
+import { MapContainer } from "@/components/map/MapContainer";
+import { KPITicker } from "@/components/dashboard/KPITicker";
+import { CornerBrackets } from "@/components/hud/CornerBrackets";
+import { CompassRose } from "@/components/hud/CompassRose";
+import { CoordinateDisplay } from "@/components/hud/CoordinateDisplay";
+import { ZoomIndicator } from "@/components/hud/ZoomIndicator";
+import { ScaleBar } from "@/components/hud/ScaleBar";
+import { CommandPalette } from "@/components/common/CommandPalette";
+import { MobileDock } from "./MobileDock";
+import { MobileSheets } from "./MobileSheets";
+import { cn } from "@/lib/utils";
+import { MobileKPIBar } from "./MobileKPIBar";
+
+export const LayoutFrame = ({ controller, children }: LayoutFrameProps) => {
+  const { isMobile, isTablet } = useLayoutContext();
+  const showDesktopSidebars = !(isMobile || isTablet);
+
+  const missionRibbon = (
+    <div
+      className={cn(
+        "absolute left-1/2 -translate-x-1/2 z-[var(--z-objective)] top-[84px] transition-all",
+        "max-w-[calc(100%-1.5rem)] sm:max-w-[540px]",
+      )}
+    >
+      <div className="hud-element px-4 py-2 text-xs flex items-center gap-3 overflow-hidden">
+        <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+        <span className="uppercase tracking-widest whitespace-nowrap">Active Mission</span>
+        <span className="text-muted-foreground truncate">
+          {controller.scheduleItems?.length
+            ? `${controller.scheduleItems.length} scheduled`
+            : "No active schedule"}
+        </span>
+        <span className="hidden sm:block text-muted-foreground">
+          {controller.scheduleItems?.[0]?.start_time
+            ? `ETA ${new Date(controller.scheduleItems[0].start_time).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}`
+            : "ETA —"}
+        </span>
+      </div>
+    </div>
+  );
+
+  return (
+    <div
+      className="relative h-screen w-full overflow-hidden bg-background text-foreground"
+      data-testid="command-center-shell"
+    >
+      {controller.isOffline && (
+        <div className="absolute top-0 left-0 right-0 z-[9999] bg-destructive/90 backdrop-blur-sm text-destructive-foreground px-4 py-2 text-center text-xs sm:text-sm font-medium">
+          Offline Mode • Changes will sync when connection is restored
+        </div>
+      )}
+
+      <TopBar onModuleClick={controller.setActiveModule} />
+
+      <HorizontalOpsBar
+        className={cn(
+          "top-[48px] sm:top-[56px]",
+          isMobile ? "px-2 py-2" : undefined,
+        )}
+        activeMode={controller.mapState.activeMode}
+        onModeChange={controller.mapControls.changeMode}
+        onClear={controller.mapControls.clear}
+        onToggleTraffic={controller.mapControls.toggleTraffic}
+        showTraffic={controller.mapState.showTraffic}
+        onToggleWeather={controller.mapControls.toggleWeatherRadar}
+        showWeather={controller.mapState.showWeatherRadar}
+        onToggleDarkZones={() => window.dispatchEvent(new CustomEvent("open-dark-zone-panel"))}
+        onToggleEquipment={controller.mapControls.toggleEmployee}
+        showEquipment={controller.mapState.showEmployeeTracking}
+      />
+
+      {missionRibbon}
+
+      <div
+        className={cn(
+          "relative flex h-full w-full",
+          isMobile ? "pt-[120px] pb-[152px]" : "pt-[140px] pb-[64px]",
+        )}
+      >
+        {showDesktopSidebars && (
+          <RightSidebar
+            side="left"
+            onAIClick={() => controller.toggleModal("aiAssistant", true)}
+            onSettingsClick={() => controller.openModal("settings")}
+            onLocateMe={controller.mapControls.locateMe}
+            onToggleTraffic={controller.mapControls.toggleTraffic}
+            showTraffic={controller.mapState.showTraffic}
+            onToggleStreetView={controller.mapControls.toggleStreetView}
+            onAIDetect={() => controller.openModal("aiDetection")}
+            onToggleEmployeeTracking={controller.mapControls.toggleEmployee}
+            showEmployeeTracking={controller.mapState.showEmployeeTracking}
+            onToggleWeatherRadar={controller.mapControls.toggleWeatherRadar}
+            showWeatherRadar={controller.mapState.showWeatherRadar}
+            onToggleParcels={controller.mapControls.toggleParcels}
+            showParcels={controller.mapState.showParcels}
+            onModeChange={controller.mapControls.changeMode}
+            activeMode={controller.mapState.activeMode}
+            onClear={controller.mapControls.clear}
+            onSave={controller.mapControls.save}
+            onExport={() => controller.openModal("export")}
+            onImageryChange={controller.mapControls.setImagery}
+            imagery={controller.mapState.imagery}
+          />
+        )}
+
+        <div className="relative flex-1">
+          <MapContainer ref={controller.mapContainerRef} initialMapTheme={controller.mapTheme} />
+          <CornerBrackets />
+          <CompassRose />
+          <CoordinateDisplay lat={controller.mapState.lat} lng={controller.mapState.lng} />
+          <ZoomIndicator zoom={controller.mapState.zoom} />
+          <ScaleBar lat={controller.mapState.lat} zoom={controller.mapState.zoom} />
+        </div>
+
+        {showDesktopSidebars && (
+          <div className="absolute right-0 top-[84px] bottom-16 hidden xl:block w-80 z-[var(--z-sidebars)] hud-element border-l border-primary/30 bg-background/80 backdrop-blur-md">
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="corner-bracket-md corner-tl" />
+              <div className="corner-bracket-md corner-tr" />
+              <div className="corner-bracket-md corner-bl" />
+              <div className="corner-bracket-md corner-br" />
+            </div>
+            <div className="h-full relative z-10">
+              <LeftSidebar side="right" />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {isMobile ? (
+        <>
+          <MobileKPIBar />
+          <MobileDock controller={controller} />
+          <MobileSheets controller={controller} />
+        </>
+      ) : (
+        <KPITicker />
+      )}
+
+      <CommandPalette
+        open={controller.modalState.commandPalette}
+        onOpenChange={(open) => controller.toggleModal("commandPalette", open)}
+        onNavigate={(module) => controller.setActiveModule(module as never)}
+      />
+
+      {children}
+    </div>
+  );
+};

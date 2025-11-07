@@ -1,16 +1,5 @@
-import React, { Suspense, lazy, useState, useRef, useEffect } from "react";
-import { MapContainer, MapContainerRef } from "@/components/map/MapContainer";
-import { DrawingMode } from "@/hooks/useMapDrawing";
-import { TopBar } from "@/components/layout/TopBar";
-import { HorizontalOpsBar } from "@/components/layout/HorizontalOpsBar";
-import { LeftSidebar } from "@/components/layout/LeftSidebar";
-import { RightSidebar } from "@/components/layout/RightSidebar";
-import { KPITicker } from "@/components/dashboard/KPITicker";
-import { AIAssistant } from "@/components/ai/AIAssistant";
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import { SkeletonLoader } from "@/components/common/SkeletonLoader";
-import { useSchedule } from "@/hooks/useSchedule";
-import { useOfflineDetection } from "@/hooks/useOfflineDetection";
+import React from "react";
+import { CommandCenterLayout } from "@/layouts/command-center/CommandCenterLayout";
 
 const DashboardModal = lazy(() =>
   import("@/components/modals/DashboardModal").then((m) => ({ default: m.DashboardModal })),

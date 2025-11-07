@@ -12,6 +12,7 @@ const ClientAppLazy = lazy(() => import("./pages/client/ClientApp").then(m => ({
 import { initAnalytics, trackPageView } from "@/lib/analytics";
 import { GamificationProvider } from "@/context/GamificationContext";
 import { SettingsProvider } from "@/context/SettingsContext";
+import { LayoutProvider } from "@/context/LayoutContext";
 import { applySavedThemeFromLocalStorage, listenForThemeChanges } from "@/lib/theme";
 import { ProtectedFeature } from "@/components/ProtectedFeature";
 import { usePWA } from "@/hooks/usePWA";
@@ -99,35 +100,37 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <I18nProvider>
-          <SettingsProvider>
-            <GamificationProvider>
-              <BrowserRouter>
-                <AnalyticsListener />
-                <Suspense fallback={null}>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/profile" element={<Profile />} />
-                    <Route path="/auth" element={<Auth />} />
-                    {/* Client-facing app */}
-                    <Route
-                      path="/client/*"
-                      element={
-                        <ProtectedFeature
-                          allowed={["Viewer","Operator","Manager","Administrator","Super Administrator"]}
-                        >
-                          <ClientAppLazy />
-                        </ProtectedFeature>
-                      }
-                    />
-                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </Suspense>
-              </BrowserRouter>
-            </GamificationProvider>
-          </SettingsProvider>
-        </I18nProvider>
+          <I18nProvider>
+            <SettingsProvider>
+              <LayoutProvider>
+                <GamificationProvider>
+                  <BrowserRouter>
+                    <AnalyticsListener />
+                    <Suspense fallback={null}>
+                      <Routes>
+                        <Route path="/" element={<Index />} />
+                        <Route path="/profile" element={<Profile />} />
+                        <Route path="/auth" element={<Auth />} />
+                        {/* Client-facing app */}
+                        <Route
+                          path="/client/*"
+                          element={
+                            <ProtectedFeature
+                              allowed={["Viewer","Operator","Manager","Administrator","Super Administrator"]}
+                            >
+                              <ClientAppLazy />
+                            </ProtectedFeature>
+                          }
+                        />
+                        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </Suspense>
+                  </BrowserRouter>
+                </GamificationProvider>
+              </LayoutProvider>
+            </SettingsProvider>
+          </I18nProvider>
       </TooltipProvider>
     </QueryClientProvider>
   </ErrorBoundary>
