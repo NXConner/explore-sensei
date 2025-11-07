@@ -12,6 +12,15 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --z-topbar: 70;
+    --z-horizontal-ops: 60;
+    --z-objective: 58;
+    --z-sidebars: 55;
+    --z-corners: 52;
+    --z-kpi-ticker: 50;
+  }
+
   * {
     border-color: hsl(var(--border));
   }
