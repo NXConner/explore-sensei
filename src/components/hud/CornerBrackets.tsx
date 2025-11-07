@@ -2,10 +2,10 @@ import React from "react";
 
 export const CornerBrackets: React.FC = () => {
   const corner = (pos: "tl" | "tr" | "bl" | "br") => {
-    const base = "pointer-events-none absolute w-12 h-12";
+    const base = "pointer-events-none absolute w-12 h-12 animate-hud-fade-in";
     const border = "border-2 border-primary/60";
     const glow = "shadow-[0_0_20px_rgba(255,140,0,0.4)]";
-    const common = `${border} ${glow}`;
+    const common = `${border} ${glow} transition-all duration-300`;
     switch (pos) {
       case "tl":
         return <div className={`${base} top-16 left-0`}><div className={`absolute inset-0 border-r-0 border-b-0 rounded-tl ${common}`} /></div>;

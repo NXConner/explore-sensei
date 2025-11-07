@@ -10,8 +10,8 @@ export const CompassRose: React.FC<{ bearing?: number }> = ({ bearing = 0 }) => 
   }, [bearing]);
   
   return (
-    <div className="absolute top-[140px] left-1/2 -translate-x-1/2 z-[var(--z-corners)] pointer-events-none">
-      <div className="w-12 h-12 rounded-full border border-primary/60 bg-background/60 backdrop-blur-sm flex items-center justify-center relative overflow-hidden">
+    <div className="absolute top-[140px] left-1/2 -translate-x-1/2 z-[var(--z-corners)] pointer-events-none animate-hud-slide-in">
+      <div className="w-12 h-12 rounded-full border border-primary/60 bg-background/60 backdrop-blur-sm flex items-center justify-center relative overflow-hidden transition-all duration-300 hover:border-primary/80 hover:shadow-hud-glow">
         {/* Compass ticks - static */}
         {[...Array(8)].map((_, i) => (
           <div

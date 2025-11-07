@@ -75,11 +75,12 @@ export const MiniMap: React.FC<MiniMapProps> = ({ variant = "overlay", className
   }
 
   return (
-    <div className="absolute right-12 top-16 w-48 h-48 z-[980] hud-element border-primary/30 overflow-hidden" aria-label="Mini Map">
+    <div className="absolute right-12 top-16 w-48 h-48 z-[980] hud-element border-primary/30 overflow-hidden animate-hud-fade-in transition-all duration-300 hover:border-primary/50 hover:shadow-hud-glow" aria-label="Mini Map">
       <div ref={miniMapRef} className="w-full h-full" />
-      <div className="absolute bottom-1 left-1 text-[10px] bg-background/80 px-1 rounded text-muted-foreground">
-        Mini Map
+      <div className="absolute bottom-1 left-1 text-[10px] bg-background/80 px-1 rounded text-muted-foreground font-mono">
+        TACTICAL OVERVIEW
       </div>
+      <div className="absolute top-1 left-1 w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
     </div>
   );
 };

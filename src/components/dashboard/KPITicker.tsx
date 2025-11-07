@@ -49,6 +49,9 @@ export const KPITicker = () => {
     { label: "Orders", value: String((kpiData as any)?.materialOrders || 0), change: "+4", trend: "up", icon: Package },
   ];
 
+  const allItems = [...kpis, ...extras];
+  const doubledItems = [...allItems, ...allItems]; // Double for seamless loop
+
   return (
     <div className="absolute bottom-0 left-0 right-0 h-16 z-[var(--z-kpi-ticker)] hud-element border-t border-primary/30 bg-background/80 backdrop-blur-md overflow-hidden">
       {/* Corner brackets for KPI Ticker */}
@@ -57,11 +60,11 @@ export const KPITicker = () => {
         <div className="corner-bracket-sm corner-tr" />
       </div>
       <div className="flex items-center h-full px-2 relative z-10">
-        <div className="animate-marquee flex gap-8 whitespace-nowrap">
-          {[...kpis, ...extras, ...kpis, ...extras].map((item, idx) => {
+        <div className="flex gap-8 whitespace-nowrap animate-marquee">
+          {doubledItems.map((item, idx) => {
             const Icon = item.icon;
             return (
-              <div key={idx} className="flex items-center gap-2 px-4">
+              <div key={idx} className="flex items-center gap-2 px-4 flex-shrink-0">
                 <Icon className="icon-sm text-primary" />
                 <span className="text-xs font-mono uppercase">{item.label}:</span>
                 <span className="text-xs font-bold text-primary">{item.value}</span>

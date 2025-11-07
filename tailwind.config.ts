@@ -107,6 +107,10 @@ const config: Config = {
         "hud-grid": "hud-grid-pulse 4s ease-in-out infinite",
         "hud-sonar": "hud-sonar 2.4s var(--ease-sonar, cubic-bezier(0.37,0,0.45,1)) infinite",
         "hud-scanline": "hud-scanline 8s linear infinite",
+        "marquee": "marquee 45s linear infinite",
+        "hud-slide-in": "hud-slide-in 0.3s cubic-bezier(0.19, 1, 0.22, 1)",
+        "hud-fade-in": "hud-fade-in 0.4s cubic-bezier(0.19, 1, 0.22, 1)",
+        "notification-slide": "notification-slide 0.4s cubic-bezier(0.19, 1, 0.22, 1)",
       },
       keyframes: {
         "hud-glitch": {
@@ -129,6 +133,22 @@ const config: Config = {
         "hud-scanline": {
           "0%": { transform: "translateY(-100%)" },
           "100%": { transform: "translateY(100%)" },
+        },
+        "marquee": {
+          "0%": { transform: "translateX(0%)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
+        "hud-slide-in": {
+          "0%": { transform: "translateY(-20px)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
+        },
+        "hud-fade-in": {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        "notification-slide": {
+          "0%": { transform: "translateX(100%)", opacity: "0" },
+          "100%": { transform: "translateX(0)", opacity: "1" },
         },
       },
     },

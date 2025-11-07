@@ -17,6 +17,8 @@ import { MobileDock } from "./MobileDock";
 import { MobileSheets } from "./MobileSheets";
 import { cn } from "@/lib/utils";
 import { MobileKPIBar } from "./MobileKPIBar";
+import { MiniMap } from "@/components/hud/MiniMap";
+import { HUDNotifications } from "@/components/hud/HUDNotifications";
 
 export const LayoutFrame = ({ controller, children }: LayoutFrameProps) => {
   const { isMobile, isTablet } = useLayoutContext();
@@ -120,6 +122,8 @@ export const LayoutFrame = ({ controller, children }: LayoutFrameProps) => {
           <CoordinateDisplay lat={controller.mapState.lat} lng={controller.mapState.lng} />
           <ZoomIndicator zoom={controller.mapState.zoom} />
           <ScaleBar lat={controller.mapState.lat} zoom={controller.mapState.zoom} />
+          <MiniMap variant="overlay" />
+          <HUDNotifications />
         </div>
 
         {showDesktopSidebars && (

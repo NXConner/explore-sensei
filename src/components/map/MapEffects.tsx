@@ -49,6 +49,31 @@ export const MapEffects = ({
     if (!showRadar || prefersReduced || reduceMotion || lowPowerMode) return;
     let raf: number | null = null;
     let angle = 0;
+
+    const glowMarkers = () => {
+      // Find all map markers and apply glow effect based on radar angle
+      const markers = document.querySelectorAll('[role="button"][aria-label]');
+      markers.forEach((marker) => {
+        const el = marker as HTMLElement;
+        const rect = el.getBoundingClientRect();
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+        const markerAngle = Math.atan2(rect.top + rect.height / 2 - centerY, rect.left + rect.width / 2 - centerX) * (180 / Math.PI);
+        const normalizedMarkerAngle = (markerAngle + 360) % 360;
+        const normalizedRadarAngle = angle % 360;
+        const diff = Math.abs(normalizedMarkerAngle - normalizedRadarAngle);
+        const threshold = 15;
+
+        if (diff < threshold || diff > 360 - threshold) {
+          el.style.filter = `drop-shadow(0 0 12px hsl(var(--primary))) brightness(1.4)`;
+          el.style.transition = 'filter 0.2s ease-out';
+          setTimeout(() => {
+            el.style.filter = 'none';
+          }, 400);
+        }
+      });
+    };
+
     const animate = () => {
       angle += radarSpeed * 0.5;
       if (radarRef.current) {
@@ -57,13 +82,19 @@ export const MapEffects = ({
       if (aviationRef.current) {
         aviationRef.current.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
       }
+      
+      // Trigger marker glow every 10 degrees
+      if (Math.floor(angle) % 10 === 0) {
+        glowMarkers();
+      }
+
       raf = requestAnimationFrame(animate);
     };
     raf = requestAnimationFrame(animate);
     return () => {
       if (raf) cancelAnimationFrame(raf);
     };
-  }, [showRadar, radarSpeed]);
+  }, [showRadar, radarSpeed, reduceMotion, lowPowerMode]);
 
   useEffect(() => {
     const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;

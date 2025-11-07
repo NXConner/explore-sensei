@@ -19,7 +19,13 @@ function niceScale(meters: number) {
   return { label: `${best} ${unit.label}`, widthPx };
 }
 
-export const ScaleBar: React.FC<{ lat?: number; zoom?: number }>= ({ lat = 0, zoom = 0 }) => {
+export const ScaleBar: React.FC<{ lat?: number; zoom?: number }> = ({ lat = 0, zoom = 0 }) => {
+  const [isVisible, setIsVisible] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsVisible(true);
+  }, []);
+
   const { widthPx, label } = useMemo(() => {
     const earthCircumference = 40075016.686; // meters at equator
     const metersPerPixel = (lat: number, zoom: number) => {
@@ -33,12 +39,19 @@ export const ScaleBar: React.FC<{ lat?: number; zoom?: number }>= ({ lat = 0, zo
   }, [lat, zoom]);
 
   return (
-    <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-[var(--z-corners)] pointer-events-none">
-      <div className="h-[2px] bg-foreground/70 relative" style={{ width: `${widthPx}px` }}>
-        <div className="absolute inset-y-0 left-0 w-[2px] h-2 -top-1 bg-foreground/70" />
-        <div className="absolute inset-y-0 right-0 w-[2px] h-2 -top-1 bg-foreground/70" />
+    <div 
+      className={`absolute bottom-[88px] left-4 z-[var(--z-corners)] hud-element text-xs font-mono px-2 py-1.5 border border-primary/30 bg-background/80 backdrop-blur-sm transition-all duration-300 hover:border-primary/50 hover:shadow-hud-sm ${isVisible ? 'animate-hud-slide-in' : 'opacity-0'}`}
+      aria-label="Map scale"
+    >
+      <div className="flex items-center gap-2">
+        <div className="relative h-1 bg-primary/40 transition-all duration-200" style={{ width: `${widthPx}px` }}>
+          <div className="absolute left-0 top-0 bottom-0 w-px bg-primary" />
+          <div className="absolute right-0 top-0 bottom-0 w-px bg-primary" />
+        </div>
       </div>
-      <div className="text-[10px] text-center text-muted-foreground mt-1 font-mono">{label}</div>
+      <div className="text-[10px] text-muted-foreground mt-1">
+        {label}
+      </div>
     </div>
   );
 };
