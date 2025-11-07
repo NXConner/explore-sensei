@@ -311,7 +311,6 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
             </div>
           </TabsContent>
 
-          <ScrollArea className="flex-1 p-4">
             <TabsContent value="appearance" className="mt-0 space-y-6">
               <div className="tactical-panel p-4">
                 <div className="flex items-center justify-between">
@@ -903,10 +902,12 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   Auto uses Google if configured, else Mapbox/MapLibre fallback.
                 </p>
               </div>
+              </ScrollArea>
             </TabsContent>
 
             {/* Role Management (surface only) */}
             <TabsContent value="roles" className="mt-0 space-y-6">
+              <ScrollArea className="h-[500px] pr-4">
               <div className="tactical-panel space-y-4 p-4">
                 <div className="text-sm font-semibold">Role Management</div>
                 <p className="text-xs text-muted-foreground">
@@ -1384,10 +1385,12 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   />
                 </div>
               </div>
+              </ScrollArea>
             </TabsContent>
 
             {/* API Keys Management */}
             <TabsContent value="api-keys" className="mt-0 space-y-6">
+              <ScrollArea className="h-[500px] pr-4">
               <div className="tactical-panel space-y-4 p-4">
                 <div className="mb-2 flex items-center gap-3">
                   <Settings className="h-5 w-5 text-primary" />
@@ -1552,9 +1555,9 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   Values set here override environment variables on this device.
                 </p>
               </div>
+              </ScrollArea>
             </TabsContent>
-          </ScrollArea>
-        </Tabs>
+          </Tabs>
 
         {/* Footer */}
         <div className="flex justify-end gap-2 border-t border-primary/30 p-4">
