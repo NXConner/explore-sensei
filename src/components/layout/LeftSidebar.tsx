@@ -11,10 +11,11 @@ import { useAddressSearch } from "@/hooks/useAddressSearch";
 import { ClockInStatus } from "@/components/time/ClockInStatus";
 import { MiniMap } from "@/components/hud/MiniMap";
 import { JobStatusLegend } from "@/components/map/JobStatusLegend";
+import { cn } from "@/lib/utils";
 
-type LeftSidebarProps = { side?: "left" | "right" };
+type LeftSidebarProps = { side?: "left" | "right"; layoutMode?: "floating" | "docked" };
 
-export const LeftSidebar = ({ side = "left" }: LeftSidebarProps) => {
+export const LeftSidebar = ({ side = "left", layoutMode = "floating" }: LeftSidebarProps) => {
   const { map } = useMap();
   const { setDrawingMode, clearDrawings, initializeDrawingManager } = useMapDrawing(map);
   const { data: jobSites } = useJobSites();
@@ -76,13 +77,23 @@ export const LeftSidebar = ({ side = "left" }: LeftSidebarProps) => {
 
   const activeJobs = jobSites?.filter((job) => job.status === "In Progress") || [];
 
-  const anchoredShell = `absolute ${side === "left" ? "left-0 border-r" : "right-0 border-l"} top-[84px] bottom-16 z-[var(--z-sidebars)]`;
   const chromeSurface =
     "hud-element border-primary/30 bg-[radial-gradient(circle_at_top,rgba(10,15,25,0.92),rgba(6,10,18,0.88))] supports-[backdrop-filter]:backdrop-blur-lg shadow-[0_24px_60px_rgba(6,10,18,0.52)]";
-
+  const isDocked = layoutMode === "docked";
+  const borderClass = side === "left" ? "border-r" : "border-l";
+  const positionClass = isDocked
+    ? "sticky top-[84px]"
+    : `absolute ${side === "left" ? "left-0" : "right-0"} top-[84px] bottom-16`;
+  const baseShell = cn(
+    positionClass,
+    borderClass,
+    "z-[var(--z-sidebars)] pointer-events-auto",
+    chromeSurface,
+    isDocked && "flex-shrink-0 max-h-[calc(100vh-84px-64px)] h-[calc(100vh-84px-64px)]",
+  );
   if (isMinimized) {
     return (
-      <div className={`${anchoredShell} w-12 ${chromeSurface} flex items-center justify-center`}>
+      <div className={cn(baseShell, "w-12 flex items-center justify-center")}>
         <Button
           onClick={() => setIsMinimized(false)}
           variant="ghost"
@@ -90,14 +101,14 @@ export const LeftSidebar = ({ side = "left" }: LeftSidebarProps) => {
           className="h-12 w-10"
           aria-label="Expand sidebar"
         >
-          {side === 'left' ? <ChevronRight className="icon-md" /> : <ChevronLeft className="icon-md" />}
+          {side === "left" ? <ChevronRight className="icon-md" /> : <ChevronLeft className="icon-md" />}
         </Button>
       </div>
     );
   }
 
   return (
-    <div className={`${anchoredShell} w-80 ${chromeSurface} flex flex-col overflow-hidden`}>
+    <div className={cn(baseShell, "w-80 flex flex-col overflow-hidden")}>
       {/* Tactical Header */}
       <div className="p-4 border-b border-primary/30 flex-shrink-0">
         <div className="flex items-center justify-between">
@@ -113,12 +124,12 @@ export const LeftSidebar = ({ side = "left" }: LeftSidebarProps) => {
             title="Minimize"
             aria-label="Minimize sidebar"
           >
-            {side === 'right' ? <ChevronRight className="icon-sm" /> : <ChevronLeft className="icon-sm" />}
+            {side === "right" ? <ChevronRight className="icon-sm" /> : <ChevronLeft className="icon-sm" />}
           </Button>
         </div>
       </div>
 
-      <ScrollArea className={`flex-1 h-full ${side === 'left' ? 'scrollbar-left' : ''}`}>
+      <ScrollArea className={cn("flex-1 h-full", side === "left" ? "scrollbar-left" : "")}>
         {/* Drawing Tools */}
         <div className="tactical-panel m-2 p-4">
           <h3 className="text-xs font-bold text-primary mb-3">MAP TOOLS</h3>
