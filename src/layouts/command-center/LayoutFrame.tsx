@@ -69,86 +69,95 @@ export const LayoutFrame = ({ controller, children }: LayoutFrameProps) => {
         <div className="absolute top-0 left-0 right-0 z-[9999] bg-destructive/90 backdrop-blur-sm text-destructive-foreground px-4 py-2 text-center text-xs sm:text-sm font-medium">
           Offline Mode • Changes will sync when connection is restored
         </div>
-      )}
-
-      <TopBar onModuleClick={controller.setActiveModule} />
-
-      <HorizontalOpsBar
-        className={cn(
-          "top-[48px] sm:top-[56px]",
-          isMobile ? "px-2 py-2" : undefined,
-        )}
-        activeMode={controller.mapState.activeMode}
-        onModeChange={controller.mapControls.changeMode}
-        onClear={controller.mapControls.clear}
-        onToggleTraffic={controller.mapControls.toggleTraffic}
-        showTraffic={controller.mapState.showTraffic}
-        onToggleWeather={controller.mapControls.toggleWeatherRadar}
-        showWeather={controller.mapState.showWeatherRadar}
-        onToggleDarkZones={() => window.dispatchEvent(new CustomEvent("open-dark-zone-panel"))}
-        onToggleEquipment={controller.mapControls.toggleEmployee}
-        showEquipment={controller.mapState.showEmployeeTracking}
-      />
-
-      {missionRibbon}
-
-      <div
-        className={cn(
-          "relative flex h-full w-full",
-          isMobile ? "pt-[120px] pb-[152px]" : "pt-[140px] pb-[64px]",
-        )}
-      >
-        {showDesktopSidebars && (
-          <RightSidebar
-            side="left"
-            onAIClick={() => controller.toggleModal("aiAssistant", true)}
-            onSettingsClick={() => controller.openModal("settings")}
-            onLocateMe={controller.mapControls.locateMe}
-            onToggleTraffic={controller.mapControls.toggleTraffic}
-            showTraffic={controller.mapState.showTraffic}
-            onToggleStreetView={controller.mapControls.toggleStreetView}
-            onAIDetect={() => controller.openModal("aiDetection")}
-            onToggleEmployeeTracking={controller.mapControls.toggleEmployee}
-            showEmployeeTracking={controller.mapState.showEmployeeTracking}
-            onToggleWeatherRadar={controller.mapControls.toggleWeatherRadar}
-            showWeatherRadar={controller.mapState.showWeatherRadar}
-            onToggleParcels={controller.mapControls.toggleParcels}
-            showParcels={controller.mapState.showParcels}
-            onModeChange={controller.mapControls.changeMode}
-            activeMode={controller.mapState.activeMode}
-            onClear={controller.mapControls.clear}
-            onSave={controller.mapControls.save}
-            onExport={() => controller.openModal("export")}
-            onImageryChange={controller.mapControls.setImagery}
-            imagery={controller.mapState.imagery}
-          />
         )}
 
-        <div className="relative flex-1">
-          <MapContainer ref={controller.mapContainerRef} initialMapTheme={controller.mapTheme} />
-          {/* HUD Overlays - conditionally rendered based on settings */}
-          {hudSettings.hudCornerBrackets && <CornerBrackets />}
-          {hudSettings.hudCompassRose && <CompassRose />}
-          {hudSettings.hudCoordinateDisplay && <CoordinateDisplay lat={controller.mapState.lat} lng={controller.mapState.lng} />}
-          {hudSettings.hudZoomIndicator && <ZoomIndicator zoom={controller.mapState.zoom} />}
-          {hudSettings.hudScaleBar && <ScaleBar lat={controller.mapState.lat} zoom={controller.mapState.zoom} />}
-          {hudSettings.hudMiniMap && <MiniMap variant="overlay" />}
-          <HUDNotifications />
-        </div>
-        {showDesktopSidebars && (
-          <div className="absolute right-0 top-[84px] bottom-16 hidden xl:block w-80 z-[var(--z-sidebars)] hud-element border-l border-primary/30 bg-[radial-gradient(circle_at_top,rgba(10,15,25,0.92),rgba(6,10,18,0.88))] supports-[backdrop-filter]:backdrop-blur-lg shadow-[0_24px_60px_rgba(6,10,18,0.52)]">
-            <div className="absolute inset-0 pointer-events-none">
-              <div className="corner-bracket-md corner-tl" />
-              <div className="corner-bracket-md corner-tr" />
-              <div className="corner-bracket-md corner-bl" />
-              <div className="corner-bracket-md corner-br" />
+        <TopBar onModuleClick={controller.setActiveModule} />
+
+        <HorizontalOpsBar
+          className={cn(
+            "top-[48px] sm:top-[56px]",
+            isMobile ? "px-2 py-2" : undefined,
+          )}
+          activeMode={controller.mapState.activeMode}
+          onModeChange={controller.mapControls.changeMode}
+          onClear={controller.mapControls.clear}
+          onToggleTraffic={controller.mapControls.toggleTraffic}
+          showTraffic={controller.mapState.showTraffic}
+          onToggleWeather={controller.mapControls.toggleWeatherRadar}
+          showWeather={controller.mapState.showWeatherRadar}
+          onToggleDarkZones={() => window.dispatchEvent(new CustomEvent("open-dark-zone-panel"))}
+          onToggleEquipment={controller.mapControls.toggleEmployee}
+          showEquipment={controller.mapState.showEmployeeTracking}
+        />
+
+        {missionRibbon}
+
+        <div
+          className={cn(
+            "relative h-full w-full",
+            isMobile ? "pt-[120px] pb-[152px]" : "pt-[140px] pb-[64px]",
+          )}
+        >
+          <div
+            className={cn(
+              "relative flex h-full w-full",
+              showDesktopSidebars ? "items-stretch gap-3 xl:gap-4" : undefined,
+            )}
+          >
+            {showDesktopSidebars && (
+              <div className="hidden lg:flex h-full flex-none">
+                <RightSidebar
+                  side="left"
+                  layoutMode="docked"
+                  onAIClick={() => controller.toggleModal("aiAssistant", true)}
+                  onSettingsClick={() => controller.openModal("settings")}
+                  onLocateMe={controller.mapControls.locateMe}
+                  onToggleTraffic={controller.mapControls.toggleTraffic}
+                  showTraffic={controller.mapState.showTraffic}
+                  onToggleStreetView={controller.mapControls.toggleStreetView}
+                  onAIDetect={() => controller.openModal("aiDetection")}
+                  onToggleEmployeeTracking={controller.mapControls.toggleEmployee}
+                  showEmployeeTracking={controller.mapState.showEmployeeTracking}
+                  onToggleWeatherRadar={controller.mapControls.toggleWeatherRadar}
+                  showWeatherRadar={controller.mapState.showWeatherRadar}
+                  onToggleParcels={controller.mapControls.toggleParcels}
+                  showParcels={controller.mapState.showParcels}
+                  onModeChange={controller.mapControls.changeMode}
+                  activeMode={controller.mapState.activeMode}
+                  onClear={controller.mapControls.clear}
+                  onSave={controller.mapControls.save}
+                  onExport={() => controller.openModal("export")}
+                  onImageryChange={controller.mapControls.setImagery}
+                  imagery={controller.mapState.imagery}
+                />
+              </div>
+            )}
+
+            <div className="relative flex-1 min-w-0">
+              <MapContainer ref={controller.mapContainerRef} initialMapTheme={controller.mapTheme} />
+              {/* HUD Overlays - conditionally rendered based on settings */}
+              {hudSettings.hudCornerBrackets && <CornerBrackets />}
+              {hudSettings.hudCompassRose && <CompassRose />}
+              {hudSettings.hudCoordinateDisplay && <CoordinateDisplay lat={controller.mapState.lat} lng={controller.mapState.lng} />}
+              {hudSettings.hudZoomIndicator && <ZoomIndicator zoom={controller.mapState.zoom} />}
+              {hudSettings.hudScaleBar && <ScaleBar lat={controller.mapState.lat} zoom={controller.mapState.zoom} />}
+              {hudSettings.hudMiniMap && <MiniMap variant="overlay" />}
+              <HUDNotifications />
             </div>
-            <div className="h-full relative z-10">
-              <LeftSidebar side="right" />
-            </div>
+
+            {showDesktopSidebars && (
+              <div className="hidden xl:flex h-full flex-none relative w-80">
+                <div className="pointer-events-none absolute inset-0 z-[var(--z-sidebars)]">
+                  <div className="corner-bracket-md corner-tl" />
+                  <div className="corner-bracket-md corner-tr" />
+                  <div className="corner-bracket-md corner-bl" />
+                  <div className="corner-bracket-md corner-br" />
+                </div>
+                <LeftSidebar side="right" layoutMode="docked" />
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
 
       {isMobile ? (
         <>

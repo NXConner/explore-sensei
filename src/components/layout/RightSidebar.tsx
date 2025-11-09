@@ -1,8 +1,6 @@
 import {
   Bot,
-  Bell,
   Settings,
-  MessageSquare,
   Navigation,
   Car,
   Eye,
@@ -22,10 +20,10 @@ import {
   Mountain,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DrawingMode } from "@/hooks/useMapDrawing";
 import { Waves, Radio, FlameKindling, Layers } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface RightSidebarProps {
   side?: "left" | "right";
@@ -49,6 +47,7 @@ interface RightSidebarProps {
   onClear?: () => void;
   onSave?: () => void;
   onExport?: () => void;
+  layoutMode?: "floating" | "docked";
 }
 
 export const RightSidebar = ({
@@ -73,11 +72,22 @@ export const RightSidebar = ({
   onExport,
   onImageryChange,
   imagery = "none",
+  layoutMode = "floating",
 }: RightSidebarProps) => {
   const isLeft = side === "left";
-  const anchoredShell = `absolute ${isLeft ? "left-0 border-r" : "right-0 border-l"} top-[84px] bottom-16 w-14 z-[var(--z-sidebars)]`;
   const chromeSurface =
     "hud-element border-primary/30 bg-[radial-gradient(circle_at_top,rgba(10,15,25,0.92),rgba(6,10,18,0.88))] supports-[backdrop-filter]:backdrop-blur-lg shadow-[0_24px_60px_rgba(6,10,18,0.52)]";
+  const isFloating = layoutMode === "floating";
+  const anchorPosition = isFloating
+    ? `absolute ${isLeft ? "left-0" : "right-0"} top-[84px] bottom-16`
+    : "sticky top-[84px]";
+  const anchoredShell = cn(
+    anchorPosition,
+    "w-14 z-[var(--z-sidebars)] flex flex-col pointer-events-auto",
+    isLeft ? "border-r" : "border-l",
+    !isFloating && "h-[calc(100vh-84px-64px)] max-h-[calc(100vh-84px-64px)] min-h-[420px]",
+    chromeSurface,
+  );
   const tools = [
     {
       mode: "measure" as DrawingMode,
