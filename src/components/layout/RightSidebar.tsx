@@ -76,7 +76,7 @@ export const RightSidebar = ({
 }: RightSidebarProps) => {
   const isLeft = side === "left";
   const chromeSurface =
-    "hud-element border-primary/30 bg-[radial-gradient(circle_at_top,rgba(10,15,25,0.92),rgba(6,10,18,0.88))] supports-[backdrop-filter]:backdrop-blur-lg shadow-[0_24px_60px_rgba(6,10,18,0.52)]";
+    "hud-element border-primary/20 bg-[radial-gradient(circle_at_top,rgba(10,15,25,0.35),rgba(6,10,18,0.25))] supports-[backdrop-filter]:backdrop-blur-2xl shadow-[0_24px_60px_rgba(6,10,18,0.3)]";
   const isFloating = layoutMode === "floating";
   const anchorPosition = isFloating
     ? `absolute ${isLeft ? "left-0" : "right-0"} top-[84px] bottom-16`

@@ -13,13 +13,13 @@ export const TopBar = ({ onModuleClick }: TopBarProps) => {
   const navigate = useNavigate();
 
   return (
-    <div className="absolute left-0 right-0 top-0 z-[var(--z-topbar)] h-12 bg-[radial-gradient(circle_at_top,rgba(255,140,0,0.18),rgba(10,15,25,0.92))] backdrop-blur supports-[backdrop-filter]:backdrop-blur-md">
+    <div className="absolute left-0 right-0 top-0 z-[var(--z-topbar)] h-12 bg-[radial-gradient(circle_at_top,rgba(255,140,0,0.12),rgba(10,15,25,0.25))] backdrop-blur supports-[backdrop-filter]:backdrop-blur-2xl">
       {/* Corner brackets */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="corner-bracket-sm corner-tl" />
         <div className="corner-bracket-sm corner-tr" />
       </div>
-      <div className="flex h-full items-center justify-between gap-3 border-b border-primary/30 px-4 relative z-10">
+      <div className="flex h-full items-center justify-between gap-3 border-b border-primary/20 px-4 relative z-10">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/90 shadow-lg shadow-primary/30">
             <span className="text-base font-bold text-primary-foreground">AOS</span>

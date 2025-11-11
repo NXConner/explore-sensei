@@ -49,7 +49,7 @@ export const HorizontalOpsBar: React.FC<HorizontalOpsBarProps> = ({
   return (
     <div
       className={cn(
-        "hud-element border-b border-primary/30 bg-background/80 backdrop-blur-md",
+        "hud-element border-b border-primary/20 bg-[radial-gradient(circle_at_top,rgba(10,15,25,0.3),rgba(6,10,18,0.2))] backdrop-blur supports-[backdrop-filter]:backdrop-blur-2xl",
         isMobile
           ? "sticky top-[52px] z-[var(--z-horizontal-ops)] flex items-center gap-3 overflow-x-auto px-3 py-2"
           : "absolute left-0 right-0 top-[48px] z-[var(--z-horizontal-ops)]",
