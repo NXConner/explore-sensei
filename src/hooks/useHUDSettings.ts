@@ -43,6 +43,14 @@ export interface HUDSettings {
 
   // HUD Layout Presets
   hudPreset?: "minimal" | "standard" | "tactical" | "custom";
+
+  // Radar and Pulse Effects
+  radarGlowEnabled?: boolean;
+  markerGlowEnabled?: boolean;
+  radarColor?: string; // hex or hsl color
+  pulseSpeed?: number; // 1-10
+  pulseInterval?: number; // seconds between pulses
+  pulseDuration?: number; // seconds for pulse animation
 }
 
 const STORAGE_KEY = "aos_settings";
@@ -76,6 +84,12 @@ export function useHUDSettings(): [HUDSettings, (patch: Partial<HUDSettings>) =>
     weatherAlertRadius: 15,
     mapTheme: "division",
     hudPreset: "standard",
+    radarGlowEnabled: true,
+    markerGlowEnabled: true,
+    radarColor: "#ff0000",
+    pulseSpeed: 5,
+    pulseInterval: 8,
+    pulseDuration: 3,
   });
 
   useEffect(() => {

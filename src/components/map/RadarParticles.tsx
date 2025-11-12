@@ -23,7 +23,7 @@ export const RadarParticles: React.FC<RadarParticlesProps> = ({
   enabled,
   radarSpeed = 3,
   radarType,
-  accentColor = "hsl(var(--primary))",
+  accentColor = "#ff0000", // Default to red
   lowPowerMode = false,
   reduceMotion = false,
   particleDensity = 5,

@@ -105,7 +105,7 @@ export const MapContainer = forwardRef<
   const [showStreetView, setShowStreetView] = useState(false);
   const [showAIDetection, setShowAIDetection] = useState(false);
   const [showEmployeeTracking, setShowEmployeeTracking] = useState(false);
-  const [showWeatherRadar, setShowWeatherRadar] = useState(false);
+  const [showWeatherRadar, setShowWeatherRadar] = useState(true); // Enable weather radar by default
   const [showParcels, setShowParcels] = useState(false);
 
   const [imagery, setImagery] = useState<"none" | "naip" | "usgs">("none");
@@ -181,6 +181,12 @@ export const MapContainer = forwardRef<
     soundVolume: 70,
     pulseHighlightPOIs: true,
     suitabilityThresholds: { minTempF: 55, maxTempF: 95, maxHumidity: 70, maxPrecipChance: 20 },
+    radarGlowEnabled: true,
+    markerGlowEnabled: true,
+    radarColor: "#ff0000",
+    pulseSpeed: 5,
+    pulseInterval: 8,
+    pulseDuration: 3,
   });
 
   useEffect(() => {
@@ -266,6 +272,12 @@ export const MapContainer = forwardRef<
           suitabilityThresholds: parsed.suitabilityThresholds ?? prev.suitabilityThresholds,
           particleDensity: parsed.particleDensity ?? prev.particleDensity ?? 5,
           particleColor: parsed.particleColor ?? prev.particleColor ?? "hsl(var(--primary))",
+          radarGlowEnabled: parsed.radarGlowEnabled ?? prev.radarGlowEnabled ?? true,
+          markerGlowEnabled: parsed.markerGlowEnabled ?? prev.markerGlowEnabled ?? true,
+          radarColor: parsed.radarColor ?? prev.radarColor ?? "#ff0000",
+          pulseSpeed: parsed.pulseSpeed ?? prev.pulseSpeed ?? 5,
+          pulseInterval: parsed.pulseInterval ?? prev.pulseInterval ?? 8,
+          pulseDuration: parsed.pulseDuration ?? prev.pulseDuration ?? 3,
         }));
         if (parsed.mapTheme && (parsed.mapTheme === "division" || parsed.mapTheme === "animus")) {
           setMapTheme(parsed.mapTheme);
@@ -1661,9 +1673,7 @@ export const MapContainer = forwardRef<
         showScanline={uiSettings.scanlineEffect}
         radarSpeed={uiSettings.radarSpeed}
         glitchIntensity={Math.max(0.03, Math.min(0.9, (uiSettings.glitchIntensity || 0) / 100))}
-        accentColor={
-          mapTheme === "division" ? "rgba(255, 140, 0, 0.12)" : "rgba(0, 200, 200, 0.12)"
-        }
+        accentColor={uiSettings.radarGlowEnabled ? uiSettings.radarColor : "transparent"}
         showGridOverlay={uiSettings.gridOverlay}
         glitchClickPreset={uiSettings.glitchClickPreset}
         vignetteEffect={uiSettings.vignetteEffect}
@@ -1676,9 +1686,18 @@ export const MapContainer = forwardRef<
         useCanvasFX={uiSettings.useCanvasFX}
         particleDensity={uiSettings.particleDensity}
         particleColor={uiSettings.particleColor}
+        markerGlowEnabled={uiSettings.markerGlowEnabled}
       />
       </Suspense>
-      <PulseScanOverlay enabled={showPulseScan} color={mapTheme === 'division' ? 'rgba(0,255,255,0.16)' : 'rgba(255,140,0,0.16)'} speed={4} />
+      <PulseScanOverlay 
+        enabled={showPulseScan} 
+        color={uiSettings.radarColor}
+        speed={uiSettings.pulseSpeed}
+        interval={uiSettings.pulseInterval}
+        duration={uiSettings.pulseDuration}
+        highlightMarkers={uiSettings.markerGlowEnabled && uiSettings.pulseHighlightPOIs}
+        userLocation={mapCenter}
+      />
 
       {/* HUD overlay elements - Remove duplicates, handled by Index.tsx */}
       {/* MiniMap overlay removed; now embedded in sidebar */}

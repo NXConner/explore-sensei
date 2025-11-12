@@ -21,6 +21,7 @@ interface MapEffectsProps {
   useCanvasFX?: boolean;
   particleDensity?: number; // 1-10
   particleColor?: string;
+  markerGlowEnabled?: boolean;
 }
 
 export const MapEffects = ({
@@ -29,7 +30,7 @@ export const MapEffects = ({
   showScanline = true,
   radarSpeed = 3,
   glitchIntensity = 0.3,
-  accentColor = "rgba(255, 140, 0, 0.1)",
+  accentColor = "#ff0000", // Default to red
   showGridOverlay = false,
   glitchClickPreset = "subtle",
   vignetteEffect = false,
@@ -42,6 +43,7 @@ export const MapEffects = ({
   useCanvasFX = false,
   particleDensity = 5,
   particleColor,
+  markerGlowEnabled = true,
 }: MapEffectsProps) => {
   const radarRef = useRef<HTMLDivElement>(null);
   const glitchRef = useRef<HTMLDivElement>(null);
@@ -56,8 +58,9 @@ export const MapEffects = ({
     let angle = 0;
 
     const glowMarkers = () => {
+      if (!markerGlowEnabled) return;
       // Find all map markers and apply glow effect based on radar angle
-      const markers = document.querySelectorAll('[role="button"][aria-label]');
+      const markers = document.querySelectorAll('[role="button"][aria-label], [data-marker]');
       markers.forEach((marker) => {
         const el = marker as HTMLElement;
         const rect = el.getBoundingClientRect();
@@ -70,7 +73,7 @@ export const MapEffects = ({
         const threshold = 15;
 
         if (diff < threshold || diff > 360 - threshold) {
-          el.style.filter = `drop-shadow(0 0 12px hsl(var(--primary))) brightness(1.4)`;
+          el.style.filter = `drop-shadow(0 0 12px ${accentColor}) brightness(1.4)`;
           el.style.transition = 'filter 0.2s ease-out';
           setTimeout(() => {
             el.style.filter = 'none';
@@ -99,7 +102,7 @@ export const MapEffects = ({
     return () => {
       if (raf) cancelAnimationFrame(raf);
     };
-  }, [showRadar, radarSpeed, reduceMotion, lowPowerMode]);
+  }, [showRadar, radarSpeed, reduceMotion, lowPowerMode, markerGlowEnabled, accentColor]);
 
   useEffect(() => {
     const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
