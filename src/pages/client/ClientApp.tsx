@@ -12,7 +12,8 @@ import { FileText, Download, Search, Building } from "lucide-react";
 import { format } from "date-fns";
 
 const ClientHome = () => (
-  <div className="container mx-auto p-6 space-y-6">
+  <div className="min-h-screen bg-background w-full">
+    <div className="container mx-auto p-6 space-y-6">
     <div>
       <h1 className="text-3xl font-bold text-glow text-primary mb-2">Client Portal</h1>
       <p className="text-muted-foreground">Manage your projects, quotes, invoices, and documents</p>
@@ -67,6 +68,7 @@ const ClientHome = () => (
         </Button>
       </Card>
     </div>
+    </div>
   </div>
 );
 
@@ -103,15 +105,23 @@ const QuotesPage = () => {
         .order("created_at", { ascending: false })
         .limit(50);
 
-      if (error) throw error;
+      if (error) {
+        console.warn("Quotes table may not exist or query failed:", error);
+        setQuotes([]);
+        return;
+      }
       setQuotes(data || []);
     } catch (error: any) {
       console.error("Error fetching quotes:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to load quotes",
-        variant: "destructive",
-      });
+      setQuotes([]);
+      // Don't show toast for missing tables - just show empty state
+      if (!error.message?.includes("relation") && !error.message?.includes("does not exist")) {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to load quotes",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -205,6 +215,7 @@ const QuotesPage = () => {
           </Table>
         )}
       </Card>
+      </div>
     </div>
   );
 };
@@ -244,15 +255,23 @@ const InvoicesPage = () => {
         .order("created_at", { ascending: false })
         .limit(50);
 
-      if (error) throw error;
+      if (error) {
+        console.warn("Invoices table may not exist or query failed:", error);
+        setInvoices([]);
+        return;
+      }
       setInvoices(data || []);
     } catch (error: any) {
       console.error("Error fetching invoices:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to load invoices",
-        variant: "destructive",
-      });
+      setInvoices([]);
+      // Don't show toast for missing tables - just show empty state
+      if (!error.message?.includes("relation") && !error.message?.includes("does not exist")) {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to load invoices",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -286,13 +305,14 @@ const InvoicesPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-glow text-primary mb-2">Invoices</h1>
-          <p className="text-muted-foreground">View and manage your invoices</p>
+    <div className="min-h-screen bg-background w-full">
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-glow text-primary mb-2">Invoices</h1>
+            <p className="text-muted-foreground">View and manage your invoices</p>
+          </div>
         </div>
-      </div>
 
       <Card className="p-4">
         <div className="flex items-center gap-4 mb-4">
@@ -364,6 +384,7 @@ const InvoicesPage = () => {
           </Table>
         )}
       </Card>
+      </div>
     </div>
   );
 };
@@ -402,15 +423,23 @@ const ProjectsPage = () => {
         .order("created_at", { ascending: false })
         .limit(50);
 
-      if (error) throw error;
+      if (error) {
+        console.warn("Jobs table may not exist or query failed:", error);
+        setProjects([]);
+        return;
+      }
       setProjects(data || []);
     } catch (error: any) {
       console.error("Error fetching projects:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to load projects",
-        variant: "destructive",
-      });
+      setProjects([]);
+      // Don't show toast for missing tables - just show empty state
+      if (!error.message?.includes("relation") && !error.message?.includes("does not exist")) {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to load projects",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -437,13 +466,14 @@ const ProjectsPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-glow text-primary mb-2">Projects</h1>
-          <p className="text-muted-foreground">View and manage your active and past projects</p>
+    <div className="min-h-screen bg-background w-full">
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-glow text-primary mb-2">Projects</h1>
+            <p className="text-muted-foreground">View and manage your active and past projects</p>
+          </div>
         </div>
-      </div>
 
       <Card className="p-4">
         <div className="flex items-center gap-4 mb-4">
@@ -514,6 +544,7 @@ const ProjectsPage = () => {
           </Table>
         )}
       </Card>
+      </div>
     </div>
   );
 };
@@ -554,30 +585,40 @@ const DocumentsPage = () => {
 
       if (!projectError && projectDocs) {
         setDocuments(projectDocs || []);
-      } else {
-        // Fallback to job_photos
-        const { data: photos, error: photosError } = await supabase
-          .from("job_photos")
-          .select(`
-            id,
-            file_name as name,
-            url,
-            taken_at as uploaded_at,
-            jobs:job_id (title)
-          `)
-          .order("taken_at", { ascending: false })
-          .limit(50);
-
-        if (photosError) throw photosError;
-        setDocuments(photos || []);
+        setLoading(false);
+        return;
       }
+
+      // Fallback to job_photos
+      const { data: photos, error: photosError } = await supabase
+        .from("job_photos")
+        .select(`
+          id,
+          file_name as name,
+          url,
+          taken_at as uploaded_at,
+          jobs:job_id (title)
+        `)
+        .order("taken_at", { ascending: false })
+        .limit(50);
+
+      if (photosError) {
+        console.warn("Documents tables may not exist:", photosError);
+        setDocuments([]);
+        return;
+      }
+      setDocuments(photos || []);
     } catch (error: any) {
       console.error("Error fetching documents:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to load documents",
-        variant: "destructive",
-      });
+      setDocuments([]);
+      // Don't show toast for missing tables - just show empty state
+      if (!error.message?.includes("relation") && !error.message?.includes("does not exist")) {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to load documents",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -608,13 +649,14 @@ const DocumentsPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-glow text-primary mb-2">Documents</h1>
-          <p className="text-muted-foreground">View and manage project documents, permits, photos, and reports</p>
+    <div className="min-h-screen bg-background w-full">
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-glow text-primary mb-2">Documents</h1>
+            <p className="text-muted-foreground">View and manage project documents, permits, photos, and reports</p>
+          </div>
         </div>
-      </div>
 
       <Card className="p-4">
         <div className="flex items-center gap-4 mb-4">
@@ -676,6 +718,7 @@ const DocumentsPage = () => {
           </Table>
         )}
       </Card>
+      </div>
     </div>
   );
 };
@@ -691,14 +734,16 @@ export const ClientApp = () => {
   const { role } = useUserRole();
   if (!role) return <Navigate to="/auth" replace />;
   return (
-    <Routes>
-      <Route path="/" element={<ClientHome />} />
-      <Route path="projects" element={<ProjectsPage />} />
-      <Route path="quotes" element={<QuotesPage />} />
-      <Route path="invoices" element={<InvoicesPage />} />
-      <Route path="documents" element={<DocumentsPage />} />
-      <Route path="*" element={<Navigate to="/client" replace />} />
-    </Routes>
+    <div className="min-h-screen bg-background">
+      <Routes>
+        <Route path="/" element={<ClientHome />} />
+        <Route path="projects" element={<ProjectsPage />} />
+        <Route path="quotes" element={<QuotesPage />} />
+        <Route path="invoices" element={<InvoicesPage />} />
+        <Route path="documents" element={<DocumentsPage />} />
+        <Route path="*" element={<Navigate to="/client" replace />} />
+      </Routes>
+    </div>
   );
 };
 
