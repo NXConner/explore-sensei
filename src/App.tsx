@@ -20,12 +20,24 @@ import { I18nProvider } from "@/i18n";
 import { queryClient } from "@/config/query-client";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { initWebVitals } from "@/lib/webVitals";
+import { validateEnvironment } from "@/config/env";
 
 const AnalyticsListener = () => {
   const location = useLocation();
   // Register PWA and surface update toasts globally
   usePWA();
   useEffect(() => {
+    // Validate environment on mount
+    const envCheck = validateEnvironment();
+    if (!envCheck.isValid) {
+      console.error('Environment validation failed:', {
+        missing: envCheck.missing,
+        warnings: envCheck.warnings,
+      });
+    } else if (envCheck.warnings.length > 0) {
+      console.warn('Environment warnings:', envCheck.warnings);
+    }
+    
     initAnalytics();
     initWebVitals();
   }, []);
@@ -95,7 +107,7 @@ const AnalyticsListener = () => {
 };
 
 const App = () => (
-  <ErrorBoundary>
+  <ErrorBoundary level="page">
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />

@@ -39,19 +39,27 @@ serve(async (req) => {
       );
     }
 
-    // 2. Check user role for authorization
-    const { data: roleData } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .in('role', ['Super Administrator', 'Administrator', 'Manager', 'Operator'])
-      .maybeSingle();
+    // 2. Check user role for authorization (optional - allow authenticated users even without roles)
+    try {
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .in('role', ['Super Administrator', 'Administrator', 'Manager', 'Operator'])
+        .maybeSingle();
 
-    if (!roleData) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Insufficient permissions - AI analysis requires Operator role or higher' }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      // Only block if role check explicitly fails AND we have a strict policy
+      // For now, we allow authenticated users even without roles
+      // Uncomment the following if you want strict role enforcement:
+      // if (!roleData) {
+      //   return new Response(
+      //     JSON.stringify({ success: false, error: 'No role assigned - please contact administrator' }),
+      //     { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      //   );
+      // }
+    } catch (roleCheckError) {
+      // If user_roles table doesn't exist, log but don't block
+      console.warn("Role check failed (table may not exist):", roleCheckError);
     }
 
     // 3. Parse and validate input

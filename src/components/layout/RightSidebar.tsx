@@ -30,14 +30,8 @@ interface RightSidebarProps {
   onAIClick: () => void;
   onSettingsClick: () => void;
   onLocateMe?: () => void;
-  onToggleTraffic?: () => void;
-  showTraffic?: boolean;
   onToggleStreetView?: () => void;
   onAIDetect?: () => void;
-  onToggleEmployeeTracking?: () => void;
-  showEmployeeTracking?: boolean;
-  onToggleWeatherRadar?: () => void;
-  showWeatherRadar?: boolean;
   onToggleParcels?: () => void;
   showParcels?: boolean;
   onImageryChange?: (mode: "none" | "naip" | "usgs") => void;
@@ -55,14 +49,8 @@ export const RightSidebar = ({
   onAIClick,
   onSettingsClick,
   onLocateMe,
-  onToggleTraffic,
-  showTraffic = false,
   onToggleStreetView,
   onAIDetect,
-  onToggleEmployeeTracking,
-  showEmployeeTracking = false,
-  onToggleWeatherRadar,
-  showWeatherRadar = false,
   onToggleParcels,
   showParcels = false,
   onModeChange,
@@ -76,14 +64,14 @@ export const RightSidebar = ({
 }: RightSidebarProps) => {
   const isLeft = side === "left";
   const chromeSurface =
-    "hud-element border-primary/30 bg-[radial-gradient(circle_at_top,rgba(10,15,25,0.92),rgba(6,10,18,0.88))] supports-[backdrop-filter]:backdrop-blur-lg shadow-[0_24px_60px_rgba(6,10,18,0.52)]";
+    "hud-element border-primary/30 bg-[radial-gradient(circle_at_top,rgba(10,15,25,0.75),rgba(6,10,18,0.70))] supports-[backdrop-filter]:backdrop-blur-xl shadow-[0_24px_60px_rgba(6,10,18,0.52)]";
   const isFloating = layoutMode === "floating";
   const anchorPosition = isFloating
     ? `absolute ${isLeft ? "left-0" : "right-0"} top-[84px] bottom-16`
     : "sticky top-[84px]";
   const anchoredShell = cn(
     anchorPosition,
-    "w-14 z-[var(--z-sidebars)] flex flex-col pointer-events-auto",
+    "w-14 z-[100] flex flex-col pointer-events-auto",
     isLeft ? "border-r" : "border-l",
     !isFloating && "h-[calc(100vh-84px-64px)] max-h-[calc(100vh-84px-64px)] min-h-[420px]",
     chromeSurface,
@@ -159,18 +147,6 @@ export const RightSidebar = ({
             </Button>
           )}
 
-          {onToggleTraffic && (
-            <Button
-              variant={showTraffic ? "default" : "ghost"}
-              size="sm"
-              className="w-12 h-12 p-0 hover:bg-orange-500/20 hover:text-orange-500 border border-transparent hover:border-orange-500/50 transition-all"
-              onClick={onToggleTraffic}
-              title="Toggle Traffic"
-            >
-              <Car className="w-5 h-5" />
-            </Button>
-          )}
-
           {onToggleStreetView && (
             <Button
               variant="ghost"
@@ -192,30 +168,6 @@ export const RightSidebar = ({
               title="AI Surface Detection"
             >
               <Scan className="w-5 h-5 text-cyan-500" />
-            </Button>
-          )}
-
-          {onToggleEmployeeTracking && (
-            <Button
-              variant={showEmployeeTracking ? "default" : "ghost"}
-              size="sm"
-              className="w-12 h-12 p-0 hover:bg-green-500/20 hover:text-green-500 border border-transparent hover:border-green-500/50 transition-all"
-              onClick={onToggleEmployeeTracking}
-              title="Employee Tracking"
-            >
-              <Users className="w-5 h-5" />
-            </Button>
-          )}
-
-          {onToggleWeatherRadar && (
-            <Button
-              variant={showWeatherRadar ? "default" : "ghost"}
-              size="sm"
-              className="w-12 h-12 p-0 hover:bg-sky-500/20 hover:text-sky-500 border border-transparent hover:border-sky-500/50 transition-all"
-              onClick={onToggleWeatherRadar}
-              title="Weather Radar"
-            >
-              <Cloud className="w-5 h-5 text-sky-500" />
             </Button>
           )}
 

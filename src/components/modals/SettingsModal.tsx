@@ -56,6 +56,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     // Animation & Effects
     radarEffect: true,
     radarType: "standard" as "standard" | "sonar" | "aviation",
+    radarGlowIntensity: 50,
     glitchEffect: true,
     scanlineEffect: true,
     gridOverlay: true,
@@ -76,6 +77,9 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     // Pulse / Scan
     pulseScanEnabled: false,
     pulseHighlightPOIs: true,
+    pulseShape: "standard" as "standard" | "narrow" | "wide" | "double",
+    pulseHistoryTrail: false,
+    pulseHistoryLength: 5,
     ringControls: true,
     reduceMotion: false,
     lowPowerMode: false,
@@ -1023,6 +1027,19 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                           ))}
                         </div>
                       </div>
+                      <div className="mt-3">
+                        <Label className="text-xs">Glow Intensity: {settings.radarGlowIntensity ?? 50}%</Label>
+                        <Slider
+                          value={[settings.radarGlowIntensity ?? 50]}
+                          onValueChange={([val]) =>
+                            setSettings((prev) => ({ ...prev, radarGlowIntensity: val }))
+                          }
+                          min={0}
+                          max={100}
+                          step={5}
+                          className="mt-2"
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1340,6 +1357,50 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     onCheckedChange={() => handleToggle("ringControls")}
                   />
                 </div>
+                {settings.pulseScanEnabled && (
+                  <>
+                    <div className="space-y-2">
+                      <Label className="text-xs">Pulse Shape</Label>
+                      <div className="flex gap-2">
+                        {(["standard", "narrow", "wide", "double"] as const).map((shape) => (
+                          <Button
+                            key={shape}
+                            variant={settings.pulseShape === shape ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setSettings((p) => ({ ...p, pulseShape: shape }))}
+                          >
+                            {shape.charAt(0).toUpperCase() + shape.slice(1)}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Pulse History Trail</Label>
+                        <p className="text-xs text-muted-foreground">Show previous pulse sweeps</p>
+                      </div>
+                      <Switch
+                        checked={settings.pulseHistoryTrail ?? false}
+                        onCheckedChange={() => handleToggle("pulseHistoryTrail")}
+                      />
+                    </div>
+                    {settings.pulseHistoryTrail && (
+                      <div className="space-y-2 pl-4">
+                        <Label className="text-xs">Trail Length: {settings.pulseHistoryLength ?? 5}</Label>
+                        <Slider
+                          value={[settings.pulseHistoryLength ?? 5]}
+                          onValueChange={([val]) =>
+                            setSettings((prev) => ({ ...prev, pulseHistoryLength: val }))
+                          }
+                          min={1}
+                          max={10}
+                          step={1}
+                          className="mt-2"
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
               </ScrollArea>
             </TabsContent>

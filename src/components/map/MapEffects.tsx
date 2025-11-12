@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { beep } from "@/lib/audioEffects";
 import { RadarParticles } from "./RadarParticles";
+import { triggerRadarHaptic } from "@/lib/hapticFeedback";
 
 interface MapEffectsProps {
   showRadar?: boolean;
@@ -13,6 +14,7 @@ interface MapEffectsProps {
   glitchClickPreset?: "barely" | "subtle" | "normal";
   vignetteEffect?: boolean;
   radarType?: "standard" | "sonar" | "aviation";
+  radarGlowIntensity?: number; // 0-100
   radarAudioEnabled?: boolean;
   radarAudioVolume?: number; // 0..100
   masterVolumePercent?: number; // 0..100
@@ -21,6 +23,7 @@ interface MapEffectsProps {
   useCanvasFX?: boolean;
   particleDensity?: number; // 1-10
   particleColor?: string;
+  hapticEnabled?: boolean; // Enable haptic feedback for mobile
 }
 
 export const MapEffects = ({
@@ -34,6 +37,7 @@ export const MapEffects = ({
   glitchClickPreset = "subtle",
   vignetteEffect = false,
   radarType = "standard",
+  radarGlowIntensity = 50,
   radarAudioEnabled = false,
   radarAudioVolume = 50,
   masterVolumePercent = 70,
@@ -42,11 +46,13 @@ export const MapEffects = ({
   useCanvasFX = false,
   particleDensity = 5,
   particleColor,
+  hapticEnabled = true,
 }: MapEffectsProps) => {
   const radarRef = useRef<HTMLDivElement>(null);
   const glitchRef = useRef<HTMLDivElement>(null);
   const sonarRef = useRef<HTMLDivElement>(null);
   const aviationRef = useRef<HTMLDivElement>(null);
+  const lastHapticAngleRef = useRef(0);
 
   useEffect(() => {
     // Respect reduced motion and low power
@@ -93,13 +99,19 @@ export const MapEffects = ({
         glowMarkers();
       }
 
+      // Trigger haptic feedback every full rotation (360 degrees)
+      if (hapticEnabled && Math.floor(angle / 360) > Math.floor(lastHapticAngleRef.current / 360) && angle >= 360) {
+        triggerRadarHaptic(hapticEnabled);
+        lastHapticAngleRef.current = angle;
+      }
+
       raf = requestAnimationFrame(animate);
     };
     raf = requestAnimationFrame(animate);
     return () => {
       if (raf) cancelAnimationFrame(raf);
     };
-  }, [showRadar, radarSpeed, reduceMotion, lowPowerMode]);
+  }, [showRadar, radarSpeed, reduceMotion, lowPowerMode, hapticEnabled]);
 
   useEffect(() => {
     const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -195,6 +207,7 @@ export const MapEffects = ({
         reduceMotion={reduceMotion}
         particleDensity={particleDensity}
         particleColor={particleColor || accentColor}
+        glowIntensity={radarGlowIntensity}
       />
 
       {/* Radar Effects (variant by type) */}

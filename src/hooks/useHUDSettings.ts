@@ -5,6 +5,7 @@ export interface HUDSettings {
   radarEffect: boolean;
   radarSpeed: number;
   radarType: "standard" | "sonar" | "aviation";
+  radarGlowIntensity?: number; // 0-100, controls glow intensity of radar particles
   glitchEffect: boolean;
   glitchIntensity: number;
   glitchClickPreset: "barely" | "subtle" | "normal";
@@ -15,6 +16,11 @@ export interface HUDSettings {
   // Particle effects
   particleDensity?: number; // 1-10
   particleColor?: string;
+  
+  // Pulse effects
+  pulseShape?: "standard" | "narrow" | "wide" | "double"; // Shape variants for pulse scan
+  pulseHistoryTrail?: boolean; // Show history trail for pulse scan
+  pulseHistoryLength?: number; // Number of previous pulses to show (1-10)
 
   // HUD elements visibility
   hudCornerBrackets?: boolean;
@@ -52,6 +58,7 @@ export function useHUDSettings(): [HUDSettings, (patch: Partial<HUDSettings>) =>
     radarEffect: true,
     radarSpeed: 3,
     radarType: "standard",
+    radarGlowIntensity: 50,
     glitchEffect: true,
     glitchIntensity: 30,
     glitchClickPreset: "subtle",
@@ -60,6 +67,9 @@ export function useHUDSettings(): [HUDSettings, (patch: Partial<HUDSettings>) =>
     vignetteEffect: false,
     particleDensity: 5,
     particleColor: "hsl(var(--primary))",
+    pulseShape: "standard",
+    pulseHistoryTrail: false,
+    pulseHistoryLength: 5,
     hudCornerBrackets: true,
     hudMiniMap: false,
     hudCompassRose: true,

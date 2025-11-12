@@ -1668,6 +1668,7 @@ export const MapContainer = forwardRef<
         glitchClickPreset={uiSettings.glitchClickPreset}
         vignetteEffect={uiSettings.vignetteEffect}
         radarType={uiSettings.radarType}
+        radarGlowIntensity={uiSettings.radarGlowIntensity ?? 50}
         radarAudioEnabled={uiSettings.radarAudioEnabled}
         radarAudioVolume={uiSettings.radarAudioVolume}
         masterVolumePercent={uiSettings.soundVolume}
@@ -1676,9 +1677,18 @@ export const MapContainer = forwardRef<
         useCanvasFX={uiSettings.useCanvasFX}
         particleDensity={uiSettings.particleDensity}
         particleColor={uiSettings.particleColor}
+        hapticEnabled={true}
       />
       </Suspense>
-      <PulseScanOverlay enabled={showPulseScan} color={mapTheme === 'division' ? 'rgba(0,255,255,0.16)' : 'rgba(255,140,0,0.16)'} speed={4} />
+      <PulseScanOverlay 
+        enabled={showPulseScan} 
+        color={mapTheme === 'division' ? 'rgba(0,255,255,0.16)' : 'rgba(255,140,0,0.16)'} 
+        speed={4}
+        shape={uiSettings.pulseShape ?? "standard"}
+        showHistoryTrail={uiSettings.pulseHistoryTrail ?? false}
+        historyLength={uiSettings.pulseHistoryLength ?? 5}
+        hapticEnabled={true}
+      />
 
       {/* HUD overlay elements - Remove duplicates, handled by Index.tsx */}
       {/* MiniMap overlay removed; now embedded in sidebar */}

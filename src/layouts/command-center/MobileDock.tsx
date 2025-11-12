@@ -27,11 +27,14 @@ const DockButton = ({
     size="icon"
     className={cn(
       "flex h-12 w-16 flex-col items-center justify-center rounded-xl px-0 text-[11px] font-medium transition-colors",
+      "touch-manipulation", // Optimize touch handling
+      "min-h-[48px] min-w-[48px]", // Ensure minimum touch target size
       active ? "text-primary" : "text-muted-foreground",
     )}
     onClick={onClick}
+    aria-label={label}
   >
-    <Icon className={cn("h-5 w-5 mb-1 transition-transform", active && "scale-110")} />
+    <Icon className={cn("h-5 w-5 mb-1 transition-transform", active && "scale-110")} aria-hidden="true" />
     <span>{label}</span>
   </Button>
 );
@@ -85,7 +88,7 @@ export const MobileDock = ({ controller }: MobileDockProps) => {
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-[9998] bg-background/90 backdrop-blur-xl border-t border-primary/20"
+      className="fixed bottom-0 left-0 right-0 z-[9998] bg-background/60 backdrop-blur-xl supports-[backdrop-filter]:backdrop-blur-2xl border-t border-primary/20"
       style={{ height: DOCK_HEIGHT }}
     >
       <div className="mx-auto flex h-full max-w-lg items-center justify-between px-4">

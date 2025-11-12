@@ -125,15 +125,29 @@ export const AIAsphaltDetectionModal = ({ isOpen, onClose }: AIAsphaltDetectionM
       }
 
       if (!finalData) {
+        // Check if we're online before trying Supabase function
+        if (!navigator.onLine) {
+          throw new Error("You are offline. Please check your internet connection and try again.");
+        }
+        
+        setProgress(50);
         const { data, error: functionError } = await supabase.functions.invoke("analyze-asphalt", {
           body: { imageData: imageDataUrl },
         });
+        
         if (functionError) {
+          // Provide more helpful error messages
+          if (functionError.message?.includes("Failed to fetch") || 
+              functionError.message?.includes("NetworkError")) {
+            throw new Error("Connection failed. Please check your internet connection and ensure Supabase is accessible.");
+          }
           throw functionError;
         }
+        
         if (!data?.success) {
-          throw new Error(data?.error || "Analysis failed");
+          throw new Error(data?.error || "Analysis failed. Please try again or contact support if the issue persists.");
         }
+        
         finalData = data;
         usedBackend = "supabase";
       }

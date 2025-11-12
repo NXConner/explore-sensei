@@ -5,12 +5,19 @@
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",
-  "theme_color": "#0066cc",
-  "orientation": "portrait-primary",
+  "theme_color": "#FF8C00",
+  "orientation": "any",
   "scope": "/",
   "lang": "en-US",
   "categories": ["business", "productivity", "utilities"],
+  "dir": "ltr",
   "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon",
+      "purpose": "any"
+    },
     {
       "src": "/icons/icon-72x72.png",
       "sizes": "72x72",
@@ -65,76 +72,25 @@
       "name": "Time Tracking",
       "short_name": "Time",
       "description": "Start time tracking for current job",
-      "url": "/time-tracking",
-      "icons": [
-        {
-          "src": "/icons/time-tracking-96x96.png",
-          "sizes": "96x96",
-          "type": "image/png"
-        }
-      ]
+      "url": "/time-tracking"
     },
     {
       "name": "Fleet Management",
       "short_name": "Fleet",
       "description": "View fleet status and vehicle locations",
-      "url": "/fleet",
-      "icons": [
-        {
-          "src": "/icons/fleet-96x96.png",
-          "sizes": "96x96",
-          "type": "image/png"
-        }
-      ]
+      "url": "/fleet"
     },
     {
       "name": "AI Analysis",
       "short_name": "AI",
       "description": "Analyze asphalt conditions with AI",
-      "url": "/ai-analysis",
-      "icons": [
-        {
-          "src": "/icons/ai-96x96.png",
-          "sizes": "96x96",
-          "type": "image/png"
-        }
-      ]
+      "url": "/ai-analysis"
     },
     {
       "name": "Weather Radar",
       "short_name": "Weather",
       "description": "Check weather conditions for job sites",
-      "url": "/weather",
-      "icons": [
-        {
-          "src": "/icons/weather-96x96.png",
-          "sizes": "96x96",
-          "type": "image/png"
-        }
-      ]
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/screenshots/desktop-dashboard.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Dashboard view on desktop"
-    },
-    {
-      "src": "/screenshots/mobile-time-tracking.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Time tracking on mobile"
-    },
-    {
-      "src": "/screenshots/tablet-fleet-management.png",
-      "sizes": "768x1024",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Fleet management on tablet"
+      "url": "/weather"
     }
   ],
   "related_applications": [],

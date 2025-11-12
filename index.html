@@ -2,28 +2,83 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>explore-sensei</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Explore Sensei - Pavement Performance Suite</title>
+    
     <!-- Fonts: Inter, Rajdhani, Roboto Mono (self-hosted via Google Fonts) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rajdhani:wght@500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
-    <meta name="description" content="Pavement Performance Suite" />
-    <meta name="author" content="Lovable" />
-
-    <meta property="og:title" content="explore-sensei" />
-    <meta property="og:description" content="AI-assisted pavement analysis and operations" />
-    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Primary Meta Tags -->
+    <meta name="description" content="AI-assisted pavement analysis and performance tracking for asphalt paving, sealcoating, and line-striping contractors. Optimized for church parking lots and commercial operations." />
+    <meta name="author" content="Explore Sensei" />
+    <meta name="keywords" content="asphalt, pavement, sealcoating, line-striping, contractor, church parking lots, Virginia, North Carolina" />
+    <meta name="theme-color" content="#0a0f19" />
+    
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
+    <meta property="og:title" content="Explore Sensei - Pavement Performance Suite" />
+    <meta property="og:description" content="AI-assisted pavement analysis and operations for asphalt contractors" />
     <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-
+    <meta property="og:url" content="https://exploresensei.com" />
+    <meta property="og:site_name" content="Explore Sensei" />
+    
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@lovable_dev" />
+    <meta name="twitter:title" content="Explore Sensei - Pavement Performance Suite" />
+    <meta name="twitter:description" content="AI-assisted pavement analysis and operations for asphalt contractors" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Explore Sensei" />
+    
+    <!-- Security -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com https://*.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://*.supabase.co https://api.openweathermap.org https://maps.googleapis.com wss://*.supabase.co;" />
+    
+    <!-- Mobile Optimizations -->
+    <meta name="color-scheme" content="dark light" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-touch-fullscreen" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="format-detection" content="telephone=no" />
+    
+    <!-- Performance Hints -->
+    <link rel="dns-prefetch" href="https://maps.googleapis.com" />
+    <link rel="dns-prefetch" href="https://*.supabase.co" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- Android Chrome -->
+    <meta name="theme-color" content="#FF8C00" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FF8C00" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000" />
   </head>
 
   <body>
-    <div id="root"></div>
+    <!-- Skip to main content link for keyboard navigation -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md">
+      Skip to main content
+    </a>
+    
+    <!-- ARIA live region for screen reader announcements -->
+    <div id="aria-live-region" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+    
+    <div id="root" role="application" aria-label="Pavement Performance Suite">
+      <!-- Main content will be rendered here -->
+    </div>
+    
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

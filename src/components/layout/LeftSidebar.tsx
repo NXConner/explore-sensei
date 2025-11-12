@@ -78,7 +78,7 @@ export const LeftSidebar = ({ side = "left", layoutMode = "floating" }: LeftSide
   const activeJobs = jobSites?.filter((job) => job.status === "In Progress") || [];
 
   const chromeSurface =
-    "hud-element border-primary/30 bg-[radial-gradient(circle_at_top,rgba(10,15,25,0.92),rgba(6,10,18,0.88))] supports-[backdrop-filter]:backdrop-blur-lg shadow-[0_24px_60px_rgba(6,10,18,0.52)]";
+    "hud-element border-primary/30 bg-[radial-gradient(circle_at_top,rgba(10,15,25,0.75),rgba(6,10,18,0.70))] supports-[backdrop-filter]:backdrop-blur-xl shadow-[0_24px_60px_rgba(6,10,18,0.52)]";
   const isDocked = layoutMode === "docked";
   const borderClass = side === "left" ? "border-r" : "border-l";
   const positionClass = isDocked
@@ -87,7 +87,7 @@ export const LeftSidebar = ({ side = "left", layoutMode = "floating" }: LeftSide
   const baseShell = cn(
     positionClass,
     borderClass,
-    "z-[var(--z-sidebars)] pointer-events-auto",
+    "z-[100] pointer-events-auto",
     chromeSurface,
     isDocked && "flex-shrink-0 max-h-[calc(100vh-84px-64px)] h-[calc(100vh-84px-64px)]",
   );

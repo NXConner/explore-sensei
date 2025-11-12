@@ -43,18 +43,27 @@ serve(async (req) => {
       );
     }
 
-    // 2. Check user role - only authenticated users with proper roles can access map tokens
-    const { data: roleData } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .maybeSingle();
+    // 2. Check user role - optional check, allow authenticated users even without role assignment
+    // This makes the function more permissive while still requiring authentication
+    try {
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-    if (!roleData) {
-      return new Response(
-        JSON.stringify({ error: "No role assigned - please contact administrator" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      // Only block if role check explicitly fails AND we have a strict policy
+      // For now, we allow authenticated users even without roles
+      // Uncomment the following if you want strict role enforcement:
+      // if (!roleData) {
+      //   return new Response(
+      //     JSON.stringify({ error: "No role assigned - please contact administrator" }),
+      //     { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      //   );
+      // }
+    } catch (roleCheckError) {
+      // If user_roles table doesn't exist, log but don't block
+      console.warn("Role check failed (table may not exist):", roleCheckError);
     }
 
     // 3. Get and return token

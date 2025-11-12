@@ -10,11 +10,21 @@ import { registerServiceWorker } from "@/lib/service-worker";
 import { db } from "@/lib/indexed-db";
 import { runtimeEnv } from "@/config/runtime-env";
 import { logger } from "@/lib/monitoring";
+import { optimizeViewport, preventDoubleTapZoom, isMobileDevice } from "@/lib/mobile-optimization";
 
 logger.info("Bootstrapping Pavement Performance Suite client", {
   environment: runtimeEnv.appEnv,
   telemetryEnvironment: runtimeEnv.telemetryEnvironment,
+  isMobile: isMobileDevice(),
 });
+
+// Initialize mobile optimizations
+if (typeof window !== "undefined") {
+  optimizeViewport();
+  if (isMobileDevice()) {
+    preventDoubleTapZoom();
+  }
+}
 
 // Initialize performance monitoring
 if (import.meta.env.PROD) {

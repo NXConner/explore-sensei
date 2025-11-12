@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo, useCallback } from "react";
 import { User, Settings as SettingsIcon, MapPin, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -9,11 +9,19 @@ interface TopBarProps {
   onModuleClick: (module: string) => void;
 }
 
-export const TopBar = ({ onModuleClick }: TopBarProps) => {
+export const TopBar = memo(({ onModuleClick }: TopBarProps) => {
   const navigate = useNavigate();
 
+  const handleSettingsClick = useCallback(() => {
+    onModuleClick("settings");
+  }, [onModuleClick]);
+
+  const handleProfileClick = useCallback(() => {
+    navigate("/profile");
+  }, [navigate]);
+
   return (
-    <div className="absolute left-0 right-0 top-0 z-[var(--z-topbar)] h-12 bg-[radial-gradient(circle_at_top,rgba(255,140,0,0.18),rgba(10,15,25,0.92))] backdrop-blur supports-[backdrop-filter]:backdrop-blur-md">
+    <div className="absolute left-0 right-0 top-0 z-[var(--z-topbar)] h-12 bg-[radial-gradient(circle_at_top,rgba(255,140,0,0.18),rgba(10,15,25,0.75))] backdrop-blur-md supports-[backdrop-filter]:backdrop-blur-lg">
       {/* Corner brackets */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="corner-bracket-sm corner-tl" />
@@ -49,31 +57,33 @@ export const TopBar = ({ onModuleClick }: TopBarProps) => {
         </div>
 
         <div className="flex items-center gap-2">
-          <ThemeQuickSwitcher onOpenSettings={() => onModuleClick("settings")} premiumAccess />
+          <ThemeQuickSwitcher onOpenSettings={handleSettingsClick} premiumAccess />
           <Button
             variant="ghost"
             size="sm"
             className="text-xs md:text-sm"
-            onClick={() => onModuleClick("settings")}
+            onClick={handleSettingsClick}
             title="Settings (Cmd+.)"
             aria-label="Open settings"
           >
-            <SettingsIcon className="icon-sm mr-1" />
+            <SettingsIcon className="icon-sm mr-1" aria-hidden="true" />
             <span className="hidden sm:inline">Settings</span>
           </Button>
           <Button
             variant="ghost"
             size="sm"
             className="text-xs md:text-sm"
-            onClick={() => navigate("/profile")}
+            onClick={handleProfileClick}
             title="Profile"
             aria-label="View profile"
           >
-            <User className="icon-sm mr-1" />
+            <User className="icon-sm mr-1" aria-hidden="true" />
             <span className="hidden sm:inline">Profile</span>
           </Button>
         </div>
       </div>
     </div>
   );
-};
+});
+
+TopBar.displayName = "TopBar";

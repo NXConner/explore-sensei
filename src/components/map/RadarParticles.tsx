@@ -17,6 +17,7 @@ interface RadarParticlesProps {
   reduceMotion?: boolean;
   particleDensity?: number; // 1-10
   particleColor?: string;
+  glowIntensity?: number; // 0-100, controls shadow blur and opacity
 }
 
 export const RadarParticles: React.FC<RadarParticlesProps> = ({
@@ -28,6 +29,7 @@ export const RadarParticles: React.FC<RadarParticlesProps> = ({
   reduceMotion = false,
   particleDensity = 5,
   particleColor,
+  glowIntensity = 50,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
@@ -86,15 +88,19 @@ export const RadarParticles: React.FC<RadarParticlesProps> = ({
 
         if (particle.opacity > 0) {
           const finalColor = particleColor || accentColor;
+          const glowMultiplier = glowIntensity / 100; // 0-1 scale
+          const adjustedOpacity = particle.opacity * (0.5 + glowMultiplier * 0.5); // Scale opacity based on glow
+          
           ctx.fillStyle = finalColor.includes("hsl") 
-            ? finalColor.replace(")", ` / ${particle.opacity})`)
-            : `rgba(255, 140, 0, ${particle.opacity})`;
+            ? finalColor.replace(")", ` / ${adjustedOpacity})`)
+            : `rgba(255, 140, 0, ${adjustedOpacity})`;
           ctx.beginPath();
           ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
           ctx.fill();
 
-          // Add glow effect
-          ctx.shadowBlur = 8;
+          // Add glow effect with intensity control
+          const shadowBlur = 4 + (glowMultiplier * 12); // 4-16px blur range
+          ctx.shadowBlur = shadowBlur;
           ctx.shadowColor = finalColor;
           ctx.fill();
           ctx.shadowBlur = 0;
@@ -113,7 +119,7 @@ export const RadarParticles: React.FC<RadarParticlesProps> = ({
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       window.removeEventListener("resize", resizeCanvas);
     };
-  }, [enabled, radarSpeed, radarType, accentColor, lowPowerMode, reduceMotion, particleDensity, particleColor]);
+  }, [enabled, radarSpeed, radarType, accentColor, lowPowerMode, reduceMotion, particleDensity, particleColor, glowIntensity]);
 
   if (!enabled) return null;
 

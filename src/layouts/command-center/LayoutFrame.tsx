@@ -62,7 +62,7 @@ export const LayoutFrame = ({ controller, children }: LayoutFrameProps) => {
 
   return (
     <div
-      className="relative h-screen w-full overflow-hidden bg-background text-foreground"
+      className="relative h-screen w-screen max-h-screen max-w-screen overflow-hidden bg-background text-foreground"
       data-testid="command-center-shell"
     >
       {controller.isOffline && (
@@ -81,31 +81,31 @@ export const LayoutFrame = ({ controller, children }: LayoutFrameProps) => {
           activeMode={controller.mapState.activeMode}
           onModeChange={controller.mapControls.changeMode}
           onClear={controller.mapControls.clear}
-          onToggleTraffic={controller.mapControls.toggleTraffic}
-          showTraffic={controller.mapState.showTraffic}
-          onToggleWeather={controller.mapControls.toggleWeatherRadar}
-          showWeather={controller.mapState.showWeatherRadar}
-          onToggleDarkZones={() => window.dispatchEvent(new CustomEvent("open-dark-zone-panel"))}
-          onToggleEquipment={controller.mapControls.toggleEmployee}
-          showEquipment={controller.mapState.showEmployeeTracking}
         />
 
         {missionRibbon}
 
-        <div
+        <main
+          id="main-content"
+          role="main"
+          aria-label="Command Center Main Content"
           className={cn(
-            "relative h-full w-full",
-            isMobile ? "pt-[120px] pb-[152px]" : "pt-[140px] pb-[64px]",
+            "relative w-full overflow-hidden",
+            isMobile 
+              ? "h-[calc(100vh-120px-152px)] pt-[120px] pb-[152px]" 
+              : controller.isOffline 
+                ? "h-[calc(100vh-140px-64px-40px)] pt-[140px] pb-[64px]"
+                : "h-[calc(100vh-140px-64px)] pt-[140px] pb-[64px]",
           )}
         >
           <div
             className={cn(
-              "relative flex h-full w-full",
-              showDesktopSidebars ? "items-stretch gap-3 xl:gap-4" : undefined,
+              "relative flex h-full w-full max-w-full",
+              showDesktopSidebars ? "items-stretch gap-2 lg:gap-3" : undefined,
             )}
           >
             {showDesktopSidebars && (
-              <div className="hidden lg:flex h-full flex-none">
+              <div className="hidden lg:flex h-full flex-none flex-shrink-0">
                 <RightSidebar
                   side="left"
                   layoutMode="docked"
@@ -133,7 +133,7 @@ export const LayoutFrame = ({ controller, children }: LayoutFrameProps) => {
               </div>
             )}
 
-            <div className="relative flex-1 min-w-0">
+            <div className="relative flex-1 min-w-0 min-h-0 overflow-hidden">
               <MapContainer ref={controller.mapContainerRef} initialMapTheme={controller.mapTheme} />
               {/* HUD Overlays - conditionally rendered based on settings */}
               {hudSettings.hudCornerBrackets && <CornerBrackets />}
@@ -146,7 +146,7 @@ export const LayoutFrame = ({ controller, children }: LayoutFrameProps) => {
             </div>
 
             {showDesktopSidebars && (
-              <div className="hidden xl:flex h-full flex-none relative w-80">
+              <div className="hidden lg:flex h-full flex-none flex-shrink-0 relative w-80 max-w-[320px]">
                 <div className="pointer-events-none absolute inset-0 z-[var(--z-sidebars)]">
                   <div className="corner-bracket-md corner-tl" />
                   <div className="corner-bracket-md corner-tr" />
@@ -157,7 +157,7 @@ export const LayoutFrame = ({ controller, children }: LayoutFrameProps) => {
               </div>
             )}
           </div>
-        </div>
+        </main>
 
       {isMobile ? (
         <>

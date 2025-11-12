@@ -36,7 +36,7 @@ export const MobileKPIBar = () => {
   ];
 
   return (
-    <div className="fixed bottom-[68px] left-0 right-0 z-[9997] border-t border-primary/20 bg-background/95 backdrop-blur-xl">
+    <div className="fixed bottom-[68px] left-0 right-0 z-[9997] border-t border-primary/20 bg-background/60 backdrop-blur-xl supports-[backdrop-filter]:backdrop-blur-2xl">
       <div className="flex items-center gap-3 overflow-x-auto px-4 py-3 scrollbar-thin scrollbar-thumb-primary/20">
         {items.map((item) => (
           <div

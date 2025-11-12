@@ -1,13 +1,24 @@
+/**
+ * Environment configuration and validation utilities
+ * Provides type-safe access to environment variables with fallbacks and validation
+ */
+
+interface EnvValidationResult {
+  isValid: boolean;
+  missing: string[];
+  warnings: string[];
+}
+
 function readLocalStorageApiKey(path: Array<string>): string | undefined {
   try {
     if (typeof window === "undefined" || !("localStorage" in window)) return undefined;
     const raw = window.localStorage.getItem("aos_settings");
     if (!raw) return undefined;
     const parsed = JSON.parse(raw);
-    let current: any = parsed;
+    let current: unknown = parsed;
     for (const key of path) {
       if (!current || typeof current !== "object") return undefined;
-      current = current[key];
+      current = (current as Record<string, unknown>)[key];
     }
     if (typeof current !== "string") return undefined;
     const normalized = current.trim().replace(/^['"]|['"]$/g, "");
@@ -18,6 +29,64 @@ function readLocalStorageApiKey(path: Array<string>): string | undefined {
   } catch {
     return undefined;
   }
+}
+
+/**
+ * Validates required environment variables
+ */
+export function validateEnvironment(): EnvValidationResult {
+  const required = [
+    "VITE_SUPABASE_URL",
+    "VITE_SUPABASE_ANON_KEY",
+  ];
+  
+  const recommended = [
+    "VITE_GOOGLE_MAPS_API_KEY",
+    "VITE_OPENWEATHER_API_KEY",
+  ];
+  
+  const missing: string[] = [];
+  const warnings: string[] = [];
+  
+  // Check required variables
+  for (const key of required) {
+    const value = import.meta.env[key];
+    if (!value || value.trim() === "" || value.toLowerCase() === "undefined") {
+      missing.push(key);
+    }
+  }
+  
+  // Check recommended variables
+  for (const key of recommended) {
+    const value = import.meta.env[key];
+    if (!value || value.trim() === "" || value.toLowerCase() === "undefined") {
+      warnings.push(key);
+    }
+  }
+  
+  return {
+    isValid: missing.length === 0,
+    missing,
+    warnings,
+  };
+}
+
+/**
+ * Get environment variable with validation
+ */
+export function getEnvVar(key: string, required = false): string | undefined {
+  const value = import.meta.env[key];
+  
+  if (required && (!value || value.trim() === "" || value.toLowerCase() === "undefined")) {
+    if (typeof window !== "undefined") {
+      console.error(`Required environment variable ${key} is missing or invalid`);
+    }
+    throw new Error(`Required environment variable ${key} is missing or invalid`);
+  }
+  
+  return value && value.trim() !== "" && value.toLowerCase() !== "undefined" 
+    ? value.trim() 
+    : undefined;
 }
 
 export function getGoogleMapsApiKey(): string | undefined {
