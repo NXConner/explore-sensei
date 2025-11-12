@@ -13,12 +13,14 @@
 
 @layer base {
   :root {
-    --z-topbar: 70;
-    --z-horizontal-ops: 60;
-    --z-objective: 58;
-    --z-sidebars: 55;
-    --z-corners: 52;
-    --z-kpi-ticker: 50;
+    --z-topbar: 1000;
+    --z-horizontal-ops: 950;
+    --z-objective: 940;
+    --z-sidebars: 900;
+    --z-hud-elements: 950;
+    --z-map-effects: 100;
+    --z-corners: 1050;
+    --z-kpi-ticker: 800;
   }
 
   /* Screen reader only utility */

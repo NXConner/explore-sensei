@@ -132,6 +132,16 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
       usdaNaipWms?: string;
     },
     soundset: "auto" as "auto" | "division" | "animus",
+    // Radar and Pulse
+    radarGlowEnabled: true,
+    markerGlowEnabled: true,
+    radarColor: "#ff0000",
+    radarOpacity: 70,
+    pulseSpeed: 5,
+    pulseInterval: 8,
+    pulseDuration: 3,
+    pulseAudioEnabled: true,
+    pulseAudioVolume: 50,
   });
 
   // Persist settings in localStorage
@@ -300,6 +310,7 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
             <TabsTrigger value="api-keys">API Keys</TabsTrigger>
             <TabsTrigger value="roles">Roles</TabsTrigger>
             <TabsTrigger value="pulse">Pulse</TabsTrigger>
+            <TabsTrigger value="radar">Radar</TabsTrigger>
           </TabsList>
           <TabsContent value="gamification" className="mt-0 space-y-6">
             <div className="tactical-panel p-4">
@@ -1616,6 +1627,216 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                   Values set here override environment variables on this device.
                 </p>
               </div>
+              </ScrollArea>
+            </TabsContent>
+
+            <TabsContent value="radar" className="mt-0 space-y-6">
+              <ScrollArea className="h-[500px] pr-4">
+                <div className="tactical-panel space-y-4 p-4">
+                  <div className="mb-2">
+                    <Label className="text-base">Radar Effects</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Configure radar sweep and glow effects
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-xs">Radar Glow Effect</Label>
+                      <p className="text-[10px] text-muted-foreground">
+                        Add glow to radar sweep line
+                      </p>
+                    </div>
+                    <Switch
+                      checked={settings.radarGlowEnabled ?? true}
+                      onCheckedChange={(checked) => {
+                        setSettings((p) => ({ ...p, radarGlowEnabled: checked }));
+                        window.dispatchEvent(new CustomEvent("aos_settings_updated"));
+                      }}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-xs">Marker Glow Effect</Label>
+                      <p className="text-[10px] text-muted-foreground">
+                        Highlight markers as radar passes over them
+                      </p>
+                    </div>
+                    <Switch
+                      checked={settings.markerGlowEnabled ?? true}
+                      onCheckedChange={(checked) => {
+                        setSettings((p) => ({ ...p, markerGlowEnabled: checked }));
+                        window.dispatchEvent(new CustomEvent("aos_settings_updated"));
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-xs">Radar Color</Label>
+                    <p className="text-[10px] text-muted-foreground mb-2">
+                      Base color for radar sweep and effects
+                    </p>
+                    <div className="flex gap-2 mb-2">
+                      {[
+                        { name: "Red", color: "#ff0000" },
+                        { name: "Blue", color: "#00aaff" },
+                        { name: "Green", color: "#00ff00" },
+                        { name: "Amber", color: "#ff8c00" },
+                      ].map((preset) => (
+                        <Button
+                          key={preset.name}
+                          size="sm"
+                          variant={settings.radarColor === preset.color ? "default" : "outline"}
+                          onClick={() => {
+                            setSettings((p) => ({ ...p, radarColor: preset.color }));
+                            window.dispatchEvent(new CustomEvent("aos_settings_updated"));
+                          }}
+                          className="flex-1"
+                        >
+                          {preset.name}
+                        </Button>
+                      ))}
+                    </div>
+                    <Input
+                      type="color"
+                      value={settings.radarColor || "#ff0000"}
+                      onChange={(e) => {
+                        setSettings((p) => ({ ...p, radarColor: e.target.value }));
+                        window.dispatchEvent(new CustomEvent("aos_settings_updated"));
+                      }}
+                      className="h-10 w-full"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-xs">Radar Opacity: {settings.radarOpacity || 70}%</Label>
+                    <p className="text-[10px] text-muted-foreground mb-2">
+                      Weather radar overlay transparency
+                    </p>
+                    <Slider
+                      value={[settings.radarOpacity || 70]}
+                      onValueChange={([val]) => {
+                        setSettings((p) => ({ ...p, radarOpacity: val }));
+                        window.dispatchEvent(new CustomEvent("aos_settings_updated"));
+                      }}
+                      min={10}
+                      max={100}
+                      step={5}
+                    />
+                  </div>
+                </div>
+              </ScrollArea>
+            </TabsContent>
+
+            <TabsContent value="pulse" className="mt-0 space-y-6">
+              <ScrollArea className="h-[500px] pr-4">
+                <div className="tactical-panel space-y-4 p-4">
+                  <div className="mb-2">
+                    <Label className="text-base">Radar Pulse Configuration</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Configure tactical pulse scan from current location
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label className="text-xs">Pulse Speed: {settings.pulseSpeed || 5}/10</Label>
+                    <p className="text-[10px] text-muted-foreground mb-2">
+                      How fast the pulse wave travels outward
+                    </p>
+                    <Slider
+                      value={[settings.pulseSpeed || 5]}
+                      onValueChange={([val]) => {
+                        setSettings((p) => ({ ...p, pulseSpeed: val }));
+                        window.dispatchEvent(new CustomEvent("aos_settings_updated"));
+                      }}
+                      min={1}
+                      max={10}
+                      step={1}
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-xs">Pulse Interval: {settings.pulseInterval || 8} seconds</Label>
+                    <p className="text-[10px] text-muted-foreground mb-2">
+                      Time between automatic pulse triggers
+                    </p>
+                    <Slider
+                      value={[settings.pulseInterval || 8]}
+                      onValueChange={([val]) => {
+                        setSettings((p) => ({ ...p, pulseInterval: val }));
+                        window.dispatchEvent(new CustomEvent("aos_settings_updated"));
+                      }}
+                      min={2}
+                      max={30}
+                      step={1}
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-xs">Pulse Duration: {settings.pulseDuration || 3} seconds</Label>
+                    <p className="text-[10px] text-muted-foreground mb-2">
+                      How long the pulse animation lasts
+                    </p>
+                    <Slider
+                      value={[settings.pulseDuration || 3]}
+                      onValueChange={([val]) => {
+                        setSettings((p) => ({ ...p, pulseDuration: val }));
+                        window.dispatchEvent(new CustomEvent("aos_settings_updated"));
+                      }}
+                      min={1}
+                      max={10}
+                      step={0.5}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-xs">Highlight POIs</Label>
+                      <p className="text-[10px] text-muted-foreground">
+                        Flash markers when pulse passes over them
+                      </p>
+                    </div>
+                    <Switch
+                      checked={settings.pulseHighlightPOIs ?? true}
+                      onCheckedChange={(checked) => {
+                        setSettings((p) => ({ ...p, pulseHighlightPOIs: checked }));
+                        window.dispatchEvent(new CustomEvent("aos_settings_updated"));
+                      }}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-xs">Pulse Audio</Label>
+                      <p className="text-[10px] text-muted-foreground">
+                        Sonar ping when pulse fires
+                      </p>
+                    </div>
+                    <Switch
+                      checked={settings.pulseAudioEnabled ?? true}
+                      onCheckedChange={(checked) => {
+                        setSettings((p) => ({ ...p, pulseAudioEnabled: checked }));
+                        window.dispatchEvent(new CustomEvent("aos_settings_updated"));
+                      }}
+                    />
+                  </div>
+                  {settings.pulseAudioEnabled && (
+                    <div>
+                      <Label className="text-xs">Pulse Audio Volume: {settings.pulseAudioVolume || 50}%</Label>
+                      <Slider
+                        value={[settings.pulseAudioVolume || 50]}
+                        onValueChange={([val]) => {
+                          setSettings((p) => ({ ...p, pulseAudioVolume: val }));
+                          window.dispatchEvent(new CustomEvent("aos_settings_updated"));
+                        }}
+                        min={0}
+                        max={100}
+                        step={5}
+                      />
+                    </div>
+                  )}
+                </div>
               </ScrollArea>
             </TabsContent>
           </Tabs>

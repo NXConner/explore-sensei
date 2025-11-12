@@ -24,7 +24,7 @@ export const RadarParticles: React.FC<RadarParticlesProps> = ({
   enabled,
   radarSpeed = 3,
   radarType,
-  accentColor = "hsl(var(--primary))",
+  accentColor = "#ff0000", // Default to red
   lowPowerMode = false,
   reduceMotion = false,
   particleDensity = 5,
@@ -126,7 +126,7 @@ export const RadarParticles: React.FC<RadarParticlesProps> = ({
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 pointer-events-none z-[105]"
+      className="absolute inset-0 pointer-events-none z-[var(--z-map-effects)]"
       style={{ mixBlendMode: "screen" }}
     />
   );
