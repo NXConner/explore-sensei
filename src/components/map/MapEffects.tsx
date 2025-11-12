@@ -202,7 +202,7 @@ export const MapEffects = ({
 
       {/* Radar Effects (variant by type) */}
       {showRadar && radarType === "standard" && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden z-[100]">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-[var(--z-map-effects)]">
           <div
             ref={radarRef}
             className="absolute top-1/2 left-1/2 w-[200%] h-[200%]"
@@ -216,7 +216,7 @@ export const MapEffects = ({
       )}
 
       {showRadar && radarType === "sonar" && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden z-[100]">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-[var(--z-map-effects)]">
           {/* Concentric pulsing circles */}
           <div
             ref={sonarRef}
@@ -232,7 +232,7 @@ export const MapEffects = ({
       )}
 
       {showRadar && radarType === "aviation" && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden z-[100]">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-[var(--z-map-effects)]">
           {/* Scanning line with trailing fade */}
           <div
             ref={aviationRef}

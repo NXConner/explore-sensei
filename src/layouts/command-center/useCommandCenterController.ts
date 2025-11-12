@@ -250,6 +250,10 @@ export const useCommandCenterController = (): CommandCenterController => {
             event.preventDefault();
             mapContainerRef.current?.handleModeChange?.("rectangle" as DrawingMode);
             break;
+          case "p":
+            event.preventDefault();
+            window.dispatchEvent(new CustomEvent("manual-pulse-trigger"));
+            break;
           default:
             break;
         }

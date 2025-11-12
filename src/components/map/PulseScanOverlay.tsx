@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { beep } from "@/lib/audioEffects";
 
 interface PulseScanOverlayProps {
   enabled: boolean;
@@ -8,6 +9,9 @@ interface PulseScanOverlayProps {
   duration?: number; // seconds for pulse animation
   highlightMarkers?: boolean;
   userLocation?: { lat: number; lng: number } | null;
+  audioEnabled?: boolean;
+  audioVolume?: number; // 0-100
+  onManualTrigger?: () => void;
 }
 
 export const PulseScanOverlay: React.FC<PulseScanOverlayProps> = ({ 
@@ -17,12 +21,24 @@ export const PulseScanOverlay: React.FC<PulseScanOverlayProps> = ({
   interval = 8,
   duration = 3,
   highlightMarkers = true,
-  userLocation
+  userLocation,
+  audioEnabled = true,
+  audioVolume = 50,
+  onManualTrigger
 }) => {
   const pulseRef = useRef<HTMLDivElement>(null);
   const [pulseRadius, setPulseRadius] = useState(0);
   const animationRef = useRef<number | null>(null);
   const intervalRef = useRef<number | null>(null);
+  const [triggerCount, setTriggerCount] = useState(0);
+
+  // Manual trigger listener
+  useEffect(() => {
+    if (!enabled) return;
+    const handler = () => setTriggerCount((prev) => prev + 1);
+    window.addEventListener("manual-pulse-trigger", handler);
+    return () => window.removeEventListener("manual-pulse-trigger", handler);
+  }, [enabled]);
 
   // Trigger pulse from user location
   useEffect(() => {
@@ -30,6 +46,18 @@ export const PulseScanOverlay: React.FC<PulseScanOverlayProps> = ({
 
     const triggerPulse = () => {
       setPulseRadius(0);
+      
+      // Play sonar ping audio
+      if (audioEnabled) {
+        try {
+          beep({ 
+            frequency: 440, 
+            durationMs: 200, 
+            volume: Math.max(0, Math.min(1, (audioVolume || 50) / 100)), 
+            type: "sine" 
+          });
+        } catch {}
+      }
       
       const startTime = Date.now();
       const endTime = startTime + (duration * 1000);
@@ -65,11 +93,30 @@ export const PulseScanOverlay: React.FC<PulseScanOverlayProps> = ({
             
             if (Math.abs(distance - pixelRadius) < threshold) {
               el.style.filter = `drop-shadow(0 0 20px ${color}) brightness(1.6)`;
-              el.style.transition = 'filter 0.3s ease-out';
+              el.style.transition = 'filter 0.3s ease-out, transform 0.3s ease-out';
               el.style.transform = 'scale(1.15)';
+              
+              // Add pulsing ring animation
+              const ring = document.createElement('div');
+              ring.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 40px;
+                height: 40px;
+                border: 2px solid ${color};
+                border-radius: 50%;
+                transform: translate(-50%, -50%);
+                animation: pulse-ring 0.6s ease-out;
+                pointer-events: none;
+              `;
+              el.style.position = 'relative';
+              el.appendChild(ring);
+              
               setTimeout(() => {
                 el.style.filter = 'none';
                 el.style.transform = 'scale(1)';
+                ring.remove();
               }, 600);
             }
           });
@@ -95,7 +142,7 @@ export const PulseScanOverlay: React.FC<PulseScanOverlayProps> = ({
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [enabled, userLocation, interval, duration, color, highlightMarkers, speed]);
+  }, [enabled, userLocation, interval, duration, color, highlightMarkers, speed, audioEnabled, audioVolume, triggerCount]);
 
   if (!enabled || !userLocation || pulseRadius === 0) return null;
 
@@ -130,6 +177,10 @@ export const PulseScanOverlay: React.FC<PulseScanOverlayProps> = ({
         @keyframes pulse-fade {
           0% { opacity: 1; }
           100% { opacity: 0; }
+        }
+        @keyframes pulse-ring {
+          0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+          100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; }
         }
       `}</style>
     </div>

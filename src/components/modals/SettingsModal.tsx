@@ -136,6 +136,8 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
     pulseSpeed: 5,
     pulseInterval: 8,
     pulseDuration: 3,
+    pulseAudioEnabled: true,
+    pulseAudioVolume: 50,
   });
 
   // Persist settings in localStorage
@@ -1614,6 +1616,27 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                     <p className="text-[10px] text-muted-foreground mb-2">
                       Base color for radar sweep and effects
                     </p>
+                    <div className="flex gap-2 mb-2">
+                      {[
+                        { name: "Red", color: "#ff0000" },
+                        { name: "Blue", color: "#00aaff" },
+                        { name: "Green", color: "#00ff00" },
+                        { name: "Amber", color: "#ff8c00" },
+                      ].map((preset) => (
+                        <Button
+                          key={preset.name}
+                          size="sm"
+                          variant={settings.radarColor === preset.color ? "default" : "outline"}
+                          onClick={() => {
+                            setSettings((p) => ({ ...p, radarColor: preset.color }));
+                            window.dispatchEvent(new CustomEvent("aos_settings_updated"));
+                          }}
+                          className="flex-1"
+                        >
+                          {preset.name}
+                        </Button>
+                      ))}
+                    </div>
                     <Input
                       type="color"
                       value={settings.radarColor || "#ff0000"}
@@ -1721,6 +1744,37 @@ export const SettingsModal = ({ onClose }: SettingsModalProps) => {
                       }}
                     />
                   </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-xs">Pulse Audio</Label>
+                      <p className="text-[10px] text-muted-foreground">
+                        Sonar ping when pulse fires
+                      </p>
+                    </div>
+                    <Switch
+                      checked={settings.pulseAudioEnabled ?? true}
+                      onCheckedChange={(checked) => {
+                        setSettings((p) => ({ ...p, pulseAudioEnabled: checked }));
+                        window.dispatchEvent(new CustomEvent("aos_settings_updated"));
+                      }}
+                    />
+                  </div>
+                  {settings.pulseAudioEnabled && (
+                    <div>
+                      <Label className="text-xs">Pulse Audio Volume: {settings.pulseAudioVolume || 50}%</Label>
+                      <Slider
+                        value={[settings.pulseAudioVolume || 50]}
+                        onValueChange={([val]) => {
+                          setSettings((p) => ({ ...p, pulseAudioVolume: val }));
+                          window.dispatchEvent(new CustomEvent("aos_settings_updated"));
+                        }}
+                        min={0}
+                        max={100}
+                        step={5}
+                      />
+                    </div>
+                  )}
                 </div>
               </ScrollArea>
             </TabsContent>

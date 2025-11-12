@@ -115,6 +115,7 @@ export const MapContainer = forwardRef<
   const [showDarkZones, setShowDarkZones] = useState(false);
   const [showSuitability, setShowSuitability] = useState(false);
   const [showPulseScan, setShowPulseScan] = useState(false);
+  const [manualPulseTrigger, setManualPulseTrigger] = useState(0); // Counter for manual triggers
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [heatmapPoints, setHeatmapPoints] = useState<Array<{ lat: number; lng: number; weight?: number }>>([]);
 
@@ -187,6 +188,8 @@ export const MapContainer = forwardRef<
     pulseSpeed: 5,
     pulseInterval: 8,
     pulseDuration: 3,
+    pulseAudioEnabled: true,
+    pulseAudioVolume: 50,
   });
 
   useEffect(() => {
@@ -278,6 +281,8 @@ export const MapContainer = forwardRef<
           pulseSpeed: parsed.pulseSpeed ?? prev.pulseSpeed ?? 5,
           pulseInterval: parsed.pulseInterval ?? prev.pulseInterval ?? 8,
           pulseDuration: parsed.pulseDuration ?? prev.pulseDuration ?? 3,
+          pulseAudioEnabled: parsed.pulseAudioEnabled ?? prev.pulseAudioEnabled ?? true,
+          pulseAudioVolume: parsed.pulseAudioVolume ?? prev.pulseAudioVolume ?? 50,
         }));
         if (parsed.mapTheme && (parsed.mapTheme === "division" || parsed.mapTheme === "animus")) {
           setMapTheme(parsed.mapTheme);
@@ -306,6 +311,13 @@ export const MapContainer = forwardRef<
       window.removeEventListener("storage", onStorage);
       window.removeEventListener("aos_settings_updated", onCustom as any);
     };
+  }, []);
+
+  // Listen for manual pulse trigger
+  useEffect(() => {
+    const handler = () => setManualPulseTrigger((prev) => prev + 1);
+    window.addEventListener("manual-pulse-trigger", handler);
+    return () => window.removeEventListener("manual-pulse-trigger", handler);
   }, []);
 
   // Listen for Dark Zones toggle from sidebar
@@ -1697,7 +1709,24 @@ export const MapContainer = forwardRef<
         duration={uiSettings.pulseDuration}
         highlightMarkers={uiSettings.markerGlowEnabled && uiSettings.pulseHighlightPOIs}
         userLocation={mapCenter}
+        audioEnabled={uiSettings.pulseAudioEnabled}
+        audioVolume={uiSettings.pulseAudioVolume}
+        onManualTrigger={() => setManualPulseTrigger((prev) => prev + 1)}
       />
+
+      {/* Manual Pulse Trigger Button */}
+      {showPulseScan && (
+        <div className="absolute bottom-24 right-4 z-[var(--z-hud-elements)]">
+          <button
+            className="h-12 w-12 tactical-panel border-primary/30 hover:border-primary/60 hover:bg-primary/10 rounded-lg flex items-center justify-center"
+            onClick={() => setManualPulseTrigger((prev) => prev + 1)}
+            title="Fire Tactical Pulse (P)"
+            aria-label="Fire tactical pulse scan"
+          >
+            <span className="text-primary text-2xl">⊚</span>
+          </button>
+        </div>
+      )}
 
       {/* HUD overlay elements - Remove duplicates, handled by Index.tsx */}
       {/* MiniMap overlay removed; now embedded in sidebar */}

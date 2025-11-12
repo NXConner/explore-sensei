@@ -51,6 +51,8 @@ export interface HUDSettings {
   pulseSpeed?: number; // 1-10
   pulseInterval?: number; // seconds between pulses
   pulseDuration?: number; // seconds for pulse animation
+  pulseAudioEnabled?: boolean;
+  pulseAudioVolume?: number; // 0-100
 }
 
 const STORAGE_KEY = "aos_settings";
